@@ -27,7 +27,7 @@ export function TranslationsProvider({
 }: {
   lang: string;
   messages: Record<string, string>;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   return (
     <TranslationsContext.Provider value={{ lang, messages: catalog }}>{children}</TranslationsContext.Provider>

@@ -20,7 +20,7 @@ describe("UI renders approved DB translations", () => {
       bumpCatalogVersion();
       const catalog = await getTranslations("bn");
       const html = renderToString(
-        createElement(TranslationsProvider, { lang: "bn", messages: catalog, children: createElement(T, { k: key }) })
+        createElement(TranslationsProvider, { lang: "bn", messages: catalog }, createElement(T, { k: key }))
       );
       expect(html).toContain(dbText);
     } finally {
