@@ -51,7 +51,22 @@ This document records architectural, technical, and domain decisions made during
   3. **Phone + SMS OTP (Optional)**: Preserved with an ISO 3166-1 alpha-2 country code picker and custom dial code support.
 - **Rationale**: Sole reliance on SMS OTP creates carrier dependency, delivery failures in international networks, high per-SMS costs, and friction for global users. Multi-method authentication guarantees reliable, zero-barrier onboarding worldwide.
 
-## Scope Governance & Modifications Log (§0)
+### 12. Phase 2: S3 / MinIO Presigned Storage & Local Proxy Fallback (§8.3, B2)
+- **Decision**: Implemented `lib/storage/index.ts` supporting presigned PUT uploads and GET signed downloads via AWS S3 / MinIO SDK. When `S3_ENDPOINT` is unavailable or configured for local development, fallback proxy routes (`/api/files/upload/[...key]` and `/api/files/download`) issue and verify 5-minute cryptographic HMAC tokens (`SHA-256`).
+- **Rationale**: Provides 100% production-compatible presigned architecture for cloud deployment while remaining completely operational in local environments and CI without requiring an active MinIO cluster daemon.
+
+### 13. Phase 2: Private Verification Document Isolation (§8.3, B6, B7)
+- **Decision**: Private verification documents are strictly stored under `private/verification/*`. Direct public URLs are never generated. Access via `/api/files/[key]` strictly enforces `assertCan(user, "manage", "VerificationRequest")` (Admin only). Business owners (even of the target business) receive HTTP 403 (Spec: admin-only for sensitive KYC documents). Signed download URLs expire in 300 seconds (5 minutes).
+- **Rationale**: Prevents data leaks of trade licenses, NIDs, and business documents. Cryptographic expiry prevents permanent link sharing.
+
+### 14. Phase 2: Strict State Machine Transition Rules (§8.3, B4)
+- **Decision**: Repository `lib/repo/verification.ts` enforces allowable transitions: `UNVERIFIED -> PENDING`, `PENDING -> BASIC / VERIFIED / REJECTED`, `BASIC -> VERIFIED / SUSPENDED`, `VERIFIED -> SUSPENDED`, `REJECTED -> PENDING`, `SUSPENDED -> BASIC / VERIFIED`. Any invalid transition throws an error. Reviews atomically insert an `OpsTimeLog` record and an `AuditLog` entry in a single transaction.
+- **Rationale**: Eliminates illegal privilege escalations or audit-less verification state modifications.
+
+### 15. Phase 2: Single Canonical Attribute Engine (§6, A1–A5)
+- **Decision**: Built single `<AttributeFields>` renderer (`components/attributes/AttributeFields.tsx`) and single `buildAttributeZod(schema)` validator (`lib/attributes.ts`). All forms, server actions, and future AI validations share this exact implementation. Deprecated attributes not in schema are displayed in a distinct read-only section. Unknown fields are stripped during validation.
+- **Rationale**: Guarantees DRY validation rules across client, server, and background jobs. Prevents schema drift when categories evolve.
+
 
 ### 1. Scope Governance Rule
 All deviations from the original specification require explicit founder review and approval prior to implementation.

@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
 
     // Update active business in session
     session.activeBusinessId = business.id;
+    session.businessRole = "OWNER";
     await session.save();
 
     await logAudit({
