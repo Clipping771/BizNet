@@ -40,7 +40,7 @@ jobs:
       ADMIN_EMAILS: "admin@biznet.com"
       DEV_TEST_PHONES: "+8801700000001,+8801700000002"
       STORAGE_DRIVER: "s3"
-      S3_ENDPOINT: "http://localhost:9000"
+      S3_ENDPOINT: "http://127.0.0.1:9000" # not localhost: Node 22 resolves it to ::1
       S3_ACCESS_KEY: "minioadmin"
       S3_SECRET_KEY: "minioadmin"
       S3_BUCKET_PUBLIC: "biznet-public"
