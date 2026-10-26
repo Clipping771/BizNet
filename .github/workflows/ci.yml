@@ -38,6 +38,7 @@ jobs:
       STT_PROVIDER: "mock"
       TRANSLATION_PROVIDER: "mock"
       ADMIN_EMAILS: "admin@biznet.com"
+      DEV_TEST_PHONES: "+8801700000001,+8801700000002"
 
     steps:
       - name: Checkout Repository
