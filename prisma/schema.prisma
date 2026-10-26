@@ -1,0 +1,991 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm, unaccent]
+}
+
+// ================= Enums =================
+enum PlatformRole {
+  USER
+  ADMIN
+}
+enum MemberRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+enum InviteRole {
+  MANAGER
+  STAFF
+}
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  BASIC
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+enum RequestStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  AWARDED
+  CANCELLED
+  EXPIRED
+}
+enum RequestOutcome {
+  NONE
+  ORDER_COMPLETED
+  ORDER_CANCELLED
+  ORDER_DISPUTE_CLOSED
+}
+enum QuoteStatus {
+  SUBMITTED
+  REVISED
+  WITHDRAWN
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+enum QuoteSource {
+  SUPPLIER
+  CONCIERGE
+}
+enum OrderStatus {
+  CONFIRMED
+  DISPATCHED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+enum DisputeResolution {
+  RESOLVED_COMPLETED
+  RESOLVED_CANCELLED
+}
+enum PaymentTerm {
+  CASH_ON_DELIVERY
+  ADVANCE
+  CREDIT_7
+  CREDIT_15
+  CREDIT_30
+  OTHER
+}
+enum Priority {
+  PRICE
+  SPEED
+  PAYMENT_TERMS
+  BALANCED
+}
+enum QuestionStatus {
+  OPEN
+  ANSWERED
+  SOLVED
+  CLOSED
+  PENDING_REVIEW
+}
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  ACTION_TAKEN
+  DISMISSED
+}
+enum LanguageStatus {
+  DRAFT
+  BETA
+  ACTIVE
+  DISABLED
+}
+enum TranslationSource {
+  BUILTIN
+  MACHINE
+  HUMAN
+  REVIEWED
+}
+enum AiFeature {
+  REQUEST_ASSISTANT
+  QUOTE_COMPARISON
+  TRANSLATION
+  TRANSCRIPTION
+}
+enum AiOutcome {
+  ACCEPTED_AS_IS
+  EDITED
+  DISCARDED
+  ERROR
+  FALLBACK
+}
+enum VoteTarget {
+  QUESTION
+  ANSWER
+}
+enum ContactRevealReason {
+  ORDER
+  BUYER_REQUESTED_AFTER_QUOTE
+}
+
+// ================= Identity =================
+model User {
+  id               String       @id @default(cuid())
+  phone            String?      @unique
+  phoneVerified    Boolean      @default(false)
+  email            String?      @unique
+  emailVerified    Boolean      @default(false)
+  name             String
+  uiLanguage       String       @default("bn")
+  contentLanguages String[]     @default(["bn"])
+  autoTranslate    Boolean      @default(false)
+  role             PlatformRole @default(USER)
+  isBanned         Boolean      @default(false)
+  activeBusinessId String?
+  deletedAt        DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  passkeys             Passkey[]
+  activeBusiness       Business?             @relation("ActiveBusiness", fields: [activeBusinessId], references: [id], onDelete: SetNull)
+  memberships          Membership[]
+  invitesSent          MemberInvite[]        @relation("InviteSender")
+  verificationsSubmitted VerificationRequest[] @relation("VerificationSubmitter")
+  verificationsReviewed  VerificationRequest[] @relation("VerificationReviewer")
+  requestsCreated      Request[]             @relation("RequestCreator")
+  quotesCreated        Quote[]               @relation("QuoteCreator")
+  feedbackGiven        ReliabilityFeedback[]
+  messagesSent         Message[]
+  questions            Question[]
+  answers              Answer[]
+  votes                Vote[]
+  reportsFiled         Report[]              @relation("ReportFiler")
+  reportsResolved      Report[]              @relation("ReportResolver")
+  opsTimeLogs          OpsTimeLog[]
+  notifications        Notification[]
+  aiInteractions       AiInteraction[]
+  translationsReviewed UiTranslation[]
+  priceExclusions      MarketPriceExclusion[]
+  ownershipTransfersFrom OwnershipTransfer[] @relation("TransferFrom")
+  ownershipTransfersTo   OwnershipTransfer[] @relation("TransferTo")
+
+  @@index([activeBusinessId])
+}
+
+model Passkey {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String   @unique
+  publicKey    String
+  counter      BigInt   @default(0)
+  deviceType   String?
+  backedUp     Boolean  @default(false)
+  transports   String[] @default([])
+  name         String   @default("Passkey")
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasskeyChallenge {
+  id        String   @id @default(cuid())
+  challenge String   @unique
+  userId    String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String?
+  email      String?
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+  @@index([email, createdAt])
+}
+
+model Business {
+  id                  String             @id @default(cuid())
+  slug                String             @unique
+  name                String
+  lang                String             @default("bn")
+  description         String?
+  isBuyer             Boolean            @default(false)
+  isSupplier          Boolean            @default(false)
+  businessType        String
+  phonePublic         String?
+  whatsapp            String?
+  addressLine         String
+  search_vector       Unsupported("tsvector")?
+  area                String
+  city                String
+  lat                 Float?
+  lng                 Float?
+  deliveryAreas       String[]
+  logoKey             String?
+  verificationStatus  VerificationStatus @default(UNVERIFIED)
+  verifiedAt          DateTime?
+  isSuspended         Boolean            @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  activeForUsers       User[]                @relation("ActiveBusiness")
+  members              Membership[]
+  invites              MemberInvite[]
+  ownershipTransfers   OwnershipTransfer[]
+  verificationRequests VerificationRequest[]
+  supplierCategories   SupplierCategory[]
+  listings             Listing[]
+  requestsAsBuyer      Request[]             @relation("BuyerRequests")
+  directRequests       Request[]             @relation("DirectSupplierRequests")
+  invitesReceived      RequestInvite[]
+  quotes               Quote[]
+  ordersAsBuyer        Order[]               @relation("BuyerOrders")
+  ordersAsSupplier     Order[]               @relation("SupplierOrders")
+  conversationsAsBuyer    Conversation[]     @relation("ConvBuyer")
+  conversationsAsSupplier Conversation[]     @relation("ConvSupplier")
+  messagesSent         Message[]
+  revealsAsBuyer       ContactReveal[]       @relation("RevealBuyer")
+  revealsAsSupplier    ContactReveal[]       @relation("RevealSupplier")
+  questions            Question[]
+  answers              Answer[]
+  aiInteractions       AiInteraction[]
+  creditLedger         LeadCreditLedger[]
+  payments             PaymentSubmission[]
+
+  @@index([city, area])
+  @@index([verificationStatus, isSupplier])
+  @@index([search_vector], type: Gin, map: "idx_business_search_vector")
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_business_name_trgm")
+}
+
+model Membership {
+  id         String     @id @default(cuid())
+  userId     String
+  businessId String
+  role       MemberRole
+  createdAt  DateTime   @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, businessId])
+  @@index([businessId])
+}
+
+model MemberInvite {
+  id              String     @id @default(cuid())
+  businessId      String
+  invitedByUserId String
+  phone           String?
+  email           String?
+  role            InviteRole                 // OWNER can never be invited
+  tokenHash       String     @unique
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime   @default(now())
+
+  business  Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invitedBy User     @relation("InviteSender", fields: [invitedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([businessId])
+  @@index([invitedByUserId])
+  @@index([phone])
+  @@index([email])
+}
+
+model OwnershipTransfer {
+  id          String    @id @default(cuid())
+  businessId  String
+  fromUserId  String
+  toUserId    String
+  confirmedAt DateTime?
+  cancelledAt DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  fromUser User     @relation("TransferFrom", fields: [fromUserId], references: [id], onDelete: Restrict)
+  toUser   User     @relation("TransferTo", fields: [toUserId], references: [id], onDelete: Restrict)
+
+  @@index([businessId])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
+
+model VerificationRequest {
+  id                String             @id @default(cuid())
+  businessId        String
+  submittedByUserId String
+  tradeLicenseNo    String?
+  documentKeys      String[]
+  referenceName     String?
+  referencePhone    String?
+  status            VerificationStatus @default(PENDING)
+  checklist         Json?
+  reviewerUserId    String?
+  reviewNote        String?
+  minutesSpent      Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  submittedBy User     @relation("VerificationSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
+  reviewer    User?    @relation("VerificationReviewer", fields: [reviewerUserId], references: [id], onDelete: SetNull)
+
+  @@index([businessId])
+  @@index([submittedByUserId])
+  @@index([reviewerUserId])
+  @@index([status, createdAt])
+}
+
+// ================= Catalog =================
+model Category {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  parentId        String?
+  attributeSchema Json
+  defaultUnits    String[]
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+
+  parent             Category?             @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children           Category[]            @relation("CategoryTree")
+  supplierCategories SupplierCategory[]
+  listings           Listing[]
+  requests           Request[]
+  questions          Question[]
+  priceSnapshots     MarketPriceSnapshot[]
+
+  @@index([parentId])
+}
+
+model SupplierCategory {
+  businessId String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([businessId, categoryId])
+  @@index([categoryId])
+}
+
+model Listing {
+  id           String    @id @default(cuid())
+  businessId   String
+  categoryId   String
+  title        String
+  lang         String    @default("bn")
+  description  String?
+  attributes   Json
+  unit         String
+  priceMin     Decimal?  @db.Decimal(14, 2)
+  priceMax     Decimal?  @db.Decimal(14, 2)
+  currency     String    @default("BDT")
+  moq          Int?
+  leadTimeDays Int?
+  imageKeys    String[]
+  isActive     Boolean   @default(true)
+  deletedAt    DateTime?
+  search_vector Unsupported("tsvector")?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([businessId])
+  @@index([categoryId, isActive])
+  @@index([search_vector], type: Gin, map: "idx_listing_search_vector")
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_listing_title_trgm")
+}
+
+// ================= Core loop =================
+model Request {
+  id                   String         @id @default(cuid())
+  code                 String         @unique
+  buyerBusinessId      String
+  createdByUserId      String
+  categoryId           String
+  title                String
+  lang                 String         @default("bn")
+  originalNeedText     String?
+  description          String?
+  attributes           Json
+  quantity             Decimal        @db.Decimal(14, 3)
+  unit                 String
+  neededBy             DateTime?
+  deliveryArea         String
+  preferredPaymentTerm PaymentTerm?
+  priority             Priority       @default(BALANCED)
+  budgetNote           String?
+  imageKeys            String[]
+  status               RequestStatus  @default(DRAFT)
+  outcome              RequestOutcome @default(NONE)
+  closesAt             DateTime?
+  repeatOfRequestId    String?
+  directSupplierId     String?
+  awardedQuoteId       String?        @unique
+  aiInteractionId      String?        @unique
+  createdViaConcierge  Boolean        @default(false)
+  idempotencyKey       String?        @unique
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  buyerBusiness  Business       @relation("BuyerRequests", fields: [buyerBusinessId], references: [id], onDelete: Restrict)
+  createdBy      User           @relation("RequestCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  category       Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  repeatOf       Request?       @relation("RequestRepeat", fields: [repeatOfRequestId], references: [id], onDelete: SetNull)
+  repeats        Request[]      @relation("RequestRepeat")
+  directSupplier Business?      @relation("DirectSupplierRequests", fields: [directSupplierId], references: [id], onDelete: SetNull)
+  awardedQuote   Quote?         @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: Restrict)
+  aiInteraction  AiInteraction? @relation(fields: [aiInteractionId], references: [id], onDelete: SetNull)
+  quotes         Quote[]        @relation("RequestQuotes")
+  invites        RequestInvite[]
+  order          Order?
+  conversations  Conversation[]
+
+  @@index([buyerBusinessId, createdAt])
+  @@index([createdByUserId])
+  @@index([categoryId])
+  @@index([status, categoryId, closesAt])
+  @@index([repeatOfRequestId])
+  @@index([directSupplierId])
+}
+
+model RequestInvite {
+  id                 String    @id @default(cuid())
+  requestId          String
+  supplierBusinessId String
+  rank               Int
+  score              Int
+  reasons            Json
+  notifiedAt         DateTime  @default(now())
+  viewedAt           DateTime?
+
+  request          Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  supplierBusiness Business @relation(fields: [supplierBusinessId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, supplierBusinessId])
+  @@index([supplierBusinessId, notifiedAt])
+}
+
+model Quote {
+  id                 String      @id @default(cuid())
+  requestId          String
+  supplierBusinessId String
+  createdByUserId    String
+  unitPrice          Decimal     @db.Decimal(14, 2)
+  quantity           Decimal     @db.Decimal(14, 3)
+  deliveryCharge     Decimal     @default(0) @db.Decimal(14, 2)
+  totalPrice         Decimal     @db.Decimal(14, 2)
+  currency           String      @default("BDT")
+  deliveryDays       Int
+  paymentTerm        PaymentTerm
+  validUntil         DateTime
+  specMatch          Json
+  lang               String      @default("bn")
+  notes              String?
+  attachmentKeys     String[]
+  status             QuoteStatus @default(SUBMITTED)
+  version            Int         @default(1)
+  source             QuoteSource @default(SUPPLIER)
+  idempotencyKey     String?     @unique
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  request          Request               @relation("RequestQuotes", fields: [requestId], references: [id], onDelete: Restrict)
+  supplierBusiness Business              @relation(fields: [supplierBusinessId], references: [id], onDelete: Restrict)
+  createdBy        User                  @relation("QuoteCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  awardedFor       Request?              @relation("AwardedQuote")
+  order            Order?
+  revisions        QuoteRevision[]
+  priceExclusions  MarketPriceExclusion[]
+
+  @@unique([requestId, supplierBusinessId])
+  @@index([supplierBusinessId, status])
+  @@index([createdByUserId])
+  @@index([status, createdAt])
+}
+
+model QuoteRevision {
+  id        String   @id @default(cuid())
+  quoteId   String
+  version   Int
+  snapshot  Json
+  createdAt DateTime @default(now())
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@unique([quoteId, version])
+}
+
+model Order {
+  id                 String             @id @default(cuid())
+  code               String             @unique
+  requestId          String             @unique
+  quoteId            String             @unique
+  buyerBusinessId    String
+  supplierBusinessId String
+  snapshot           Json
+  status             OrderStatus        @default(CONFIRMED)
+  expectedDeliveryAt DateTime?
+  dispatchedAt       DateTime?
+  deliveredAt        DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancelledBySide    String?            // BUYER | SUPPLIER | ADMIN
+  cancelReason       String?
+  disputedAt         DateTime?
+  disputeReason      String?
+  disputeResolution  DisputeResolution?
+  disputeResolvedAt  DateTime?
+  disputeNote        String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  request          Request              @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  quote            Quote                @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  buyerBusiness    Business             @relation("BuyerOrders", fields: [buyerBusinessId], references: [id], onDelete: Restrict)
+  supplierBusiness Business             @relation("SupplierOrders", fields: [supplierBusinessId], references: [id], onDelete: Restrict)
+  feedback         ReliabilityFeedback?
+  statusHistory    OrderStatusChange[]
+
+  @@index([buyerBusinessId, createdAt])
+  @@index([supplierBusinessId, createdAt])
+  @@index([status, deliveredAt])
+}
+
+model OrderStatusChange {
+  id          String       @id @default(cuid())
+  orderId     String
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  actorUserId String?
+  actorSide   String       // BUYER | SUPPLIER | ADMIN | SYSTEM
+  reason      String?
+  createdAt   DateTime     @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+model ReliabilityFeedback {
+  id              String   @id @default(cuid())
+  orderId         String   @unique
+  onTime          Boolean?
+  quantityCorrect Boolean?
+  matchedSpec     Boolean?
+  hadIssue        Boolean  @default(false)
+  issueResolved   Boolean?
+  note            String?
+  createdByUserId String
+  createdAt       DateTime @default(now())
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([createdByUserId])
+}
+
+// ================= Messaging =================
+model Conversation {
+  id                 String   @id @default(cuid())
+  requestId          String
+  buyerBusinessId    String
+  supplierBusinessId String
+  lastMessageAt      DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  request          Request   @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  buyerBusiness    Business  @relation("ConvBuyer", fields: [buyerBusinessId], references: [id], onDelete: Cascade)
+  supplierBusiness Business  @relation("ConvSupplier", fields: [supplierBusinessId], references: [id], onDelete: Cascade)
+  messages         Message[]
+
+  @@unique([requestId, supplierBusinessId])
+  @@index([buyerBusinessId, lastMessageAt])
+  @@index([supplierBusinessId, lastMessageAt])
+}
+
+model Message {
+  id               String    @id @default(cuid())
+  conversationId   String
+  senderUserId     String
+  senderBusinessId String
+  body             String
+  lang             String    @default("bn")
+  attachmentKeys   String[]
+  contactFlagged   Boolean   @default(false)
+  readAt           DateTime?
+  createdAt        DateTime  @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderUserId], references: [id], onDelete: Restrict)
+  senderBusiness Business     @relation(fields: [senderBusinessId], references: [id], onDelete: Restrict)
+
+  @@index([conversationId, createdAt])
+  @@index([senderUserId])
+  @@index([senderBusinessId])
+}
+
+model ContactReveal {
+  id                 String              @id @default(cuid())
+  buyerBusinessId    String
+  supplierBusinessId String
+  reason             ContactRevealReason
+  createdAt          DateTime            @default(now())
+
+  buyerBusiness    Business @relation("RevealBuyer", fields: [buyerBusinessId], references: [id], onDelete: Cascade)
+  supplierBusiness Business @relation("RevealSupplier", fields: [supplierBusinessId], references: [id], onDelete: Cascade)
+
+  @@unique([buyerBusinessId, supplierBusinessId])
+  @@index([supplierBusinessId])
+}
+
+// ================= Discussion (LITE) =================
+model Question {
+  id               String         @id @default(cuid())
+  authorUserId     String
+  authorBusinessId String?
+  isAnonymous      Boolean        @default(false)
+  categoryId       String?
+  title            String
+  body             String
+  lang             String         @default("bn")
+  status           QuestionStatus @default(OPEN)
+  acceptedAnswerId String?        @unique
+  score            Int            @default(0)
+  answerCount      Int            @default(0)
+  deletedAt        DateTime?
+  search_vector    Unsupported("tsvector")?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  author         User      @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  authorBusiness Business? @relation(fields: [authorBusinessId], references: [id], onDelete: SetNull)
+  category       Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  acceptedAnswer Answer?   @relation("AcceptedAnswer", fields: [acceptedAnswerId], references: [id], onDelete: SetNull)
+  answers        Answer[]  @relation("QuestionAnswers")
+
+  @@index([authorUserId])
+  @@index([authorBusinessId])
+  @@index([categoryId, createdAt])
+  @@index([status, createdAt])
+  @@index([search_vector], type: Gin, map: "idx_question_search_vector")
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_question_title_trgm")
+}
+
+model Answer {
+  id               String    @id @default(cuid())
+  questionId       String
+  authorUserId     String
+  authorBusinessId String?
+  body             String
+  lang             String    @default("bn")
+  score            Int       @default(0)
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  question       Question  @relation("QuestionAnswers", fields: [questionId], references: [id], onDelete: Cascade)
+  author         User      @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  authorBusiness Business? @relation(fields: [authorBusinessId], references: [id], onDelete: SetNull)
+  acceptedFor    Question? @relation("AcceptedAnswer")
+
+  @@index([questionId, createdAt])
+  @@index([authorUserId])
+  @@index([authorBusinessId])
+}
+
+model Vote {
+  id         String     @id @default(cuid())
+  userId     String
+  targetType VoteTarget
+  targetId   String     // polymorphic; integrity enforced in service + test
+  value      Int
+  createdAt  DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+}
+
+// ================= Market prices (LITE) =================
+model MarketPriceSnapshot {
+  id               String   @id @default(cuid())
+  categoryId       String
+  specKey          String
+  specLabel        Json
+  unit             String
+  quantityBand     String
+  deliveryIncluded Boolean
+  area             String?
+  periodStart      DateTime
+  periodEnd        DateTime
+  sampleQuotes     Int
+  sampleSuppliers  Int
+  p25              Decimal  @db.Decimal(14, 4)
+  median           Decimal  @db.Decimal(14, 4)
+  p75              Decimal  @db.Decimal(14, 4)
+  excludedCount    Int
+  isPublishable    Boolean
+  computedAt       DateTime @default(now())
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId, periodEnd])
+}
+
+model MarketPriceExclusion {
+  id            String   @id @default(cuid())
+  quoteId       String   @unique
+  reason        String
+  createdByUserId String
+  createdAt     DateTime @default(now())
+
+  quote     Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([createdByUserId])
+}
+
+// ================= Trust & ops =================
+model Report {
+  id               String       @id @default(cuid())
+  reporterUserId   String
+  targetType       String
+  targetId         String
+  reason           String
+  details          String?
+  status           ReportStatus @default(OPEN)
+  resolvedByUserId String?
+  resolutionNote   String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  reporter   User  @relation("ReportFiler", fields: [reporterUserId], references: [id], onDelete: Restrict)
+  resolvedBy User? @relation("ReportResolver", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([reporterUserId])
+  @@index([resolvedByUserId])
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+model OpsTimeLog {
+  id        String   @id @default(cuid())
+  userId    String
+  activity  String
+  minutes   Int
+  refType   String?
+  refId     String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([activity, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  params    Json
+  link      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+model AuditLog {
+  id              String   @id @default(cuid())
+  actorUserId     String?
+  actorBusinessId String?
+  action          String
+  entityType      String
+  entityId        String
+  before          Json?
+  after           Json?
+  ip              String?
+  createdAt       DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+}
+
+model Event {
+  id         String   @id @default(cuid())
+  userId     String?
+  businessId String?
+  name       String
+  props      Json?
+  createdAt  DateTime @default(now())
+
+  @@index([name, createdAt])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model RateLimitBucket {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+}
+
+// ================= AI =================
+model AiInteraction {
+  id            String     @id @default(cuid())
+  userId        String?
+  businessId    String?
+  feature       AiFeature
+  promptVersion String
+  provider      String
+  model         String
+  inputHash     String
+  input         Json
+  output        Json?
+  inputTokens   Int        @default(0)
+  outputTokens  Int        @default(0)
+  costUsd       Decimal    @default(0) @db.Decimal(10, 6)
+  latencyMs     Int        @default(0)
+  cacheHit      Boolean    @default(false)
+  outcome       AiOutcome?
+  editedFields  String[]
+  rating        Int?
+  createdAt     DateTime   @default(now())
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  business Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  request  Request?
+
+  @@index([userId, createdAt])
+  @@index([businessId])
+  @@index([feature, createdAt])
+  @@index([inputHash])
+}
+
+model AiBudgetCounter {          // atomic reservation: UPDATE ... SET spent = spent + $maxCost WHERE spent + $maxCost <= cap
+  scope     String   // "global" | "user:<id>"
+  day       DateTime @db.Date
+  spentUsd  Decimal  @default(0) @db.Decimal(12, 6)
+  calls     Int      @default(0)
+
+  @@id([scope, day])
+}
+
+// ================= i18n (READY) =================
+model Language {
+  code            String         @id
+  nameNative      String
+  nameEnglish     String
+  direction       String         @default("ltr")
+  fontFamily      String?
+  fallbackCode    String         @default("en")
+  numberingSystem String?
+  status          LanguageStatus @default(DRAFT)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  translations UiTranslation[]
+}
+
+model UiString {
+  key          String   @id
+  defaultText  String
+  context      String?
+  isCritical   Boolean  @default(false)
+  placeholders String[]
+  updatedAt    DateTime @updatedAt
+
+  translations UiTranslation[]
+}
+
+model UiTranslation {
+  id             String            @id @default(cuid())
+  key            String
+  langCode       String
+  text           String
+  source         TranslationSource
+  isApproved     Boolean           @default(false)
+  reviewerUserId String?
+  version        Int               @default(1)
+  updatedAt      DateTime          @updatedAt
+
+  uiString UiString @relation(fields: [key], references: [key], onDelete: Cascade)
+  language Language @relation(fields: [langCode], references: [code], onDelete: Cascade)
+  reviewer User?    @relation(fields: [reviewerUserId], references: [id], onDelete: SetNull)
+
+  @@unique([key, langCode])
+  @@index([langCode, isApproved])
+  @@index([reviewerUserId])
+}
+
+model ContentTranslation {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  field      String
+  sourceLang String
+  targetLang String
+  sourceHash String
+  text       String
+  provider   String
+  createdAt  DateTime @default(now())
+
+  @@unique([entityType, entityId, field, targetLang, sourceHash])
+}
+
+// ================= Monetization (READY, off) =================
+model LeadCreditLedger {
+  id         String   @id @default(cuid())
+  businessId String
+  delta      Int
+  reason     String
+  refId      String?
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  @@index([businessId])
+}
+
+model PaymentSubmission {
+  id               String   @id @default(cuid())
+  businessId       String
+  method           String
+  amount           Decimal  @db.Decimal(14, 2)
+  trxId            String   @unique
+  senderNumber     String
+  creditsRequested Int
+  status           String   @default("SUBMITTED")
+  reviewedByUserId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  @@index([businessId])
+}
