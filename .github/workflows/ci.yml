@@ -43,14 +43,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
+          node-version: 22
+
+      # pnpm/action-setup's self-installer fails for pnpm 12; install the version
+      # pinned in package.json "packageManager" with npm instead.
+      - name: Install pnpm
+        run: npm install -g pnpm@$(node -p "require('./package.json').packageManager.split('@')[1]")
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
