@@ -1,7 +1,9 @@
 # Phase 2 (Supply Side) Implementation Report
 **BizNet MVP v2.3 — §16 Acceptance & Delivery Specification**  
 **Date:** October 26, 2026  
-**Branch:** `phase-2`  
+**Branch:** `phase-2` (pushed to `origin/phase-2`)  
+**Pull Request URL:** https://github.com/Clipping771/BizNet/pull/new/phase-2  
+
 
 ---
 
