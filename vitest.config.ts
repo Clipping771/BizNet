@@ -40,7 +40,7 @@ export default defineConfig({
     // All suites share one database; run files one at a time so cleanup in one
     // suite can never race with assertions in another.
     fileParallelism: false,
-    env: { ...env, DATABASE_URL: testUrl, TEST_DATABASE_URL: testUrl },
+    env: { ...env, DATABASE_URL: testUrl, TEST_DATABASE_URL: testUrl, STORAGE_DRIVER: "memory" },
   },
   resolve: {
     alias: {

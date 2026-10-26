@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, master]
+    branches: ["**"]
   pull_request:
     branches: [main, master]
 
@@ -39,6 +39,12 @@ jobs:
       TRANSLATION_PROVIDER: "mock"
       ADMIN_EMAILS: "admin@biznet.com"
       DEV_TEST_PHONES: "+8801700000001,+8801700000002"
+      STORAGE_DRIVER: "s3"
+      S3_ENDPOINT: "http://localhost:9000"
+      S3_ACCESS_KEY: "minioadmin"
+      S3_SECRET_KEY: "minioadmin"
+      S3_BUCKET_PUBLIC: "biznet-public"
+      S3_BUCKET_PRIVATE: "biznet-private"
 
     steps:
       - name: Checkout Repository
@@ -56,6 +62,14 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Start MinIO (S3)
+        run: |
+          docker run -d --name minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio:RELEASE.2025-04-22T22-12-26Z server /data
+          for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/live && break; sleep 2; done
+
+      - name: Create S3 Buckets
+        run: npx tsx scripts/ensure-buckets.ts
 
       - name: Prisma Validate
         run: npx prisma validate

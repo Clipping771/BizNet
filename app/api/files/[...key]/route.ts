@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan, AuthorizationError } from "@/lib/authz";
 import { getPrivateFileSignedUrl } from "@/lib/storage";
-import { PlatformRole } from "@prisma/client";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ key: string[] }> }
 ) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
     const resolvedParams = await params;
@@ -22,12 +21,7 @@ export async function GET(
     const isVerificationDocument =
       rawKey.includes("verification") || rawKey.startsWith("private/");
 
-    const ctx = {
-      userId: session.userId,
-      role: session.role || PlatformRole.USER,
-      activeBusinessId: session.activeBusinessId || null,
-      businessRole: session.businessRole || null,
-    };
+    const ctx = dbCtx;
 
     assertCan(ctx, "file:read_private", {
       isVerificationDocument,

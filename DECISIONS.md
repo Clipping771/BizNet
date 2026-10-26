@@ -82,3 +82,11 @@ All deviations from the original specification require explicit founder review a
 
 
 
+
+## Phase 2 storage decisions (post-review)
+
+| Decision | Where | Why |
+|---|---|---|
+| Uploads go through the app with HMAC-signed tickets instead of browser-to-S3 presigned PUTs | `lib/storage/index.ts`, `app/api/files/upload/**` | One code path for MinIO, R2 and tests; the ticket binds key, content type, size, expiry and user, and the app enforces size while streaming. Files still land in the S3 public/private buckets (§4). |
+| `STORAGE_DRIVER=memory` only by explicit opt-in | `lib/storage/index.ts` | Tests and machines without MinIO. Refused on non-localhost production so files can never silently live in RAM. |
+| BASIC/VERIFIED businesses keep their level while an upgrade request is pending | `lib/repo/verification.ts` | Asking for VERIFIED must not remove the BASIC badge or listing rights (§8.3). |

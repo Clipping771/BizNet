@@ -145,12 +145,12 @@ describe("Phase 2 - B. Verification & Storage (§8.3, F3)", () => {
     const legalTransitions: [VerificationStatus, VerificationStatus][] = [
       [VerificationStatus.UNVERIFIED, VerificationStatus.PENDING],
       [VerificationStatus.PENDING, VerificationStatus.BASIC],
+      [VerificationStatus.PENDING, VerificationStatus.VERIFIED], // BASIC checks + license in one review
       [VerificationStatus.PENDING, VerificationStatus.REJECTED],
+      [VerificationStatus.PENDING, VerificationStatus.SUSPENDED],
       [VerificationStatus.BASIC, VerificationStatus.VERIFIED],
-      [VerificationStatus.BASIC, VerificationStatus.PENDING],
       [VerificationStatus.BASIC, VerificationStatus.SUSPENDED],
       [VerificationStatus.VERIFIED, VerificationStatus.SUSPENDED],
-      [VerificationStatus.VERIFIED, VerificationStatus.PENDING],
       [VerificationStatus.REJECTED, VerificationStatus.PENDING],
       [VerificationStatus.SUSPENDED, VerificationStatus.BASIC],
       [VerificationStatus.SUSPENDED, VerificationStatus.VERIFIED],
@@ -161,8 +161,9 @@ describe("Phase 2 - B. Verification & Storage (§8.3, F3)", () => {
       [VerificationStatus.UNVERIFIED, VerificationStatus.BASIC], // cannot skip PENDING
       [VerificationStatus.UNVERIFIED, VerificationStatus.VERIFIED], // cannot jump to VERIFIED
       [VerificationStatus.UNVERIFIED, VerificationStatus.REJECTED],
-      [VerificationStatus.PENDING, VerificationStatus.VERIFIED], // cannot skip BASIC
       [VerificationStatus.PENDING, VerificationStatus.UNVERIFIED],
+      [VerificationStatus.BASIC, VerificationStatus.PENDING], // upgrade request keeps BASIC
+      [VerificationStatus.VERIFIED, VerificationStatus.PENDING],
       [VerificationStatus.VERIFIED, VerificationStatus.UNVERIFIED], // verified cannot demote to unverified
       [VerificationStatus.REJECTED, VerificationStatus.BASIC], // rejected must re-apply first
       [VerificationStatus.REJECTED, VerificationStatus.VERIFIED],
@@ -227,17 +228,17 @@ describe("Phase 2 - B. Verification & Storage (§8.3, F3)", () => {
 
   describe("B1 & B3: Verification Submission, Review & Atomic Audit/Ops Logging", () => {
     let createdRequestId: string;
-    const testDocKey = "private/verification/test-doc-key.pdf";
+    const testDocKey = () => `private/verification/${testBusiness.id}/test-doc-key.pdf`;
 
     it("B1: supplier submits verification and status transitions to PENDING", async () => {
       // Store dummy document in private storage
-      await putFile(testDocKey, Buffer.from("PDF Mock Content"), "application/pdf", true);
+      await putFile(testDocKey(), Buffer.from("PDF Mock Content"), "application/pdf", true);
 
       const vr = await submitVerificationRequest({
         businessId: testBusiness.id,
         userId: supplierUser.id,
         tradeLicenseNo: "TRAD-DHAKA-12345",
-        documentKeys: [testDocKey],
+        documentKeys: [testDocKey()],
         referenceName: "Rahim Bhai",
         referencePhone: "+8801711112222",
       });

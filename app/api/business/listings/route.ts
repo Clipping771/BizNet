@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan, AuthorizationError } from "@/lib/authz";
 import { getBusinessById } from "@/lib/repo/business";
 import {
@@ -8,19 +8,18 @@ import {
   getAllCategories,
   ListingError,
 } from "@/lib/repo/listing";
-import { PlatformRole } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId || !session.activeBusinessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx || !dbCtx.activeBusinessId) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
     const [listings, categories, business] = await Promise.all([
-      getListingsForBusiness(session.activeBusinessId, true),
+      getListingsForBusiness(dbCtx.activeBusinessId, true),
       getAllCategories(),
-      getBusinessById(session.activeBusinessId),
+      getBusinessById(dbCtx.activeBusinessId),
     ]);
 
     return NextResponse.json({
@@ -40,29 +39,17 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId || !session.activeBusinessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx || !dbCtx.activeBusinessId) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
-    const business = await getBusinessById(session.activeBusinessId);
+    const business = await getBusinessById(dbCtx.activeBusinessId);
     if (!business) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
-    let businessRole = session.businessRole;
-    if (!businessRole) {
-      const { getUserMembership } = await import("@/lib/repo/membership");
-      const membership = await getUserMembership(session.userId, session.activeBusinessId);
-      businessRole = membership?.role || undefined;
-    }
-
-    const ctx = {
-      userId: session.userId,
-      role: session.role || PlatformRole.USER,
-      activeBusinessId: session.activeBusinessId,
-      businessRole: businessRole || null,
-    };
+    const ctx = dbCtx;
 
     // Strict server assertion (§7, C2, C3)
     assertCan(ctx, "listing:create", {

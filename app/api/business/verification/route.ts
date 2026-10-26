@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan, AuthorizationError } from "@/lib/authz";
 import { getBusinessById } from "@/lib/repo/business";
 import {
@@ -7,16 +7,15 @@ import {
   getLatestVerificationForBusiness,
   VerificationError,
 } from "@/lib/repo/verification";
-import { PlatformRole } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId || !session.activeBusinessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx || !dbCtx.activeBusinessId) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
-    const business = await getBusinessById(session.activeBusinessId);
+    const business = await getBusinessById(dbCtx.activeBusinessId);
     if (!business) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
@@ -39,22 +38,17 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId || !session.activeBusinessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx || !dbCtx.activeBusinessId) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
-    const business = await getBusinessById(session.activeBusinessId);
+    const business = await getBusinessById(dbCtx.activeBusinessId);
     if (!business) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
-    const ctx = {
-      userId: session.userId,
-      role: session.role || PlatformRole.USER,
-      activeBusinessId: session.activeBusinessId,
-      businessRole: session.businessRole || null,
-    };
+    const ctx = dbCtx;
 
     assertCan(ctx, "business:verification_request", {
       businessId: business.id,
@@ -66,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     const request = await submitVerificationRequest({
       businessId: business.id,
-      userId: session.userId,
+      userId: dbCtx.userId,
       tradeLicenseNo,
       documentKeys: Array.isArray(documentKeys) ? documentKeys : [],
       referenceName,

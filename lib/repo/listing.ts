@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { validateListingAttributes, AttributeSchema } from "@/lib/attributes";
 import { Decimal } from "@prisma/client/runtime/library";
+import { VerificationStatus } from "@prisma/client";
 
 export class ListingError extends Error {
   constructor(message: string) {
@@ -28,6 +29,20 @@ export interface ListingInputData {
   imageKeys?: string[];
   attributes?: Record<string, any>;
   isActive?: boolean;
+}
+
+/** Listing images must be files uploaded for this business (sanity bound of 10). */
+function checkImageKeys(businessId: string, keys: unknown): string[] {
+  const prefix = `public/listings/${businessId}/`;
+  if (!Array.isArray(keys) || keys.length > 10) {
+    throw new ListingError("A listing can have at most 10 images");
+  }
+  for (const k of keys) {
+    if (typeof k !== "string" || !k.startsWith(prefix) || k.includes("..")) {
+      throw new ListingError("Invalid listing image reference");
+    }
+  }
+  return keys as string[];
 }
 
 export async function createListing(actingBusinessId: string, data: ListingInputData) {
@@ -59,7 +74,7 @@ export async function createListing(actingBusinessId: string, data: ListingInput
         priceMax: data.priceMax !== undefined && data.priceMax !== null ? new Decimal(data.priceMax) : null,
         moq: data.moq || null,
         leadTimeDays: data.leadTimeDays || null,
-        imageKeys: data.imageKeys || [],
+        imageKeys: checkImageKeys(actingBusinessId, data.imageKeys || []),
         attributes: validatedAttributes,
         isActive: data.isActive !== undefined ? data.isActive : true,
       },
@@ -155,7 +170,8 @@ export async function updateListing(
             : existing.priceMax,
         moq: data.moq !== undefined ? data.moq : existing.moq,
         leadTimeDays: data.leadTimeDays !== undefined ? data.leadTimeDays : existing.leadTimeDays,
-        imageKeys: data.imageKeys !== undefined ? data.imageKeys : existing.imageKeys,
+        imageKeys:
+          data.imageKeys !== undefined ? checkImageKeys(actingBusinessId, data.imageKeys) : existing.imageKeys,
         attributes: validatedAttributes,
         isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
       },
@@ -245,6 +261,8 @@ export async function getListingByIdForBusiness(businessId: string, listingId: s
  * Public listing retrieval (§7, D2, D3).
  * If listing is inactive/deleted or business is suspended/deleted, returns null (404).
  */
+const PUBLIC_LISTING_LEVELS: VerificationStatus[] = [VerificationStatus.BASIC, VerificationStatus.VERIFIED];
+
 export async function getPublicListingById(listingId: string) {
   const listing = await prisma.listing.findFirst({
     where: {
@@ -254,6 +272,8 @@ export async function getPublicListingById(listingId: string) {
       business: {
         isSuspended: false,
         deletedAt: null,
+        isSupplier: true,
+        verificationStatus: { in: PUBLIC_LISTING_LEVELS },
       },
     },
     include: {
@@ -321,6 +341,10 @@ export async function getPublicBusinessBySlug(slug: string) {
     },
   });
 
+  // Listings are public only while the supplier is BASIC/VERIFIED (§8.3)
+  if (business && !(business.isSupplier && PUBLIC_LISTING_LEVELS.includes(business.verificationStatus))) {
+    return { ...business, listings: [] };
+  }
   return business;
 }
 

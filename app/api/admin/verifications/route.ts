@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan, AuthorizationError } from "@/lib/authz";
 import { getPendingVerifications } from "@/lib/repo/verification";
-import { PlatformRole } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
-    const ctx = {
-      userId: session.userId,
-      role: session.role || PlatformRole.USER,
-    };
+    const ctx = dbCtx;
 
     assertCan(ctx, "admin:access");
 

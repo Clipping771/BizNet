@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan, AuthorizationError } from "@/lib/authz";
 import { logOpsTime, getRecentOpsTimeLogs, getTotalOpsMinutes } from "@/lib/repo/ops-time";
-import { PlatformRole } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
-    const ctx = {
-      userId: session.userId,
-      role: session.role || PlatformRole.USER,
-    };
+    const ctx = dbCtx;
 
     assertCan(ctx, "admin:access");
 
@@ -34,15 +30,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession(req);
-    if (!session?.isLoggedIn || !session.userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
+    if (authError || !dbCtx) {
+      return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
     }
 
-    const ctx = {
-      userId: session.userId,
-      role: session.role || PlatformRole.USER,
-    };
+    const ctx = dbCtx;
 
     assertCan(ctx, "admin:access");
 
@@ -50,7 +43,7 @@ export async function POST(req: NextRequest) {
     const { activity, minutes, refType, refId } = body;
 
     const logged = await logOpsTime({
-      userId: session.userId,
+      userId: dbCtx.userId,
       activity,
       minutes: Number(minutes),
       refType,

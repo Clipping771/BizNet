@@ -9,9 +9,10 @@ export class VerificationError extends Error {
 }
 
 /**
- * Validates legal verification status transitions (§8.3, B4).
- * Hierarchy: UNVERIFIED → PENDING → BASIC → VERIFIED.
- * Also supports REJECTED and SUSPENDED states.
+ * Validates legal business verification status transitions (§8.3, B4).
+ * Hierarchy: UNVERIFIED → PENDING → BASIC → VERIFIED, plus REJECTED and SUSPENDED.
+ * A BASIC/VERIFIED business asking for an upgrade keeps its level while the
+ * request is reviewed, so BASIC/VERIFIED never move back to PENDING.
  */
 export function validateVerificationTransition(
   current: VerificationStatus,
@@ -21,31 +22,25 @@ export function validateVerificationTransition(
 
   switch (current) {
     case VerificationStatus.UNVERIFIED:
-      // Can only request verification (become PENDING)
       return target === VerificationStatus.PENDING;
 
     case VerificationStatus.PENDING:
-      // Admin can approve to BASIC or REJECT. (Cannot skip directly to VERIFIED without BASIC checks)
-      return target === VerificationStatus.BASIC || target === VerificationStatus.REJECTED;
-
-    case VerificationStatus.BASIC:
-      // Can be upgraded to full VERIFIED, re-enter PENDING upon update, or SUSPENDED
+      // VERIFIED directly is allowed when BASIC checks and the license check pass together
       return (
+        target === VerificationStatus.BASIC ||
         target === VerificationStatus.VERIFIED ||
-        target === VerificationStatus.PENDING ||
+        target === VerificationStatus.REJECTED ||
         target === VerificationStatus.SUSPENDED
       );
 
+    case VerificationStatus.BASIC:
+      return target === VerificationStatus.VERIFIED || target === VerificationStatus.SUSPENDED;
+
     case VerificationStatus.VERIFIED:
-      // Can be SUSPENDED or re-enter PENDING if credentials change
-      return (
-        target === VerificationStatus.SUSPENDED ||
-        target === VerificationStatus.PENDING
-      );
+      return target === VerificationStatus.SUSPENDED;
 
     case VerificationStatus.REJECTED:
-      // Can re-submit verification (PENDING)
-      return target === VerificationStatus.PENDING;
+      return target === VerificationStatus.PENDING || target === VerificationStatus.SUSPENDED;
 
     case VerificationStatus.SUSPENDED:
       // Admin can reinstate to BASIC or VERIFIED, or reset to UNVERIFIED
@@ -59,6 +54,16 @@ export function validateVerificationTransition(
       return false;
   }
 }
+
+const VERIFIED_LEVELS: VerificationStatus[] = [VerificationStatus.BASIC, VerificationStatus.VERIFIED];
+
+/** Decisions an admin can take on a PENDING verification request. */
+export const REVIEW_DECISIONS: VerificationStatus[] = [
+  VerificationStatus.BASIC,
+  VerificationStatus.VERIFIED,
+  VerificationStatus.REJECTED,
+  VerificationStatus.SUSPENDED,
+];
 
 export async function submitVerificationRequest(params: {
   businessId: string;
@@ -78,11 +83,27 @@ export async function submitVerificationRequest(params: {
     throw new VerificationError("Business not found");
   }
 
-  if (business.isSuspended) {
+  if (business.isSuspended || business.verificationStatus === VerificationStatus.SUSPENDED) {
     throw new VerificationError("Suspended businesses cannot submit verification");
   }
 
-  if (!validateVerificationTransition(business.verificationStatus, VerificationStatus.PENDING)) {
+  // Documents must have been uploaded for this business (see businessFilePrefix)
+  const allowedPrefix = `private/verification/${businessId}/`;
+  if (documentKeys.some((k) => typeof k !== "string" || !k.startsWith(allowedPrefix) || k.includes(".."))) {
+    throw new VerificationError("Invalid verification document reference");
+  }
+
+  const pending = await prisma.verificationRequest.findFirst({
+    where: { businessId, status: VerificationStatus.PENDING },
+    select: { id: true },
+  });
+  if (pending) {
+    throw new VerificationError("A verification request is already pending review");
+  }
+
+  // An upgrade request (BASIC → VERIFIED) leaves the current level in place
+  const keepsLevel = VERIFIED_LEVELS.includes(business.verificationStatus);
+  if (!keepsLevel && !validateVerificationTransition(business.verificationStatus, VerificationStatus.PENDING)) {
     throw new VerificationError(
       `Cannot transition from ${business.verificationStatus} to PENDING`
     );
@@ -101,10 +122,12 @@ export async function submitVerificationRequest(params: {
       },
     });
 
-    await tx.business.update({
-      where: { id: businessId },
-      data: { verificationStatus: VerificationStatus.PENDING },
-    });
+    if (!keepsLevel) {
+      await tx.business.update({
+        where: { id: businessId },
+        data: { verificationStatus: VerificationStatus.PENDING },
+      });
+    }
 
     await tx.auditLog.create({
       data: {
@@ -114,7 +137,10 @@ export async function submitVerificationRequest(params: {
         entityType: "VerificationRequest",
         entityId: vr.id,
         before: { status: business.verificationStatus },
-        after: { status: VerificationStatus.PENDING },
+        after: {
+          status: keepsLevel ? business.verificationStatus : VerificationStatus.PENDING,
+          request: VerificationStatus.PENDING,
+        },
       },
     });
 
@@ -122,6 +148,10 @@ export async function submitVerificationRequest(params: {
   });
 }
 
+/**
+ * Admin decision on a PENDING request. Only one review can ever win: the request
+ * is claimed with a conditional update inside the transaction.
+ */
 export async function reviewVerificationRequest(params: {
   adminUserId: string;
   requestId: string;
@@ -135,27 +165,13 @@ export async function reviewVerificationRequest(params: {
   if (!minutesSpent || minutesSpent <= 0) {
     throw new VerificationError("Minutes spent is strictly required and must be greater than 0");
   }
-
-  const vr = await prisma.verificationRequest.findUnique({
-    where: { id: requestId },
-    include: { business: true },
-  });
-
-  if (!vr) {
-    throw new VerificationError("Verification request not found");
-  }
-
-  const currentBusinessStatus = vr.business.verificationStatus;
-
-  if (!validateVerificationTransition(currentBusinessStatus, targetStatus)) {
-    throw new VerificationError(
-      `Illegal verification transition: ${currentBusinessStatus} -> ${targetStatus}`
-    );
+  if (!REVIEW_DECISIONS.includes(targetStatus)) {
+    throw new VerificationError(`Invalid review decision: ${targetStatus}`);
   }
 
   return prisma.$transaction(async (tx) => {
-    const updatedVr = await tx.verificationRequest.update({
-      where: { id: requestId },
+    const claimed = await tx.verificationRequest.updateMany({
+      where: { id: requestId, status: VerificationStatus.PENDING },
       data: {
         status: targetStatus,
         reviewerUserId: adminUserId,
@@ -164,17 +180,39 @@ export async function reviewVerificationRequest(params: {
         checklist: checklist || {},
       },
     });
+    if (claimed.count !== 1) {
+      throw new VerificationError("Verification request not found or already reviewed");
+    }
 
-    const isVerified =
-      targetStatus === VerificationStatus.BASIC ||
-      targetStatus === VerificationStatus.VERIFIED;
+    const vr = await tx.verificationRequest.findUniqueOrThrow({
+      where: { id: requestId },
+      include: { business: true },
+    });
+    const currentBusinessStatus = vr.business.verificationStatus;
+
+    // A rejected upgrade request leaves an already BASIC/VERIFIED business as it was
+    let businessStatus = targetStatus;
+    if (targetStatus === VerificationStatus.REJECTED && VERIFIED_LEVELS.includes(currentBusinessStatus)) {
+      businessStatus = currentBusinessStatus;
+    }
+    if (
+      businessStatus !== currentBusinessStatus &&
+      !validateVerificationTransition(currentBusinessStatus, businessStatus)
+    ) {
+      throw new VerificationError(
+        `Illegal verification transition: ${currentBusinessStatus} -> ${businessStatus}`
+      );
+    }
 
     await tx.business.update({
       where: { id: vr.businessId },
       data: {
-        verificationStatus: targetStatus,
-        verifiedAt: isVerified ? new Date() : vr.business.verifiedAt,
-        isSuspended: targetStatus === VerificationStatus.SUSPENDED ? true : vr.business.isSuspended,
+        verificationStatus: businessStatus,
+        verifiedAt:
+          VERIFIED_LEVELS.includes(businessStatus) && businessStatus !== currentBusinessStatus
+            ? new Date()
+            : vr.business.verifiedAt,
+        isSuspended: businessStatus === VerificationStatus.SUSPENDED,
       },
     });
 
@@ -199,7 +237,8 @@ export async function reviewVerificationRequest(params: {
         entityId: requestId,
         before: { status: currentBusinessStatus },
         after: {
-          status: targetStatus,
+          status: businessStatus,
+          decision: targetStatus,
           minutesSpent,
           reviewNote: reviewNote || null,
           checklist: checklist || {},
@@ -207,7 +246,66 @@ export async function reviewVerificationRequest(params: {
       },
     });
 
+    const { business: _business, ...updatedVr } = vr;
     return updatedVr;
+  });
+}
+
+/**
+ * Admin changes a business's level outside a request: suspend or reinstate.
+ * Keeps isSuspended in sync with the status.
+ */
+export async function setBusinessVerificationStatus(params: {
+  adminUserId: string;
+  businessId: string;
+  targetStatus: VerificationStatus;
+  minutesSpent: number;
+  note?: string | null;
+}) {
+  const { adminUserId, businessId, targetStatus, minutesSpent, note } = params;
+  if (!minutesSpent || minutesSpent <= 0) {
+    throw new VerificationError("Minutes spent is strictly required and must be greater than 0");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const business = await tx.business.findUnique({ where: { id: businessId } });
+    if (!business) throw new VerificationError("Business not found");
+    if (!validateVerificationTransition(business.verificationStatus, targetStatus)) {
+      throw new VerificationError(
+        `Illegal verification transition: ${business.verificationStatus} -> ${targetStatus}`
+      );
+    }
+
+    const updated = await tx.business.update({
+      where: { id: businessId },
+      data: {
+        verificationStatus: targetStatus,
+        isSuspended: targetStatus === VerificationStatus.SUSPENDED,
+      },
+    });
+
+    await tx.opsTimeLog.create({
+      data: {
+        userId: adminUserId,
+        activity: "verification_status_change",
+        minutes: minutesSpent,
+        refType: "Business",
+        refId: businessId,
+      },
+    });
+    await tx.auditLog.create({
+      data: {
+        actorUserId: adminUserId,
+        actorBusinessId: businessId,
+        action: "verification:status_change",
+        entityType: "Business",
+        entityId: businessId,
+        before: { status: business.verificationStatus, isSuspended: business.isSuspended },
+        after: { status: targetStatus, isSuspended: updated.isSuspended, note: note || null },
+      },
+    });
+
+    return updated;
   });
 }
 
