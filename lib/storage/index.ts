@@ -15,7 +15,13 @@ export interface UploadTicket {
   expiresIn: number;
 }
 
-export type UploadPurpose = "verification_document" | "listing_image" | "shop_photo";
+export type UploadPurpose =
+  | "verification_document"
+  | "listing_image"
+  | "shop_photo"
+  | "request_image"
+  | "quote_attachment"
+  | "message_attachment";
 
 const S3_ENDPOINT = process.env.S3_ENDPOINT || "http://localhost:9000";
 const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || "minioadmin";
@@ -78,6 +84,21 @@ const UPLOAD_RULES: Record<UploadPurpose, { types: string[]; maxBytes: number; p
     maxBytes: 5 * 1024 * 1024,
     prefix: "public/shops",
   },
+  request_image: {
+    types: ["image/jpeg", "image/png", "image/webp"],
+    maxBytes: 5 * 1024 * 1024,
+    prefix: "public/requests",
+  },
+  quote_attachment: {
+    types: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
+    maxBytes: 5 * 1024 * 1024,
+    prefix: "private/quotes",
+  },
+  message_attachment: {
+    types: ["image/jpeg", "image/png", "image/webp"],
+    maxBytes: 5 * 1024 * 1024,
+    prefix: "private/messages",
+  },
 };
 
 /**
@@ -94,8 +115,8 @@ export function validateUploadParams(params: {
     return {
       valid: false,
       error:
-        params.purpose === "verification_document"
-          ? "Only JPEG, PNG, WEBP, or PDF files are accepted for verification."
+        params.purpose === "verification_document" || params.purpose === "quote_attachment"
+          ? "Only JPEG, PNG, WEBP, or PDF files are accepted."
           : "Only JPEG, PNG, or WEBP images are accepted.",
     };
   }
@@ -105,7 +126,7 @@ export function validateUploadParams(params: {
       error:
         params.purpose === "verification_document"
           ? "Verification document must not exceed 10MB."
-          : "Image must not exceed 5MB.",
+          : "File must not exceed 5MB.",
     };
   }
   return { valid: true };
@@ -114,6 +135,32 @@ export function validateUploadParams(params: {
 /** Key prefix for a business's files of the given purpose. */
 export function businessFilePrefix(purpose: UploadPurpose, businessId: string): string {
   return `${UPLOAD_RULES[purpose].prefix}/${businessId}/`;
+}
+
+/**
+ * Throws unless every key was uploaded by this business for this purpose.
+ * Stops a record from pointing at another business's (or another purpose's) files.
+ */
+export function assertBusinessFileKeys(
+  keys: unknown,
+  purpose: UploadPurpose,
+  businessId: string,
+  max: number
+): string[] {
+  if (keys === undefined || keys === null) return [];
+  if (!Array.isArray(keys) || keys.some((k) => typeof k !== "string")) {
+    throw new Error("Invalid file keys");
+  }
+  if (keys.length > max) {
+    throw new Error(`At most ${max} files are allowed`);
+  }
+  const prefix = businessFilePrefix(purpose, businessId);
+  for (const key of keys as string[]) {
+    if (!key.startsWith(prefix) || key.includes("..")) {
+      throw new Error("File does not belong to this business");
+    }
+  }
+  return keys as string[];
 }
 
 function hmac(payload: string): string {

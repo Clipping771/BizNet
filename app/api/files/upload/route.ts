@@ -4,7 +4,14 @@ import { getAuthedUser } from "@/lib/auth-user";
 import { findUserMembership } from "@/lib/repo/membership";
 import { createUploadTicket, validateUploadParams, type UploadPurpose } from "@/lib/storage";
 
-const PURPOSES: UploadPurpose[] = ["verification_document", "listing_image", "shop_photo"];
+const PURPOSES: UploadPurpose[] = [
+  "verification_document",
+  "listing_image",
+  "shop_photo",
+  "request_image",
+  "quote_attachment",
+  "message_attachment",
+];
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,8 +25,8 @@ export async function POST(req: NextRequest) {
 
     // Membership comes from the database, never from the session cookie
     const membership = await findUserMembership(user.id, session.activeBusinessId);
-    if (!membership || (membership.role !== MemberRole.OWNER && membership.role !== MemberRole.MANAGER)) {
-      return NextResponse.json({ error: "Only OWNER or MANAGER can upload business files" }, { status: 403 });
+    if (!membership) {
+      return NextResponse.json({ error: "Must be a member of the business to upload files" }, { status: 403 });
     }
 
     const body = await req.json();
@@ -27,6 +34,14 @@ export async function POST(req: NextRequest) {
 
     if (!filename || typeof filename !== "string" || !contentType || !sizeBytes || !PURPOSES.includes(purpose)) {
       return NextResponse.json({ error: "Missing required upload parameters" }, { status: 400 });
+    }
+
+    if (
+      (purpose === "verification_document" || purpose === "listing_image" || purpose === "shop_photo") &&
+      membership.role !== MemberRole.OWNER &&
+      membership.role !== MemberRole.MANAGER
+    ) {
+      return NextResponse.json({ error: "Only OWNER or MANAGER can upload verification or listing files" }, { status: 403 });
     }
 
     const validation = validateUploadParams({ contentType, sizeBytes: Number(sizeBytes), purpose });

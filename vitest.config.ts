@@ -35,7 +35,11 @@ export default defineConfig({
     environment: "node",
     testTimeout: 30000,
     hookTimeout: 120000,
-    include: ["tests/integration/**/*.test.ts"],
+    include: [
+      "tests/integration/**/*.test.ts",
+      "tests/unit/**/*.test.ts",
+      "tests/ai-evals/**/*.test.ts"
+    ],
     globalSetup: ["./tests/global-setup.ts"],
     // All suites share one database; run files one at a time so cleanup in one
     // suite can never race with assertions in another.

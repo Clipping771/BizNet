@@ -187,6 +187,17 @@ export function assertCan(
       }
       return;
 
+    case "order:update_status":
+      if (
+        !ctx.activeBusinessId ||
+        (ctx.activeBusinessId !== resource?.buyerBusinessId &&
+          ctx.activeBusinessId !== resource?.supplierBusinessId) ||
+        !ctx.businessRole
+      ) {
+        throw new AuthorizationError("Must be a member of the buyer or supplier business to update order status");
+      }
+      return;
+
     case "feedback:give":
       if (
         !ctx.activeBusinessId ||

@@ -1,69 +1,71 @@
-import { prisma } from "../prisma";
-import { AiFeature, AiInteraction, AiOutcome } from "@prisma/client";
-import * as crypto from "crypto";
+/**
+ * lib/repo/ai.ts
+ *
+ * Repository for AI Interactions, Feedback, and Caching (§8.4, §12)
+ */
+
+import { prisma } from "@/lib/prisma";
+import { AiFeature, AiOutcome, Prisma } from "@prisma/client";
 
 export interface CreateAiInteractionInput {
-  userId?: string | null;
-  businessId?: string | null;
+  userId: string;
+  businessId?: string;
   feature: AiFeature;
   promptVersion: string;
   provider: string;
   model: string;
+  inputHash: string;
   input: any;
   output?: any;
-  inputTokens?: number;
-  outputTokens?: number;
-  costUsd?: number;
+  outcome?: AiOutcome | null;
+  costUsd: number;
+  tokensIn?: number;
+  tokensOut?: number;
   latencyMs?: number;
   cacheHit?: boolean;
-  outcome?: AiOutcome;
-  editedFields?: string[];
-  rating?: number;
 }
 
-export function computeInputHash(feature: string, input: any, version: string): string {
-  const serialized = JSON.stringify({ feature, input, version });
-  return crypto.createHash("sha256").update(serialized).digest("hex");
+export async function findCachedAiInteraction(feature: AiFeature, inputHash: string, sinceDate: Date) {
+  return prisma.aiInteraction.findFirst({
+    where: {
+      feature,
+      inputHash,
+      createdAt: { gte: sinceDate },
+      output: { not: Prisma.JsonNull },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 }
 
-export async function createAiInteraction(
-  input: CreateAiInteractionInput
-): Promise<AiInteraction> {
-  const inputHash = computeInputHash(input.feature, input.input, input.promptVersion);
-
+export async function createAiInteractionRecord(input: CreateAiInteractionInput) {
   return prisma.aiInteraction.create({
     data: {
-      userId: input.userId ?? null,
-      businessId: input.businessId ?? null,
+      userId: input.userId,
+      businessId: input.businessId,
       feature: input.feature,
       promptVersion: input.promptVersion,
       provider: input.provider,
       model: input.model,
-      inputHash,
-      input: input.input as any,
-      output: input.output ? (input.output as any) : undefined,
-      inputTokens: input.inputTokens || 0,
-      outputTokens: input.outputTokens || 0,
-      costUsd: input.costUsd || 0,
+      inputHash: input.inputHash,
+      input: input.input,
+      output: input.output,
+      outcome: input.outcome,
+      costUsd: input.costUsd,
+      inputTokens: input.tokensIn || 0,
+      outputTokens: input.tokensOut || 0,
       latencyMs: input.latencyMs || 0,
       cacheHit: input.cacheHit || false,
-      outcome: input.outcome ?? null,
-      editedFields: input.editedFields || [],
-      rating: input.rating ?? null,
     },
   });
 }
 
-export async function updateAiOutcome(
-  id: string,
-  outcome: AiOutcome,
-  editedFields: string[] = []
-): Promise<AiInteraction> {
-  return prisma.aiInteraction.update({
-    where: { id },
+/** Rates an AI interaction; only the user it belongs to may rate it. Returns false otherwise. */
+export async function rateAiInteractionRecord(id: string, userId: string, rating: number) {
+  const result = await prisma.aiInteraction.updateMany({
+    where: { id, userId },
     data: {
-      outcome,
-      editedFields,
+      rating: rating > 0 ? 1 : -1,
     },
   });
+  return result.count === 1;
 }

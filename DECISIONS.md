@@ -90,3 +90,17 @@ All deviations from the original specification require explicit founder review a
 | Uploads go through the app with HMAC-signed tickets instead of browser-to-S3 presigned PUTs | `lib/storage/index.ts`, `app/api/files/upload/**` | One code path for MinIO, R2 and tests; the ticket binds key, content type, size, expiry and user, and the app enforces size while streaming. Files still land in the S3 public/private buckets (§4). |
 | `STORAGE_DRIVER=memory` only by explicit opt-in | `lib/storage/index.ts` | Tests and machines without MinIO. Refused on non-localhost production so files can never silently live in RAM. |
 | BASIC/VERIFIED businesses keep their level while an upgrade request is pending | `lib/repo/verification.ts` | Asking for VERIFIED must not remove the BASIC badge or listing rights (§8.3). |
+
+## Phase 3 decisions (post-review)
+
+| Decision | Where | Why |
+|---|---|---|
+| Quote and message attachments are stored under `private/quotes/<bizId>/` and `private/messages/<bizId>/`; only the deal's buyer and supplier (and admins) get a signed URL | `lib/storage/index.ts`, `app/api/files/[...key]/route.ts` | They are private between two businesses; the public bucket would expose them to anyone with the link. Request photos stay public (suppliers browsing the inbox must see them). |
+| Every stored file key is checked to belong to the acting business and purpose (`assertBusinessFileKeys`) | quotes, messages, requests | A record must never point at another business's file (e.g. a verification document). |
+| Spec match is stored as `{ field: MATCH \| DIFFERENT \| NOT_STATED, _offered: { field: value } }`; skipped comparable fields become NOT_STATED | `lib/repo/quote.ts` | Keeps the pure priority/validation functions comparing plain strings while recording the offered value the spec asks for (§8.7). |
+| A supplier can quote / message only if invited, or (for non-direct requests) if it serves the category; a direct re-order request accepts only the previous supplier | `lib/repo/quote.ts`, `lib/repo/messaging.ts`, `lib/repo/request.ts` | Resource-level authorization (§4); `directSupplierId` is accepted only from a completed order being repeated. |
+| "Late" is computed on Asia/Dhaka calendar days (arrival day > needed-by day) | `lib/compare/priority.ts` | Time of day must not make an on-the-day delivery "late". |
+| Accept claims the request with `updateMany(status = OPEN)`; order transitions use `updateMany(status = from)` | `lib/repo/quote.ts`, `lib/repo/order.ts` | Concurrent accepts of different quotes and double taps on transitions apply exactly once. |
+| An AI cache hit creates its own `AiInteraction` row (cost 0, `cacheHit = true`) for the user | `lib/ai/requestAssistant.ts` | Each request records its own outcome (ACCEPTED_AS_IS / EDITED / DISCARDED) even when the structuring came from cache. |
+| Re-order creates the new request immediately after the buyer picks "Only from {supplier}" or "Everyone" | `app/(app)/orders/[code]/page.tsx` | The explicit choice is the buyer's confirmation; the prefilled data is the order snapshot's request. "Create a new request from this" (after cancellation) opens the wizard prefilled instead. |
+| `QUOTE_COMPARISON` outcome is set on accept (ACCEPTED_AS_IS if the suggested quote was ordered, else EDITED); DISCARDED for requests that end without an order is not yet written | `lib/repo/quote.ts` | Known gap — to be filled by the expire-requests job in Phase 5 with the metrics work. |

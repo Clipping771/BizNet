@@ -369,3 +369,10 @@ export async function findUserMembership(
     where: { userId_businessId: { userId, businessId } },
   });
 }
+
+export async function findFirstUserMembership(userId: string): Promise<Membership | null> {
+  return prisma.membership.findFirst({
+    where: { userId },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  });
+}

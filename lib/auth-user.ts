@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/session";
 import { PlatformRole, MemberRole } from "@prisma/client";
-import { findUserMembership } from "@/lib/repo/membership";
+import { findUserMembership, findFirstUserMembership } from "@/lib/repo/membership";
 import { findUserById } from "@/lib/repo/user";
 
 export interface AuthedUserResult {
@@ -89,11 +89,18 @@ export async function getAuthzContext(reqOrSession?: any): Promise<AuthzContextR
   }
 
   let businessRole: MemberRole | null = null;
-  let activeBusinessId: string | null = session.activeBusinessId || null;
+  let activeBusinessId: string | null = session.activeBusinessId || user.activeBusinessId || null;
   if (activeBusinessId) {
     const membership = await findUserMembership(user.id, activeBusinessId);
     businessRole = membership?.role ?? null;
     if (!membership) activeBusinessId = null;
+  }
+  if (!activeBusinessId) {
+    const firstMembership = await findFirstUserMembership(user.id);
+    if (firstMembership) {
+      activeBusinessId = firstMembership.businessId;
+      businessRole = firstMembership.role;
+    }
   }
 
   return {

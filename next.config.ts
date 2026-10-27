@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ["iron-session", "iron-webcrypto"],
   images: {
     formats: ["image/avif", "image/webp"],
   },
