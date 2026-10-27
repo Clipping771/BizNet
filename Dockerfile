@@ -6,8 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 
 WORKDIR /app
 
-# pnpm version pinned in package.json "packageManager"
-COPY package.json pnpm-lock.yaml ./
+# pnpm version pinned in package.json "packageManager"; .npmrc and pnpm-workspace.yaml allow the
+# Prisma/esbuild build scripts, and the Prisma schema is needed by @prisma/client's postinstall
+COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
+COPY prisma ./prisma
 RUN npm install -g pnpm@$(node -p "require('./package.json').packageManager.split('@')[1]") \
   && pnpm install --frozen-lockfile
 

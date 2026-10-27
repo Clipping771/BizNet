@@ -117,8 +117,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build and start postgres, s3, app
-        run: docker compose up -d --build postgres s3 app
+      - name: Build the app image
+        run: |
+          set -o pipefail
+          if ! docker compose build app 2>&1 | tee /tmp/build.log; then
+            # Surface the failure as annotations (readable without downloading logs)
+            tail -n 40 /tmp/build.log | while IFS= read -r line; do echo "::error title=docker build::${line}"; done
+            exit 1
+          fi
+
+      - name: Start postgres, s3, app
+        run: docker compose up -d postgres s3 app
 
       - name: Wait for /api/health
         run: |
@@ -126,7 +135,7 @@ jobs:
             if curl -fsS http://localhost:3000/api/health; then echo; exit 0; fi
             sleep 5
           done
-          docker compose logs app
+          docker compose logs app | tail -n 40 | while IFS= read -r line; do echo "::error title=app logs::${line}"; done
           exit 1
 
       - uses: actions/setup-node@v4
