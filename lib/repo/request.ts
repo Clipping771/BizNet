@@ -134,22 +134,15 @@ export async function createRequestRecord(input: CreateRequestInput) {
 
   const imageKeys = assertBusinessFileKeys(input.imageKeys, "request_image", input.buyerBusinessId, 5);
 
-  // directSupplierId is only meaningful for "Only from previous supplier" re-orders:
-  // it must be the supplier of a COMPLETED order on the buyer's earlier request (§8.11)
+  // directSupplierId ("Only from {supplier}" re-orders, or "only this supplier" from search, §8.11/§8.13)
+  // must be a live supplier other than the buyer; matching still applies the eligibility rules.
   if (input.directSupplierId) {
-    const previousOrder = input.repeatOfRequestId
-      ? await prisma.order.findFirst({
-          where: {
-            requestId: input.repeatOfRequestId,
-            buyerBusinessId: input.buyerBusinessId,
-            supplierBusinessId: input.directSupplierId,
-            status: OrderStatus.COMPLETED,
-          },
-          select: { id: true },
-        })
-      : null;
-    if (!previousOrder) {
-      throw new Error("Direct supplier must be the supplier of a completed order being repeated");
+    const supplier = await prisma.business.findFirst({
+      where: { id: input.directSupplierId, isSupplier: true, isSuspended: false, deletedAt: null },
+      select: { id: true },
+    });
+    if (!supplier || input.directSupplierId === input.buyerBusinessId) {
+      throw new Error("Direct supplier must be an active supplier");
     }
   }
   if (input.repeatOfRequestId) {

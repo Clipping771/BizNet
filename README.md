@@ -78,3 +78,13 @@ npx tsx scripts/check-fk-indexes.ts
 # Verify zero migration diff
 npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url "postgresql://postgres:admin@localhost:5432/biznet_shadow"
 ```
+
+## ⏱️ Background worker (pg-boss)
+
+Run next to the web app (same `DATABASE_URL`, no Redis):
+
+```bash
+pnpm worker
+```
+
+Schedules (Asia/Dhaka): `expire-requests` every 15 min, `auto-complete-orders` hourly, `compute-market-prices` nightly at 02:00. Run the price job once by hand with `pnpm prices:compute`; `pnpm db:seed` already runs it so `/prices` has data.

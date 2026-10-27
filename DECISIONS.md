@@ -104,3 +104,22 @@ All deviations from the original specification require explicit founder review a
 | An AI cache hit creates its own `AiInteraction` row (cost 0, `cacheHit = true`) for the user | `lib/ai/requestAssistant.ts` | Each request records its own outcome (ACCEPTED_AS_IS / EDITED / DISCARDED) even when the structuring came from cache. |
 | Re-order creates the new request immediately after the buyer picks "Only from {supplier}" or "Everyone" | `app/(app)/orders/[code]/page.tsx` | The explicit choice is the buyer's confirmation; the prefilled data is the order snapshot's request. "Create a new request from this" (after cancellation) opens the wizard prefilled instead. |
 | `QUOTE_COMPARISON` outcome is set on accept (ACCEPTED_AS_IS if the suggested quote was ordered, else EDITED); DISCARDED for requests that end without an order is not yet written | `lib/repo/quote.ts` | Known gap — to be filled by the expire-requests job in Phase 5 with the metrics work. |
+
+## Phase 4 decisions
+
+| Decision | Where | Why |
+|---|---|---|
+| Search expands a small Bangla↔English synonym list (box/বক্স, cup/কাপ, …) and Bangla↔Latin digits; a one-word query that names a category also returns that category's listings | `lib/search/query.ts`, `lib/repo/search.ts` | Listings are written in Bangla; "box" must find "বক্স". No AI, no vector search (§2 LATER). |
+| "Verified only" (default on) shows VERIFIED suppliers; off shows BASIC and VERIFIED. Unverified suppliers never appear | `lib/repo/search.ts` | Same public rule as listing pages (Phase 2); the toggle stays meaningful. |
+| Ranking = ts_rank + trigram similarity + 0.3 VERIFIED / 0.15 BASIC + 0.2 if the supplier has active listings; offset paging of 20 | `lib/repo/search.ts` | §8.13 ranking ingredients with fixed, testable weights. |
+| Selling answers are refused with the warning (must be edited); selling questions can be submitted anyway and are held as PENDING_REVIEW | `lib/repo/discussion.ts` | Answers have no review state in the schema; questions do (§8.14). |
+| Rejected held questions become CLOSED + soft-deleted; approvals and rejections are audited | `lib/repo/discussion.ts` | Moderation actions need an audit trail (§10). |
+| Price inputs: SUPPLIER quotes in SUBMITTED / REVISED / ACCEPTED / REJECTED (not chosen) from the last 30 days; WITHDRAWN never; fraud handled by admin exclusions | `lib/repo/pricing.ts` | Dropping every not-chosen quote would discard most real prices; "REJECTED-for-fraud" is what MarketPriceExclusion is for. |
+| A quote counts only if every comparable field the buyer specified is MATCH; spec key = those fields sorted; prices are per the request's unit (unit is part of the group) | `jobs/compute-market-prices.ts` | "Spec known" without inventing unit conversions. |
+| Quantity bands 1-99 / 100-499 / 500-999 / 1000-4999 / 5000+; deliveryIncluded = delivery charge 0 | `lib/pricing/compute.ts` | Simple, documented grouping (§8.15). |
+| Dominant supplier (> 40%) is collapsed to its median first, then IQR fences are applied | `lib/pricing/compute.ts` | Collapsing first keeps one supplier's many quotes from shifting the quartiles used for the fences. |
+| Each job run writes one snapshot batch (same `computedAt`); `/prices` reads the latest batch | `lib/repo/pricing.ts` | Keeps history for admin review without a separate table. |
+| The seed creates recent quotes and runs the real job instead of inserting hand-made snapshots | `prisma/seed.ts` | "Seed produces one publishable and one non-publishable group" is then proven by the job itself. |
+| `directSupplierId` may be any active supplier (search card "only this supplier"), not only a previous order's supplier | `lib/repo/request.ts` | §8.13 card CTA; matching still applies eligibility. |
+| pg-boss worker added (`pnpm worker`) for expire-requests, auto-complete-orders and compute-market-prices | `jobs/worker.ts` | Phase 3 jobs existed as functions but nothing scheduled them. |
+| Playwright runs one worker | `playwright.config.ts` | Specs share one seeded database; some pause suppliers while running. |
