@@ -3,12 +3,15 @@ import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { submitQuoteRecord, listQuotesForRequest } from "@/lib/repo/quote";
 import { findRequestById } from "@/lib/repo/request";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "quote-submit", 60);
+    if (limited) return limited;
     const { id } = await params;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {
@@ -63,6 +66,9 @@ export async function POST(
 
     return NextResponse.json(quote, { status: 201 });
   } catch (err: any) {
+    if (typeof err?.message === "string" && err.message.startsWith("Insufficient lead credits")) {
+      return NextResponse.json({ error: err.message, code: "INSUFFICIENT_CREDITS" }, { status: 402 });
+    }
     console.error("Submit quote error:", err);
     return NextResponse.json({ error: err.message || "Failed to submit quote" }, { status: 400 });
   }

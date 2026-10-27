@@ -1,27 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Globe } from "lucide-react";
-import { T } from "@/components/ui/T";
+import { T, useLang, useT } from "@/components/ui/T";
 
+interface LanguageRow {
+  code: string;
+  nameNative: string;
+  nameEnglish: string;
+  status: string;
+  direction: string;
+}
+
+/** Language picker (§11): languages come from the database; choosing one sets the cookie the layout reads. */
 export default function LanguagePage() {
-  const [selected, setSelected] = useState("bn");
+  const t = useT();
+  const current = useLang();
+  const [languages, setLanguages] = useState<LanguageRow[]>([]);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const languages = [
-    { code: "bn", nameNative: "বাংলা", nameEnglish: "Bengali", status: "ACTIVE" },
-    { code: "en", nameNative: "English", nameEnglish: "English", status: "ACTIVE" },
-    { code: "ar", nameNative: "العربية", nameEnglish: "Arabic (RTL Preview)", status: "DRAFT" },
-  ];
+  useEffect(() => {
+    fetch("/api/languages")
+      .then((r) => r.json())
+      .then((d) => setLanguages(d.languages || []))
+      .catch(() => setLanguages([]));
+  }, []);
 
-  const handleSelect = (code: string) => {
-    setSelected(code);
-    if (code === "ar") {
-      document.documentElement.setAttribute("dir", "rtl");
-      document.documentElement.setAttribute("lang", "ar");
-    } else {
-      document.documentElement.setAttribute("dir", "ltr");
-      document.documentElement.setAttribute("lang", code);
+  const choose = async (code: string) => {
+    setSaving(code);
+    setError(null);
+    const res = await fetch("/api/account/language", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    if (!res.ok) {
+      setError((await res.json().catch(() => ({}))).error || t("common.tryAgain"));
+      setSaving(null);
+      return;
     }
+    // The root layout renders the catalog, lang and dir on the server: reload to apply
+    window.location.reload();
   };
 
   return (
@@ -33,25 +53,32 @@ export default function LanguagePage() {
         </h2>
       </div>
 
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
         {languages.map((l) => (
           <button
             key={l.code}
-            onClick={() => handleSelect(l.code)}
-            className="w-full flex items-center justify-between p-4 text-start hover:bg-gray-50 transition-colors"
+            type="button"
+            id={`language-${l.code}`}
+            onClick={() => choose(l.code)}
+            disabled={saving !== null}
+            className="w-full flex items-center justify-between p-4 text-start hover:bg-gray-50 transition-colors disabled:opacity-60"
           >
             <div>
-              <p className="font-semibold text-sm text-gray-900">{l.nameNative}</p>
+              <p className="font-semibold text-sm text-gray-900" dir={l.direction}>
+                {l.nameNative}
+              </p>
               <p className="text-xs text-gray-500">
                 <span>{l.nameEnglish}</span>
-                {l.status === "DRAFT" && (
+                {l.status !== "ACTIVE" && (
                   <span className="ms-2 px-1.5 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded font-mono">
                     <T k="common.draft" />
                   </span>
                 )}
               </p>
             </div>
-            {selected === l.code && <Check className="w-5 h-5 text-primary" />}
+            {current === l.code && <Check className="w-5 h-5 text-primary" />}
           </button>
         ))}
       </div>

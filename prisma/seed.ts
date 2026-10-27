@@ -16,6 +16,8 @@ import {
   VoteTarget,
 } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import { runComputeMarketPricesJob } from "../jobs/compute-market-prices";
+import { isCriticalKey, placeholdersOf } from "../lib/i18n-critical";
 
 const prisma = new PrismaClient();
 
@@ -27,6 +29,8 @@ async function main() {
   await prisma.orderStatusChange.deleteMany({});
   await prisma.order.deleteMany({});
   await prisma.request.updateMany({ data: { awardedQuoteId: null } });
+  await prisma.marketPriceSnapshot.deleteMany({});
+  await prisma.marketPriceExclusion.deleteMany({});
   await prisma.quoteRevision.deleteMany({});
   await prisma.quote.deleteMany({});
   await prisma.requestInvite.deleteMany({});
@@ -93,8 +97,8 @@ async function main() {
   for (const [key, defaultText] of Object.entries(enJson)) {
     await prisma.uiString.upsert({
       where: { key },
-      update: { defaultText: String(defaultText) },
-      create: { key, defaultText: String(defaultText) },
+      update: { defaultText: String(defaultText), isCritical: isCriticalKey(key), placeholders: placeholdersOf(String(defaultText)) },
+      create: { key, defaultText: String(defaultText), isCritical: isCriticalKey(key), placeholders: placeholdersOf(String(defaultText)) },
     });
 
     if (bnJson[key]) {
@@ -457,7 +461,7 @@ async function main() {
         title: "৫০০ পিস ৭৫০ মিলি কন্টেইনার",
         quantity: new Decimal(500),
         unit: "pcs",
-        deliveryArea: buyer.business.area,
+        deliveryArea: "Mirpur",
         status: RequestStatus.AWARDED,
         outcome: RequestOutcome.ORDER_COMPLETED,
         attributes: { capacity_ml: 750, has_lid: true, material: "plastic_pp" },
@@ -638,50 +642,70 @@ async function main() {
     });
   }
 
-  // 10. Market Price Snapshots (§15: one publishable, one not)
-  // Snapshot 1: Publishable (sampleQuotes >= 8, sampleSuppliers >= 3)
-  await prisma.marketPriceSnapshot.create({
-    data: {
-      categoryId: categories["containers"].id,
-      specKey: "containers:capacity_ml=750:has_lid=true",
-      specLabel: { capacity_ml: 750, has_lid: true },
-      unit: "pcs",
-      quantityBand: "500-1000",
-      deliveryIncluded: true,
-      area: "Dhaka",
-      periodStart: new Date(Date.now() - 30 * 86400000),
-      periodEnd: new Date(),
-      sampleQuotes: 12,
-      sampleSuppliers: 4,
-      p25: new Decimal(8.5),
-      median: new Decimal(8.9),
-      p75: new Decimal(9.2),
-      excludedCount: 1,
-      isPublishable: true,
-    },
-  });
+  // 10. Market prices (§15): recent supplier quotes on closed requests, then the real job.
+  // Group A — 750 ml PP containers with lid, 500–999 pcs, delivery charged, Mirpur:
+  //   with the 2 completed orders and the matching OPEN quote above → 10 quotes from 6 suppliers → publishable.
+  // Group B — 250 ml paper cups with lid, 1000–4999 pcs, delivery included, Gulshan:
+  //   3 quotes from 2 suppliers → "Not enough data yet".
+  const historyRequest = async (code: string, buyerIdx: number, cat: string, attributes: Record<string, string | number | boolean>, quantity: number, area: string, daysAgo: number) =>
+    prisma.request.create({
+      data: {
+        code,
+        buyerBusinessId: buyerBusinesses[buyerIdx].business.id,
+        createdByUserId: buyerBusinesses[buyerIdx].user.id,
+        categoryId: categories[cat].id,
+        title: cat === "cups" ? "১০০০ পিস ২৫০ মিলি পেপার কাপ" : "৫০০ পিস ৭৫০ মিলি কন্টেইনার",
+        quantity: new Decimal(quantity),
+        unit: "pcs",
+        deliveryArea: area,
+        status: RequestStatus.CLOSED,
+        closesAt: new Date(Date.now() - (daysAgo - 2) * 86400000),
+        createdAt: new Date(Date.now() - daysAgo * 86400000),
+        attributes,
+      },
+    });
+  const historyQuote = async (requestId: string, supplierIdx: number, unitPrice: number, quantity: number, deliveryCharge: number, specMatch: Record<string, string>, daysAgo: number) =>
+    prisma.quote.create({
+      data: {
+        requestId,
+        supplierBusinessId: supplierBusinesses[supplierIdx].business.id,
+        createdByUserId: supplierBusinesses[supplierIdx].user.id,
+        unitPrice: new Decimal(unitPrice),
+        quantity: new Decimal(quantity),
+        deliveryCharge: new Decimal(deliveryCharge),
+        totalPrice: new Decimal(unitPrice * quantity + deliveryCharge),
+        deliveryDays: 2,
+        paymentTerm: PaymentTerm.CASH_ON_DELIVERY,
+        validUntil: new Date(Date.now() - (daysAgo - 5) * 86400000),
+        specMatch,
+        status: QuoteStatus.SUBMITTED,
+        createdAt: new Date(Date.now() - daysAgo * 86400000),
+      },
+    });
 
-  // Snapshot 2: Non-publishable (sampleQuotes < 8)
-  await prisma.marketPriceSnapshot.create({
-    data: {
-      categoryId: categories["foil_wrap"].id,
-      specKey: "foil_wrap:width_cm=30",
-      specLabel: { width_cm: 30 },
-      unit: "roll",
-      quantityBand: "10-50",
-      deliveryIncluded: false,
-      area: "Dhaka",
-      periodStart: new Date(Date.now() - 30 * 86400000),
-      periodEnd: new Date(),
-      sampleQuotes: 3,
-      sampleSuppliers: 2,
-      p25: new Decimal(180.0),
-      median: new Decimal(190.0),
-      p75: new Decimal(200.0),
-      excludedCount: 0,
-      isPublishable: false,
-    },
-  });
+  const containerSpec = { capacity_ml: 750, has_lid: true, material: "plastic_pp" };
+  const containerMatch = { capacity_ml: "MATCH", has_lid: "MATCH", material: "MATCH" };
+  const h1 = await historyRequest("REQ-SEED-HIST-1", 1, "containers", containerSpec, 500, "Mirpur", 20);
+  await historyQuote(h1.id, 2, 8.6, 500, 120, containerMatch, 19);
+  await historyQuote(h1.id, 3, 8.8, 500, 100, containerMatch, 19);
+  await historyQuote(h1.id, 4, 9.1, 500, 150, containerMatch, 18);
+  const h2 = await historyRequest("REQ-SEED-HIST-2", 1, "containers", containerSpec, 600, "Mirpur", 12);
+  await historyQuote(h2.id, 5, 8.9, 600, 100, containerMatch, 11);
+  await historyQuote(h2.id, 3, 9.2, 600, 80, containerMatch, 11);
+  await historyQuote(h2.id, 4, 8.7, 600, 100, containerMatch, 10);
+  const h3 = await historyRequest("REQ-SEED-HIST-3", 1, "containers", containerSpec, 500, "Mirpur", 6);
+  await historyQuote(h3.id, 2, 9.0, 500, 100, containerMatch, 5);
+
+  const cupSpec = { capacity_ml: 250, has_lid: true, material: "paper" };
+  const cupMatch = { capacity_ml: "MATCH", has_lid: "MATCH", material: "MATCH" };
+  const h4 = await historyRequest("REQ-SEED-HIST-4", 2, "cups", cupSpec, 1000, "Gulshan", 9);
+  await historyQuote(h4.id, 0, 3.6, 1000, 0, cupMatch, 8);
+  await historyQuote(h4.id, 3, 3.9, 1000, 0, cupMatch, 8);
+  const h5 = await historyRequest("REQ-SEED-HIST-5", 2, "cups", cupSpec, 1200, "Gulshan", 4);
+  await historyQuote(h5.id, 0, 3.7, 1200, 0, cupMatch, 3);
+
+  const prices = await runComputeMarketPricesJob();
+  console.log(`Market prices: ${prices.groups} groups, ${prices.publishable} publishable`);
 
   console.log("✅ Seed completed successfully with buyers, suppliers, categories, orders, quotes, questions, and market snapshots.");
 }

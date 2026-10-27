@@ -363,8 +363,14 @@ describe("Phase 3 review fixes", () => {
       await expect(newRequest({ quoteWindowHours: 5 })).rejects.toThrow(/Quote window/);
     });
 
-    it("refuses a direct supplier that is not from a completed order being repeated", async () => {
-      await expect(newRequest({ directSupplierId: s2.id })).rejects.toThrow(/Direct supplier/);
+    it("refuses a direct supplier that is not an active supplier", async () => {
+      await expect(newRequest({ directSupplierId: buyer.id })).rejects.toThrow(/Direct supplier/);
+      await prisma.business.update({ where: { id: outsider.id }, data: { isSuspended: true } });
+      try {
+        await expect(newRequest({ directSupplierId: outsider.id })).rejects.toThrow(/Direct supplier/);
+      } finally {
+        await prisma.business.update({ where: { id: outsider.id }, data: { isSuspended: false } });
+      }
     });
 
     it("does not link another user's AI interaction", async () => {

@@ -6,6 +6,7 @@ import { TranslationsProvider } from "@/components/ui/T";
 import { getSession } from "@/lib/session";
 import { findUserById } from "@/lib/repo/user";
 import { findBusinessById } from "@/lib/repo/business";
+import { getLanguage } from "@/lib/repo/languages";
 import { cookies } from "next/headers";
 
 export const metadata = {
@@ -44,29 +45,30 @@ export default async function RootLayout({
   const langCookie = cookieStore.get("biznet_lang")?.value;
   let lang: string = langCookie || userLang || "en";
 
-  // Server-side guard (§16): Arabic ("ar") preview is strictly restricted to ADMIN
-  if (lang === "ar") {
-    const adminEmails = (process.env.ADMIN_EMAILS || "")
-      .split(",")
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
-    const adminPhones = (process.env.ADMIN_PHONES || "")
-      .split(",")
-      .map((p) => p.trim())
-      .filter(Boolean);
+  // Only ACTIVE languages are served to everyone; DRAFT/BETA are an admin-only preview (§11).
+  // Unknown codes fall back to English.
+  const adminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const adminPhones = (process.env.ADMIN_PHONES || "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const isAdmin =
+    session.role === "ADMIN" ||
+    (userPhone && adminPhones.includes(userPhone)) ||
+    (user?.email && adminEmails.includes(user.email.toLowerCase().trim())) ||
+    user?.role === "ADMIN";
 
-    const isAdmin =
-      session.role === "ADMIN" ||
-      (userPhone && adminPhones.includes(userPhone)) ||
-      (user?.email && adminEmails.includes(user.email.toLowerCase().trim())) ||
-      user?.role === "ADMIN";
-
-    if (!isAdmin) {
-      lang = "en"; // Strictly block Arabic preview for non-admins
-    }
+  let language = await getLanguage(lang).catch(() => null);
+  const servable = language && (language.status === "ACTIVE" || (isAdmin && language.status !== "DISABLED"));
+  if (!servable) {
+    lang = "en";
+    language = null;
   }
 
-  const dir = lang === "ar" ? "rtl" : "ltr";
+  const dir = language?.direction === "rtl" ? "rtl" : "ltr";
   const translations = await getTranslations(lang);
 
   return (
@@ -79,6 +81,8 @@ export default async function RootLayout({
             activeBusinessName={activeBusinessName}
             userPhone={userPhone}
             lang={lang}
+            isLoggedIn={!!user}
+            isAdmin={!!isAdmin}
           />
           <main className="flex-1 p-4">{children}</main>
           <BottomNav translations={translations} />

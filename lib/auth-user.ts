@@ -72,6 +72,7 @@ export interface AuthzContextResult {
     businessRole: MemberRole | null;
     phoneVerified: boolean;
     emailVerified: boolean;
+    isBanned: boolean;
   } | null;
   error: string | null;
   status: number;
@@ -113,6 +114,7 @@ export async function getAuthzContext(reqOrSession?: any): Promise<AuthzContextR
       businessRole,
       phoneVerified: Boolean(user.phoneVerified),
       emailVerified: Boolean(user.emailVerified),
+      isBanned: Boolean(user.isBanned),
     },
     error: null,
     status: 200,

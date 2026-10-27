@@ -18,6 +18,7 @@ import { getAiProvider } from "@/lib/ai/provider";
 import { reserveAiBudget, refundAiBudget } from "@/lib/ai/budget";
 import { getSetting } from "@/lib/settings";
 import { Priority, QuoteStatus } from "@prisma/client";
+import { limitMutation } from "@/lib/http/guard";
 
 const AiCompareResponseSchema = z.object({
   perQuote: z.array(
@@ -52,6 +53,8 @@ const AiCompareResponseSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "quote-compare", 300);
+    if (limited) return limited;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });
@@ -246,6 +249,7 @@ Return code-based analysis only.
         }),
         validUntil: q.validUntil,
         notes: q.notes,
+        lang: q.lang,
         attachmentKeys: q.attachmentKeys,
         version: q.version,
         status: q.status,

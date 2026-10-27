@@ -8,6 +8,7 @@ import {
   getAllCategories,
   ListingError,
 } from "@/lib/repo/listing";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,6 +40,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "listing-create", 60);
+    if (limited) return limited;
     const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
     if (authError || !dbCtx || !dbCtx.activeBusinessId) {
       return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });

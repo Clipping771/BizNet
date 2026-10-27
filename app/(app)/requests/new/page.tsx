@@ -74,6 +74,9 @@ export default function NewRequestPage() {
     typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
   );
   const [repeatOfRequestId, setRepeatOfRequestId] = useState<string | null>(null);
+  // From a search card: "Request a quote" prefills the category; optionally only that supplier (§8.13)
+  const [directSupplier, setDirectSupplier] = useState<{ id: string; name: string } | null>(null);
+  const [onlyDirectSupplier, setOnlyDirectSupplier] = useState(true);
   const [aiPrefilledKeys, setAiPrefilledKeys] = useState<Set<string>>(new Set());
   const [uncertainFields, setUncertainFields] = useState<string[]>([]);
   const [questions, setQuestions] = useState<
@@ -112,6 +115,21 @@ export default function NewRequestPage() {
       })
       .catch((err) => console.error("Categories fetch error:", err));
   }, []);
+
+  useEffect(() => {
+    if (categories.length === 0 || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("category");
+    const supplierId = params.get("supplier");
+    if (slug) {
+      const cat = categories.find((c) => c.slug === slug);
+      if (cat) {
+        setSelectedCategory(cat);
+        if (cat.defaultUnits?.[0]) setUnit(cat.defaultUnits[0]);
+      }
+    }
+    if (supplierId) setDirectSupplier({ id: supplierId, name: params.get("supplierName") || "" });
+  }, [categories]);
 
   // "Create a new request from this" (§8.9): /requests/new?repeatOf=<code> opens the
   // wizard prefilled from the earlier request; matching runs again on send.
@@ -416,6 +434,7 @@ export default function NewRequestPage() {
           aiOutcome: aiInteractionId ? (editedFields.length > 0 ? "EDITED" : "ACCEPTED_AS_IS") : discardedAiId ? "DISCARDED" : undefined,
           aiEditedFields: aiInteractionId ? editedFields : [],
           repeatOfRequestId,
+          directSupplierId: directSupplier && onlyDirectSupplier ? directSupplier.id : undefined,
           idempotencyKey,
         }),
       });
@@ -920,6 +939,18 @@ export default function NewRequestPage() {
                   <T k="rfq.paymentTerm" />{": "}<span className="font-semibold text-gray-700">{t(`payterm.${preferredPaymentTerm}`)}</span>
                 </div>
               </div>
+
+              {directSupplier && (
+                <label className="flex items-center gap-2 text-xs text-gray-700">
+                  <input
+                    type="checkbox"
+                    id="rfq-only-direct-supplier"
+                    checked={onlyDirectSupplier}
+                    onChange={(e) => setOnlyDirectSupplier(e.target.checked)}
+                  />
+                  <span>{t("rfq.onlyThisSupplier", undefined, { name: directSupplier.name })}</span>
+                </label>
+              )}
 
               {formErrors.general && (
                 <p className="text-xs text-red-500 font-semibold">{formErrors.general}</p>

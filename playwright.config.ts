@@ -10,6 +10,8 @@ export default defineConfig({
     timeout: 5000,
   },
   fullyParallel: false,
+  // All specs share one seeded database and some pause suppliers while they run: run them one at a time
+  workers: 1,
   reporter: "list",
   use: {
     baseURL,

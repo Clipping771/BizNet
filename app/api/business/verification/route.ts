@@ -7,6 +7,7 @@ import {
   getLatestVerificationForBusiness,
   VerificationError,
 } from "@/lib/repo/verification";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function GET(req: NextRequest) {
   try {
@@ -38,6 +39,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "verification-submit", 10);
+    if (limited) return limited;
     const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
     if (authError || !dbCtx || !dbCtx.activeBusinessId) {
       return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });

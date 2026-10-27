@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { acceptQuoteAndCreateOrderRecord, getQuoteWithRequest } from "@/lib/repo/quote";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "quote-accept", 20);
+    if (limited) return limited;
     const { id } = await params;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {

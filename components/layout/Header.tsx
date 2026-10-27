@@ -9,6 +9,8 @@ interface HeaderProps {
   activeBusinessName?: string;
   userPhone?: string;
   lang?: string;
+  isLoggedIn?: boolean;
+  isAdmin?: boolean;
 }
 
 export function Header({
@@ -16,7 +18,11 @@ export function Header({
   activeBusinessName,
   userPhone,
   lang = "bn",
+  isLoggedIn = false,
+  isAdmin = false,
 }: HeaderProps) {
+  // Logged-in users without a business (e.g. admins, new sign-ups) still get the account menu
+  const menuLabel = activeBusinessName || userPhone || translations["nav.account"] || "অ্যাকাউন্ট";
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -34,21 +40,21 @@ export function Header({
 
         {/* Business & Account Actions */}
         <div className="flex items-center gap-2">
-          {activeBusinessName ? (
+          {isLoggedIn || activeBusinessName ? (
             <div className="relative">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-gray-50 border border-gray-200 rounded-full hover:bg-gray-100"
               >
                 <Building2 className="w-3.5 h-3.5 text-primary" />
-                <span className="max-w-[120px] truncate">{activeBusinessName}</span>
+                <span className="max-w-[120px] truncate">{menuLabel}</span>
                 <ChevronDown className="w-3 h-3 text-gray-400" />
               </button>
 
               {menuOpen && (
                 <div className="absolute end-0 mt-1.5 w-52 bg-white rounded-lg shadow-lg border border-gray-100 py-1.5 z-50 text-xs">
                   <div className="px-3 py-1.5 border-b border-gray-100">
-                    <p className="font-semibold text-gray-800 truncate">{activeBusinessName}</p>
+                    <p className="font-semibold text-gray-800 truncate">{menuLabel}</p>
                     <p className="text-gray-500">{userPhone}</p>
                   </div>
                   <Link
@@ -58,6 +64,17 @@ export function Header({
                   >
                     <span>{translations["nav.account"] || "অ্যাকাউন্ট"}</span>
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="block px-3 py-2 text-gray-700 hover:bg-gray-50"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <span>{translations["admin.nav.dashboard"] || "Admin"}</span>
+                    </Link>
+                  )}
+                  {activeBusinessName && (
+                  <>
                   <Link
                     href="/business/members"
                     className="block px-3 py-2 text-gray-700 hover:bg-gray-50"
@@ -72,6 +89,15 @@ export function Header({
                   >
                     <span>{translations["business.settingsTitle"] || "ব্যবসার সেটিংস"}</span>
                   </Link>
+                  <Link
+                    href="/business/credits"
+                    className="block px-3 py-2 text-gray-700 hover:bg-gray-50"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <span>{translations["credits.title"] || "লিড ক্রেডিট"}</span>
+                  </Link>
+                  </>
+                  )}
                   <Link
                     href="/account/language"
                     className="flex items-center justify-between px-3 py-2 text-gray-700 hover:bg-gray-50"

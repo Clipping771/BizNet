@@ -10,6 +10,7 @@ import {
 } from "@/lib/repo/membership";
 import { findUserById } from "@/lib/repo/user";
 import { logAudit } from "@/lib/audit";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function GET(req: NextRequest) {
   try {
@@ -42,6 +43,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "invite-create", 30);
+    if (limited) return limited;
     const session = await getSession(req);
     if (!session.isLoggedIn || !session.userId || !session.activeBusinessId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

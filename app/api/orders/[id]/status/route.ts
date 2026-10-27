@@ -3,12 +3,15 @@ import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { findOrderById, updateOrderStatusRecord } from "@/lib/repo/order";
 import { OrderStatus, DisputeResolution } from "@prisma/client";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "order-status", 60);
+    if (limited) return limited;
     const { id } = await params;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {

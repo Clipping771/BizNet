@@ -21,6 +21,8 @@ import { logAudit } from "@/lib/audit";
 import { logEvent } from "@/lib/events";
 import { getSmsProvider } from "@/lib/sms/provider";
 import { assertBusinessFileKeys } from "@/lib/storage";
+import { sanitizeText } from "@/lib/http/guard";
+import { grantFreeTrialIfEligible } from "@/lib/repo/credits";
 
 const MAX_QUOTE_ATTACHMENTS = 3;
 
@@ -86,6 +88,17 @@ export async function deductLeadCreditWithAdvisoryLock(
  * Maintains exactly one quote row per (request, supplier).
  */
 export async function submitQuoteRecord(input: SubmitQuoteInput) {
+  // Idempotency (§10): a retried submit with the same key returns the stored quote unchanged
+  if (input.idempotencyKey) {
+    const previous = await prisma.quote.findUnique({ where: { idempotencyKey: input.idempotencyKey } });
+    if (previous) {
+      if (previous.supplierBusinessId !== input.supplierBusinessId || previous.requestId !== input.requestId) {
+        throw new Error("Idempotency key already used for another quote");
+      }
+      return previous;
+    }
+  }
+  input = { ...input, notes: input.notes ? sanitizeText(input.notes) : input.notes };
   const request = await prisma.request.findUnique({
     where: { id: input.requestId },
     include: {
@@ -234,7 +247,9 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
       // First quote submission
       const newQuoteId = crypto.randomUUID ? crypto.randomUUID() : `quote_${Date.now()}`;
 
+      // READY monetisation (§8.7): the first quote on a request costs 1 credit when switched on
       if (leadCreditsEnabled) {
+        await grantFreeTrialIfEligible(input.supplierBusinessId, tx);
         await deductLeadCreditWithAdvisoryLock(tx, input.supplierBusinessId, newQuoteId);
       }
 
@@ -421,6 +436,12 @@ export async function acceptQuoteAndCreateOrderRecord(
 
     if (quote.request.buyerBusinessId !== buyerBusinessId) {
       throw new Error("IDOR: Cannot accept quote for a request belonging to another business");
+    }
+
+    // Idempotent confirm (§10): repeating the same confirmation returns the existing order
+    if (quote.status === QuoteStatus.ACCEPTED) {
+      const existingOrder = await tx.order.findUnique({ where: { quoteId } });
+      if (existingOrder) return existingOrder;
     }
 
     // 2. Concurrency guard: Ensure request is still in OPEN status!

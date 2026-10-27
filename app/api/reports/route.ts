@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { createReportRecord } from "@/lib/repo/report";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "report-create", 20);
+    if (limited) return limited;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });

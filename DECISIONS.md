@@ -104,3 +104,57 @@ All deviations from the original specification require explicit founder review a
 | An AI cache hit creates its own `AiInteraction` row (cost 0, `cacheHit = true`) for the user | `lib/ai/requestAssistant.ts` | Each request records its own outcome (ACCEPTED_AS_IS / EDITED / DISCARDED) even when the structuring came from cache. |
 | Re-order creates the new request immediately after the buyer picks "Only from {supplier}" or "Everyone" | `app/(app)/orders/[code]/page.tsx` | The explicit choice is the buyer's confirmation; the prefilled data is the order snapshot's request. "Create a new request from this" (after cancellation) opens the wizard prefilled instead. |
 | `QUOTE_COMPARISON` outcome is set on accept (ACCEPTED_AS_IS if the suggested quote was ordered, else EDITED); DISCARDED for requests that end without an order is not yet written | `lib/repo/quote.ts` | Known gap — to be filled by the expire-requests job in Phase 5 with the metrics work. |
+
+## Phase 4 decisions
+
+| Decision | Where | Why |
+|---|---|---|
+| Search expands a small Bangla↔English synonym list (box/বক্স, cup/কাপ, …) and Bangla↔Latin digits; a one-word query that names a category also returns that category's listings | `lib/search/query.ts`, `lib/repo/search.ts` | Listings are written in Bangla; "box" must find "বক্স". No AI, no vector search (§2 LATER). |
+| "Verified only" (default on) shows VERIFIED suppliers; off shows BASIC and VERIFIED. Unverified suppliers never appear | `lib/repo/search.ts` | Same public rule as listing pages (Phase 2); the toggle stays meaningful. |
+| Ranking = ts_rank + trigram similarity + 0.3 VERIFIED / 0.15 BASIC + 0.2 if the supplier has active listings; offset paging of 20 | `lib/repo/search.ts` | §8.13 ranking ingredients with fixed, testable weights. |
+| Selling answers are refused with the warning (must be edited); selling questions can be submitted anyway and are held as PENDING_REVIEW | `lib/repo/discussion.ts` | Answers have no review state in the schema; questions do (§8.14). |
+| Rejected held questions become CLOSED + soft-deleted; approvals and rejections are audited | `lib/repo/discussion.ts` | Moderation actions need an audit trail (§10). |
+| Price inputs: SUPPLIER quotes in SUBMITTED / REVISED / ACCEPTED / REJECTED (not chosen) from the last 30 days; WITHDRAWN never; fraud handled by admin exclusions | `lib/repo/pricing.ts` | Dropping every not-chosen quote would discard most real prices; "REJECTED-for-fraud" is what MarketPriceExclusion is for. |
+| A quote counts only if every comparable field the buyer specified is MATCH; spec key = those fields sorted; prices are per the request's unit (unit is part of the group) | `jobs/compute-market-prices.ts` | "Spec known" without inventing unit conversions. |
+| Quantity bands 1-99 / 100-499 / 500-999 / 1000-4999 / 5000+; deliveryIncluded = delivery charge 0 | `lib/pricing/compute.ts` | Simple, documented grouping (§8.15). |
+| Dominant supplier (> 40%) is collapsed to its median first, then IQR fences are applied | `lib/pricing/compute.ts` | Collapsing first keeps one supplier's many quotes from shifting the quartiles used for the fences. |
+| Each job run writes one snapshot batch (same `computedAt`); `/prices` reads the latest batch | `lib/repo/pricing.ts` | Keeps history for admin review without a separate table. |
+| The seed creates recent quotes and runs the real job instead of inserting hand-made snapshots | `prisma/seed.ts` | "Seed produces one publishable and one non-publishable group" is then proven by the job itself. |
+| `directSupplierId` may be any active supplier (search card "only this supplier"), not only a previous order's supplier | `lib/repo/request.ts` | §8.13 card CTA; matching still applies eligibility. |
+| pg-boss worker added (`pnpm worker`) for expire-requests, auto-complete-orders and compute-market-prices | `jobs/worker.ts` | Phase 3 jobs existed as functions but nothing scheduled them. |
+| Playwright runs one worker | `playwright.config.ts` | Specs share one seeded database; some pause suppliers while running. |
+
+## Phase 5 decisions
+
+| Decision | Where | Why |
+|---|---|---|
+| Funnel cohort = requests created in the range; later steps (quotes, orders) follow those requests even after the range end. Orders, feedback, AI, ops and events count by their own timestamp in the range | `lib/repo/metrics.ts` | Each funnel step stays a separate, reproducible number (§13). |
+| "Active at 60/90 days" = buyers whose first request is in the range and who created another request ≥ 60 / ≥ 90 days later; "second request" = within 30 days of the first | `lib/repo/metrics.ts` | Simplest testable reading of the retention metrics. |
+| Percentages are `null` (shown "—") when the denominator is 0; the requests target (20 / 4 weeks) is scaled to the selected range | `lib/metrics/math.ts`, `lib/repo/metrics.ts` | Avoids fake 0% and unfair thresholds on short ranges. |
+| Thresholds and the latest eval report live in Settings (`metricThresholds`, `latestEvalReport`) | `lib/settings.ts` | Editable without deploys; no new tables. |
+| Nightly eval workflow posts to `POST /api/admin/eval-report` with `EVAL_REPORT_TOKEN`; below-threshold results notify every admin in-app | `app/api/admin/eval-report`, `lib/repo/admin.ts` | §12: report reaches /admin without a user session; alert the admin. |
+| Critical UI keys = navigation, auth, common and the whole core loop (rfq/quote/order/msg/feedback/cmp/enum labels) | `lib/i18n-critical.ts` | ACTIVE needs ≥ 90% of these approved (§11). |
+| Served languages come from the Language table: ACTIVE for everyone, DRAFT/BETA admin-only preview, DISABLED never; direction from the language row | `app/layout.tsx` | Replaces the hard-coded "ar" guard so new languages need no code change. |
+| Auto-draft never overwrites existing (builtin/human) text, keeps English placeholders if a provider mangles them, and leaves drafts unapproved | `lib/repo/languages.ts` | Machine text must be reviewed before users see it. |
+| Settings are typed by the default value's shape (number / boolean / string / list / object) | `lib/repo/admin.ts` | Prevents a mistyped value from breaking a feature (§9). |
+| CSV export quotes every cell and prefixes `= + - @` with `'` | `lib/repo/admin.ts` | Prevents spreadsheet formula injection from user text. |
+| Per-route mutation rate limits (per user, or per IP when logged out) in addition to existing OTP/message/AI limits | `lib/http/guard.ts`, API routes | §10 "every mutation: rate limit". |
+| CSRF: middleware rejects API mutations whose `Origin` is not this app; requests without Origin rely on the SameSite=Lax cookie plus their own auth | `middleware.ts` | §10 origin check without breaking CI/server callers. |
+| Quote submit and order confirm are idempotent (same idempotency key → stored quote; repeated confirm → existing order) | `lib/repo/quote.ts` | §10 idempotency for commercial mutations. |
+| User text is stripped of control and bidi-override characters (ZWJ/ZWNJ kept for Bangla) and always rendered as plain text | `lib/http/guard.ts` | No HTML; prevents hidden-text tricks (§10). |
+| docker compose uses moto for S3 (MinIO image no longer on Docker Hub); objects are in memory | `docker-compose.yml` | Same S3 server as CI; production uses R2/S3. A CI job proves `docker compose up` + `pnpm db:seed` works. |
+
+## Phase 6 decisions (READY features, switched off by default)
+
+| Decision | Where | Why |
+|---|---|---|
+| Founder chose: build lead credits/payments, content translation and the extra-language flow completely, but keep `leadCreditsEnabled` and `translationEnabled` **off** until an admin switches them on | `lib/settings.ts` | MVP stays free (§1); switching on is a business decision, not a deploy. |
+| Free trial (`freeTrialCredits`, default 5) is granted once to a verified supplier (BASIC/VERIFIED) the first time credits matter, under the same advisory lock as spending | `lib/repo/credits.ts` | No credits for unverified businesses; no double grants under concurrency. |
+| Only the first quote on a request costs a credit; revisions and re-submits are free; out of credits → HTTP 402 `INSUFFICIENT_CREDITS` | `lib/repo/quote.ts`, quote route | §8.7; the UI links to the credits page. |
+| Payments are manual: supplier reports bKash/Nagad TrxID + sender number for a credit pack; admin verifies and approves; TrxID is unique; approval is claimed atomically so credits are added exactly once | `lib/repo/credits.ts` | §2 F23 (no payment gateway in MVP). Merchant numbers come from the `paymentReceivers` setting. |
+| Only OWNER/MANAGER can submit payments | `app/api/credits/payments` | Spending company money is a manager action. |
+| Content translation loads the text on the server and checks the viewer may read it (message parties, quote parties, request readers, public Q&A) | `lib/repo/content-translation.ts` | A user can never translate (and so read) content they cannot see. |
+| Numbers, units and money are masked before translation and restored exactly; if a provider drops or duplicates a token the original is shown | `lib/translation/protect.ts` | §1 "numbers are never translated by AI". |
+| Translation budget: full cost reserved up front per call against `translationDailyBudgetUsd` (same atomic counter as AI) + 200 translations/user/day; results cached by source hash | `lib/repo/content-translation.ts` | Hard daily cap; repeated views cost nothing. |
+| Real adapter: DeepL (`TRANSLATION_PROVIDER=deepl`, `TRANSLATION_API_KEY`); mock otherwise | `lib/translation/provider.ts` | §3 lists deepl; unsupported language pairs fall back to the original. |
+| The language picker lists languages from the database (ACTIVE; admins also see DRAFT/BETA) and stores the choice in the `biznet_lang` cookie and on the user | `app/api/languages`, `app/api/account/language` | The old picker only changed the page's `lang` attribute and was lost on navigation. |

@@ -3,9 +3,12 @@ import { getSession } from "@/lib/session";
 import { acceptMemberInvite, MembershipError } from "@/lib/repo/membership";
 import { findUserById } from "@/lib/repo/user";
 import { logAudit } from "@/lib/audit";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "invite-accept", 30);
+    if (limited) return limited;
     const session = await getSession();
     if (!session.isLoggedIn || !session.userId) {
       return NextResponse.json({ error: "Unauthorized: please log in first" }, { status: 401 });
