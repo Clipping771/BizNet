@@ -25,7 +25,7 @@ const eslintConfig = [
         "error",
         {
           noStrings: true,
-          allowedStrings: [" ", "&nbsp;", "·", "/", "✓", "≠", "?"],
+          allowedStrings: [" ", "&nbsp;", "·", "/", "✓", "≠", "?", ":", ": ", "(", ")", "-", "—"],
           ignoreProps: true,
           noAttributeStrings: false,
         },
@@ -42,12 +42,13 @@ const eslintConfig = [
     },
   },
   {
-    // Allow direct prisma in repositories, scripts, migrations, tests, and seed
+    // Allow direct prisma in repositories, scripts, migrations, tests, jobs, and seed
     files: [
       "lib/repo/**/*.ts",
       "prisma/**/*.ts",
       "scripts/**/*.ts",
       "tests/**/*.ts",
+      "jobs/**/*.ts",
     ],
     rules: {
       "no-restricted-syntax": "off",

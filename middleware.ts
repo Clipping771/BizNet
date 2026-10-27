@@ -9,6 +9,7 @@ const PROTECTED_PREFIXES = [
   "/account",
   "/onboarding",
   "/business",
+  "/admin",
 ];
 
 export async function middleware(req: NextRequest) {
@@ -45,6 +46,7 @@ export const config = {
     "/account/:path*",
     "/onboarding/:path*",
     "/business/:path*",
+    "/admin/:path*",
     "/login",
   ],
 };

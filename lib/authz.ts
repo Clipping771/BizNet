@@ -15,8 +15,11 @@ export type ActionType =
   | "business:edit"
   | "business:invite"
   | "business:transfer_ownership"
+  | "business:verification_request"
   | "listing:create"
   | "listing:edit"
+  | "listing:delete"
+  | "file:read_private"
   | "request:create"
   | "request:edit"
   | "request:cancel"
@@ -50,7 +53,9 @@ export function assertCan(
     supplierBusinessId?: string;
     ownerUserId?: string;
     isSuspended?: boolean;
+    isSupplier?: boolean;
     verificationStatus?: string;
+    isVerificationDocument?: boolean;
   }
 ): void {
   // Banned users are denied everything except reading public resources
@@ -64,6 +69,16 @@ export function assertCan(
       throw new AuthorizationError("Admin access required");
     }
     return;
+  }
+
+  // Private file access: verification documents are strictly ADMIN only (§8.3, B6, B7)
+  if (action === "file:read_private") {
+    if (resource?.isVerificationDocument) {
+      if (ctx.role !== PlatformRole.ADMIN) {
+        throw new AuthorizationError("Verification documents are strictly admin-only");
+      }
+      return;
+    }
   }
 
   if (ctx.role === PlatformRole.ADMIN) {
@@ -98,14 +113,34 @@ export function assertCan(
       }
       return;
 
+    case "business:verification_request":
+      if (
+        !ctx.activeBusinessId ||
+        ctx.activeBusinessId !== resource?.businessId ||
+        (ctx.businessRole !== MemberRole.OWNER && ctx.businessRole !== MemberRole.MANAGER)
+      ) {
+        throw new AuthorizationError("Only OWNER or MANAGER can submit verification requests");
+      }
+      if (resource?.isSuspended) {
+        throw new AuthorizationError("Suspended businesses cannot submit verification");
+      }
+      return;
+
     case "listing:create":
     case "listing:edit":
+    case "listing:delete":
       if (
         !ctx.activeBusinessId ||
         ctx.activeBusinessId !== resource?.businessId ||
         (ctx.businessRole !== MemberRole.OWNER && ctx.businessRole !== MemberRole.MANAGER)
       ) {
         throw new AuthorizationError("Only OWNER or MANAGER can manage listings");
+      }
+      if (resource?.isSupplier === false) {
+        throw new AuthorizationError("Only suppliers can manage listings");
+      }
+      if (resource?.isSuspended) {
+        throw new AuthorizationError("Suspended suppliers cannot manage listings");
       }
       if (
         resource?.verificationStatus !== "BASIC" &&
@@ -149,6 +184,17 @@ export function assertCan(
         (ctx.businessRole !== MemberRole.OWNER && ctx.businessRole !== MemberRole.MANAGER)
       ) {
         throw new AuthorizationError("Only OWNER or MANAGER of the buyer business can accept quotes");
+      }
+      return;
+
+    case "order:update_status":
+      if (
+        !ctx.activeBusinessId ||
+        (ctx.activeBusinessId !== resource?.buyerBusinessId &&
+          ctx.activeBusinessId !== resource?.supplierBusinessId) ||
+        !ctx.businessRole
+      ) {
+        throw new AuthorizationError("Must be a member of the buyer or supplier business to update order status");
       }
       return;
 

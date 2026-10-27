@@ -78,6 +78,12 @@ export function useT() {
   );
 }
 
+/** Current UI language from the server-resolved catalog (falls back to bn). */
+export function useLang(): string {
+  const ctx = useContext(TranslationsContext);
+  return ctx?.lang || "bn";
+}
+
 export function T({ k, lang, params }: { k: string; lang?: string; params?: Params }) {
   const translate = useT();
   return <>{translate(k, lang, params)}</>;

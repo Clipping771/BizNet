@@ -101,6 +101,8 @@ export async function findBusinessById(id: string): Promise<Business | null> {
   });
 }
 
+export const getBusinessById = findBusinessById;
+
 export async function findBusinessBySlug(slug: string): Promise<Business | null> {
   return prisma.business.findFirst({
     where: { slug, deletedAt: null },

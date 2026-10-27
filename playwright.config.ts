@@ -14,6 +14,8 @@ export default defineConfig({
   use: {
     baseURL,
     viewport: { width: 360, height: 740 },
+    // Fail fast when a control is covered or missing instead of waiting for the test timeout
+    actionTimeout: 15000,
     trace: "on-first-retry",
   },
   // Serves the production build; run `pnpm build` first. Locally an already

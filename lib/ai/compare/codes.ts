@@ -1,0 +1,37 @@
+/**
+ * lib/ai/compare/codes.ts
+ *
+ * Types and allowed codes for AI Quote Comparison (§8.8 B, E3).
+ */
+
+export type StrengthCode =
+  | "LOWEST_TOTAL"
+  | "FASTEST"
+  | "MATCHES_ALL_SPECS"
+  | "PREFERRED_PAYMENT_TERM"
+  | "ARRIVES_BEFORE_NEEDED";
+
+export type ConcernCode =
+  | "ARRIVES_AFTER_NEEDED_BY"
+  | "SPEC_DIFFERENT"
+  | "SPEC_NOT_STATED"
+  | "DELIVERY_CHARGE_MISSING"
+  | "PAYMENT_TERM_MISMATCH"
+  | "VALIDITY_ENDS_SOON";
+
+export const ALLOWED_STRENGTH_CODES: StrengthCode[] = [
+  "LOWEST_TOTAL",
+  "FASTEST",
+  "MATCHES_ALL_SPECS",
+  "PREFERRED_PAYMENT_TERM",
+  "ARRIVES_BEFORE_NEEDED",
+];
+
+export const ALLOWED_CONCERN_CODES: ConcernCode[] = [
+  "ARRIVES_AFTER_NEEDED_BY",
+  "SPEC_DIFFERENT",
+  "SPEC_NOT_STATED",
+  "DELIVERY_CHARGE_MISSING",
+  "PAYMENT_TERM_MISMATCH",
+  "VALIDITY_ENDS_SOON",
+];

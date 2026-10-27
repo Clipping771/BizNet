@@ -25,6 +25,17 @@ export async function countUserOwnedBusinesses(userId: string): Promise<number> 
   });
 }
 
+export async function getUserMembership(
+  userId: string,
+  businessId: string
+): Promise<Membership | null> {
+  return prisma.membership.findUnique({
+    where: {
+      userId_businessId: { userId, businessId },
+    },
+  });
+}
+
 /**
  * Creates an invitation for MANAGER or STAFF only. Inviting as OWNER is disallowed.
  */
@@ -356,5 +367,12 @@ export async function findUserMembership(
 ): Promise<Membership | null> {
   return prisma.membership.findUnique({
     where: { userId_businessId: { userId, businessId } },
+  });
+}
+
+export async function findFirstUserMembership(userId: string): Promise<Membership | null> {
+  return prisma.membership.findFirst({
+    where: { userId },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
 }
