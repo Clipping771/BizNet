@@ -14,6 +14,7 @@ const LINKS: Array<[href: string, key: string]> = [
   ["/admin/categories", "admin.nav.categories"],
   ["/admin/market-prices", "admin.nav.marketPrices"],
   ["/admin/languages", "admin.nav.languages"],
+  ["/admin/payments", "admin.nav.payments"],
   ["/admin/settings", "admin.nav.settings"],
   ["/admin/ops-time", "admin.nav.opsTime"],
   ["/admin/export", "admin.nav.export"],

@@ -249,6 +249,7 @@ Return code-based analysis only.
         }),
         validUntil: q.validUntil,
         notes: q.notes,
+        lang: q.lang,
         attachmentKeys: q.attachmentKeys,
         version: q.version,
         status: q.status,

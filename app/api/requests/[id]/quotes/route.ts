@@ -66,6 +66,9 @@ export async function POST(
 
     return NextResponse.json(quote, { status: 201 });
   } catch (err: any) {
+    if (typeof err?.message === "string" && err.message.startsWith("Insufficient lead credits")) {
+      return NextResponse.json({ error: err.message, code: "INSUFFICIENT_CREDITS" }, { status: 402 });
+    }
     console.error("Submit quote error:", err);
     return NextResponse.json({ error: err.message || "Failed to submit quote" }, { status: 400 });
   }

@@ -143,3 +143,18 @@ All deviations from the original specification require explicit founder review a
 | Quote submit and order confirm are idempotent (same idempotency key → stored quote; repeated confirm → existing order) | `lib/repo/quote.ts` | §10 idempotency for commercial mutations. |
 | User text is stripped of control and bidi-override characters (ZWJ/ZWNJ kept for Bangla) and always rendered as plain text | `lib/http/guard.ts` | No HTML; prevents hidden-text tricks (§10). |
 | docker compose uses moto for S3 (MinIO image no longer on Docker Hub); objects are in memory | `docker-compose.yml` | Same S3 server as CI; production uses R2/S3. A CI job proves `docker compose up` + `pnpm db:seed` works. |
+
+## Phase 6 decisions (READY features, switched off by default)
+
+| Decision | Where | Why |
+|---|---|---|
+| Founder chose: build lead credits/payments, content translation and the extra-language flow completely, but keep `leadCreditsEnabled` and `translationEnabled` **off** until an admin switches them on | `lib/settings.ts` | MVP stays free (§1); switching on is a business decision, not a deploy. |
+| Free trial (`freeTrialCredits`, default 5) is granted once to a verified supplier (BASIC/VERIFIED) the first time credits matter, under the same advisory lock as spending | `lib/repo/credits.ts` | No credits for unverified businesses; no double grants under concurrency. |
+| Only the first quote on a request costs a credit; revisions and re-submits are free; out of credits → HTTP 402 `INSUFFICIENT_CREDITS` | `lib/repo/quote.ts`, quote route | §8.7; the UI links to the credits page. |
+| Payments are manual: supplier reports bKash/Nagad TrxID + sender number for a credit pack; admin verifies and approves; TrxID is unique; approval is claimed atomically so credits are added exactly once | `lib/repo/credits.ts` | §2 F23 (no payment gateway in MVP). Merchant numbers come from the `paymentReceivers` setting. |
+| Only OWNER/MANAGER can submit payments | `app/api/credits/payments` | Spending company money is a manager action. |
+| Content translation loads the text on the server and checks the viewer may read it (message parties, quote parties, request readers, public Q&A) | `lib/repo/content-translation.ts` | A user can never translate (and so read) content they cannot see. |
+| Numbers, units and money are masked before translation and restored exactly; if a provider drops or duplicates a token the original is shown | `lib/translation/protect.ts` | §1 "numbers are never translated by AI". |
+| Translation budget: full cost reserved up front per call against `translationDailyBudgetUsd` (same atomic counter as AI) + 200 translations/user/day; results cached by source hash | `lib/repo/content-translation.ts` | Hard daily cap; repeated views cost nothing. |
+| Real adapter: DeepL (`TRANSLATION_PROVIDER=deepl`, `TRANSLATION_API_KEY`); mock otherwise | `lib/translation/provider.ts` | §3 lists deepl; unsupported language pairs fall back to the original. |
+| The language picker lists languages from the database (ACTIVE; admins also see DRAFT/BETA) and stores the choice in the `biznet_lang` cookie and on the user | `app/api/languages`, `app/api/account/language` | The old picker only changed the page's `lang` attribute and was lost on navigation. |

@@ -6,6 +6,7 @@ import { ThumbsUp, ThumbsDown, CheckCircle, Flag, ShoppingCart, X } from "lucide
 import { T, useT, useLang } from "@/components/ui/T";
 import { QuestionStatusChip } from "@/components/discussion/QuestionStatusChip";
 import { formatDate } from "@/lib/dates";
+import { TranslatableText } from "@/components/ui/TranslatableText";
 
 export default function QuestionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -143,7 +144,14 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
         <h1 id="question-title-heading" className="text-base font-bold text-gray-900">
           {question.title}
         </h1>
-        <p className="text-sm text-gray-700 whitespace-pre-wrap">{question.body}</p>
+        <TranslatableText
+          entityType="QUESTION"
+          entityId={question.id}
+          field="body"
+          text={question.body}
+          sourceLang={question.lang}
+          className="text-sm text-gray-700 whitespace-pre-wrap"
+        />
         <p className="text-[11px] text-gray-400">
           {author}
           {" · "}
@@ -193,7 +201,14 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
                 <T k="q.best" />
               </p>
             )}
-            <p className="text-sm text-gray-800 whitespace-pre-wrap">{a.body}</p>
+            <TranslatableText
+              entityType="ANSWER"
+              entityId={a.id}
+              field="body"
+              text={a.body}
+              sourceLang={a.lang}
+              className="text-sm text-gray-800 whitespace-pre-wrap"
+            />
             <p className="text-[11px] text-gray-400">
               {a.authorBusiness?.name ?? a.authorName}
               {" · "}

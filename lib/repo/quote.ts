@@ -22,6 +22,7 @@ import { logEvent } from "@/lib/events";
 import { getSmsProvider } from "@/lib/sms/provider";
 import { assertBusinessFileKeys } from "@/lib/storage";
 import { sanitizeText } from "@/lib/http/guard";
+import { grantFreeTrialIfEligible } from "@/lib/repo/credits";
 
 const MAX_QUOTE_ATTACHMENTS = 3;
 
@@ -246,7 +247,9 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
       // First quote submission
       const newQuoteId = crypto.randomUUID ? crypto.randomUUID() : `quote_${Date.now()}`;
 
+      // READY monetisation (§8.7): the first quote on a request costs 1 credit when switched on
       if (leadCreditsEnabled) {
+        await grantFreeTrialIfEligible(input.supplierBusinessId, tx);
         await deductLeadCreditWithAdvisoryLock(tx, input.supplierBusinessId, newQuoteId);
       }
 

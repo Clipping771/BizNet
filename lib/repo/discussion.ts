@@ -122,6 +122,7 @@ export async function getQuestionDetail(id: string, viewer: Viewer) {
     status: q.status,
     score: q.score,
     isAnonymous: q.isAnonymous,
+    lang: q.lang,
     category: q.category,
     categoryHasListings,
     acceptedAnswerId: q.acceptedAnswerId,
@@ -131,6 +132,7 @@ export async function getQuestionDetail(id: string, viewer: Viewer) {
     answers: answers.map((a) => ({
       id: a.id,
       body: a.body,
+      lang: a.lang,
       score: a.score,
       createdAt: a.createdAt,
       isAccepted: a.id === q.acceptedAnswerId,

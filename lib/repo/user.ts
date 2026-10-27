@@ -103,3 +103,7 @@ export async function anonymizeUser(userId: string): Promise<User> {
     },
   });
 }
+
+export async function setUserUiLanguage(userId: string, code: string) {
+  await prisma.user.update({ where: { id: userId }, data: { uiLanguage: code } });
+}

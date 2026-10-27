@@ -89,6 +89,13 @@ export function Header({
                   >
                     <span>{translations["business.settingsTitle"] || "ব্যবসার সেটিংস"}</span>
                   </Link>
+                  <Link
+                    href="/business/credits"
+                    className="block px-3 py-2 text-gray-700 hover:bg-gray-50"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <span>{translations["credits.title"] || "লিড ক্রেডিট"}</span>
+                  </Link>
                   </>
                   )}
                   <Link

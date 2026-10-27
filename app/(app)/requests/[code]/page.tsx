@@ -19,6 +19,7 @@ import { AiChip } from "@/components/ai/AiChip";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
 import { formatMoney, calculateQuoteTotal } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
+import { TranslatableText } from "@/components/ui/TranslatableText";
 
 const PRIORITIES = ["BALANCED", "PRICE", "SPEED", "PAYMENT_TERMS"];
 const PAYMENT_TERMS = ["CASH_ON_DELIVERY", "ADVANCE", "CREDIT_7", "CREDIT_15", "CREDIT_30", "OTHER"];
@@ -43,6 +44,7 @@ interface CompareRow {
   specMatch: SpecRow[];
   validUntil: string;
   notes: string | null;
+  lang: string;
   attachmentKeys: string[];
   status: string;
   tags: string[];
@@ -785,7 +787,16 @@ function QuoteCard({
         </div>
       )}
 
-      {row.notes && <p className="text-[11px] text-gray-600 whitespace-pre-wrap">{row.notes}</p>}
+      {row.notes && (
+        <TranslatableText
+          entityType="QUOTE"
+          entityId={row.quoteId}
+          field="notes"
+          text={row.notes}
+          sourceLang={row.lang}
+          className="text-[11px] text-gray-600 whitespace-pre-wrap"
+        />
+      )}
 
       {row.attachmentKeys.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -869,6 +880,7 @@ function SupplierPanel({
   const [attachmentKeys, setAttachmentKeys] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [outOfCredits, setOutOfCredits] = useState(false);
 
   // Revising / re-submitting starts from the existing quote
   const openForm = () => {
@@ -948,6 +960,10 @@ function SupplierPanel({
         }),
       });
       const json = await res.json();
+      if (res.status === 402 && json.code === "INSUFFICIENT_CREDITS") {
+        setOutOfCredits(true);
+        return;
+      }
       if (!res.ok) {
         onError(json.error || t("common.tryAgain"));
         return;
@@ -1226,6 +1242,17 @@ function SupplierPanel({
             )}
           </div>
 
+          {outOfCredits && (
+            <div id="out-of-credits" className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-center justify-between gap-2">
+              <span>
+                <T k="credits.outOfCredits" />
+              </span>
+              <Link href="/business/credits" className="font-bold underline shrink-0">
+                <T k="credits.goToCredits" />
+              </Link>
+            </div>
+          )}
+
           <div className="bg-gray-50 p-3 rounded-xl flex items-center justify-between text-xs gap-2">
             <span className="font-bold text-gray-600">
               <T k="quote.estimatedTotal" />
@@ -1426,7 +1453,14 @@ function ChatPanel({
                   {reported[m.id] ? t("msg.reported") : t("msg.report")}
                 </button>
               </div>
-              <p className="whitespace-pre-wrap text-gray-800">{m.body}</p>
+              <TranslatableText
+                entityType="MESSAGE"
+                entityId={m.id}
+                field="body"
+                text={m.body}
+                sourceLang={m.lang}
+                className="whitespace-pre-wrap text-gray-800"
+              />
             </div>
           ))}
         </div>

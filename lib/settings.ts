@@ -22,6 +22,8 @@ export interface PlatformSettings {
   leadCreditsEnabled: boolean;
   freeTrialCredits: number;
   creditPacks: { credits: number; priceBdt: number }[];
+  /** bKash / Nagad merchant numbers shown on the credits page for manual payments (READY). */
+  paymentReceivers: { bkash: string; nagad: string };
   translationEnabled: boolean;
   translationDailyBudgetUsd: number;
   evalMinCategoryAccuracy: number;
@@ -95,6 +97,7 @@ export const defaultSettings: PlatformSettings = {
   ],
   translationEnabled: false, // READY - off by default
   translationDailyBudgetUsd: 5.0,
+  paymentReceivers: { bkash: "", nagad: "" },
   evalMinCategoryAccuracy: 0.9,
   evalMinFieldAccuracy: 0.8,
 };

@@ -225,3 +225,12 @@ export async function importLanguage(input: { adminUserId: string; code: string;
 export async function listActiveLanguages() {
   return prisma.language.findMany({ where: { status: LanguageStatus.ACTIVE }, orderBy: { createdAt: "asc" } });
 }
+
+/** Languages a user can pick: ACTIVE; admins also DRAFT and BETA (preview). */
+export async function listSelectableLanguages(isAdmin: boolean) {
+  return prisma.language.findMany({
+    where: { status: { in: isAdmin ? [LanguageStatus.ACTIVE, LanguageStatus.BETA, LanguageStatus.DRAFT] : [LanguageStatus.ACTIVE] } },
+    select: { code: true, nameNative: true, nameEnglish: true, status: true, direction: true },
+    orderBy: { createdAt: "asc" },
+  });
+}
