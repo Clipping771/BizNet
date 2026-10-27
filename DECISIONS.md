@@ -123,3 +123,23 @@ All deviations from the original specification require explicit founder review a
 | `directSupplierId` may be any active supplier (search card "only this supplier"), not only a previous order's supplier | `lib/repo/request.ts` | §8.13 card CTA; matching still applies eligibility. |
 | pg-boss worker added (`pnpm worker`) for expire-requests, auto-complete-orders and compute-market-prices | `jobs/worker.ts` | Phase 3 jobs existed as functions but nothing scheduled them. |
 | Playwright runs one worker | `playwright.config.ts` | Specs share one seeded database; some pause suppliers while running. |
+
+## Phase 5 decisions
+
+| Decision | Where | Why |
+|---|---|---|
+| Funnel cohort = requests created in the range; later steps (quotes, orders) follow those requests even after the range end. Orders, feedback, AI, ops and events count by their own timestamp in the range | `lib/repo/metrics.ts` | Each funnel step stays a separate, reproducible number (§13). |
+| "Active at 60/90 days" = buyers whose first request is in the range and who created another request ≥ 60 / ≥ 90 days later; "second request" = within 30 days of the first | `lib/repo/metrics.ts` | Simplest testable reading of the retention metrics. |
+| Percentages are `null` (shown "—") when the denominator is 0; the requests target (20 / 4 weeks) is scaled to the selected range | `lib/metrics/math.ts`, `lib/repo/metrics.ts` | Avoids fake 0% and unfair thresholds on short ranges. |
+| Thresholds and the latest eval report live in Settings (`metricThresholds`, `latestEvalReport`) | `lib/settings.ts` | Editable without deploys; no new tables. |
+| Nightly eval workflow posts to `POST /api/admin/eval-report` with `EVAL_REPORT_TOKEN`; below-threshold results notify every admin in-app | `app/api/admin/eval-report`, `lib/repo/admin.ts` | §12: report reaches /admin without a user session; alert the admin. |
+| Critical UI keys = navigation, auth, common and the whole core loop (rfq/quote/order/msg/feedback/cmp/enum labels) | `lib/i18n-critical.ts` | ACTIVE needs ≥ 90% of these approved (§11). |
+| Served languages come from the Language table: ACTIVE for everyone, DRAFT/BETA admin-only preview, DISABLED never; direction from the language row | `app/layout.tsx` | Replaces the hard-coded "ar" guard so new languages need no code change. |
+| Auto-draft never overwrites existing (builtin/human) text, keeps English placeholders if a provider mangles them, and leaves drafts unapproved | `lib/repo/languages.ts` | Machine text must be reviewed before users see it. |
+| Settings are typed by the default value's shape (number / boolean / string / list / object) | `lib/repo/admin.ts` | Prevents a mistyped value from breaking a feature (§9). |
+| CSV export quotes every cell and prefixes `= + - @` with `'` | `lib/repo/admin.ts` | Prevents spreadsheet formula injection from user text. |
+| Per-route mutation rate limits (per user, or per IP when logged out) in addition to existing OTP/message/AI limits | `lib/http/guard.ts`, API routes | §10 "every mutation: rate limit". |
+| CSRF: middleware rejects API mutations whose `Origin` is not this app; requests without Origin rely on the SameSite=Lax cookie plus their own auth | `middleware.ts` | §10 origin check without breaking CI/server callers. |
+| Quote submit and order confirm are idempotent (same idempotency key → stored quote; repeated confirm → existing order) | `lib/repo/quote.ts` | §10 idempotency for commercial mutations. |
+| User text is stripped of control and bidi-override characters (ZWJ/ZWNJ kept for Bangla) and always rendered as plain text | `lib/http/guard.ts` | No HTML; prevents hidden-text tricks (§10). |
+| docker compose uses moto for S3 (MinIO image no longer on Docker Hub); objects are in memory | `docker-compose.yml` | Same S3 server as CI; production uses R2/S3. A CI job proves `docker compose up` + `pnpm db:seed` works. |

@@ -12,6 +12,7 @@ import { logEvent } from "@/lib/events";
 import { getSetting } from "@/lib/settings";
 import { detectSelling } from "@/lib/discussion/selling";
 import { parseSearchQuery } from "@/lib/search/query";
+import { sanitizeText } from "@/lib/http/guard";
 
 export class DiscussionError extends Error {
   constructor(message: string, public status = 400) {
@@ -183,8 +184,8 @@ export type CreateQuestionResult =
   | { blocked: false; question: { id: string; status: QuestionStatus } };
 
 export async function createQuestion(input: CreateQuestionInput): Promise<CreateQuestionResult> {
-  const title = input.title?.trim() ?? "";
-  const body = input.body?.trim() ?? "";
+  const title = sanitizeText(input.title);
+  const body = sanitizeText(input.body);
   if (title.length < 10 || title.length > 150) throw new DiscussionError("Title must be 10–150 characters");
   if (body.length < 1 || body.length > 5000) throw new DiscussionError("Body must be 1–5000 characters");
   if (input.categoryId) {
@@ -222,7 +223,7 @@ export async function createQuestion(input: CreateQuestionInput): Promise<Create
 }
 
 export async function createAnswer(input: { userId: string; businessId: string | null; questionId: string; body: string; lang?: string }) {
-  const body = input.body?.trim() ?? "";
+  const body = sanitizeText(input.body);
   if (body.length < 1 || body.length > 5000) throw new DiscussionError("Answer must be 1–5000 characters");
 
   const question = await prisma.question.findFirst({ where: { id: requireId(input.questionId), deletedAt: null } });

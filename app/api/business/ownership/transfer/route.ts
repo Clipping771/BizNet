@@ -3,9 +3,12 @@ import { getSession } from "@/lib/session";
 import { initiateOwnershipTransfer, MembershipError } from "@/lib/repo/membership";
 import { findUserById } from "@/lib/repo/user";
 import { logAudit } from "@/lib/audit";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "ownership-transfer", 10);
+    if (limited) return limited;
     const session = await getSession(req);
     if (!session.isLoggedIn || !session.userId || !session.activeBusinessId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

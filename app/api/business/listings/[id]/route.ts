@@ -9,6 +9,7 @@ import {
   ListingNotFoundError,
   ListingError,
 } from "@/lib/repo/listing";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function GET(
   req: NextRequest,
@@ -37,6 +38,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "listing-edit", 120);
+    if (limited) return limited;
     const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
     if (authError || !dbCtx || !dbCtx.activeBusinessId) {
       return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });
@@ -80,6 +83,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "listing-edit", 120);
+    if (limited) return limited;
     const { ctx: dbCtx, error: authError, status: authStatus } = await getAuthzContext(req);
     if (authError || !dbCtx || !dbCtx.activeBusinessId) {
       return NextResponse.json({ error: authError || "Unauthorized" }, { status: authError ? authStatus : 401 });

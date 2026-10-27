@@ -6,6 +6,7 @@ import {
   getConversationWithBusinesses,
   getConversationById,
 } from "@/lib/repo/messaging";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function GET(
   req: NextRequest,
@@ -78,6 +79,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "reveal-contact", 30);
+    if (limited) return limited;
     const { id } = await params;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {

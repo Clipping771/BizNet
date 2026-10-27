@@ -294,3 +294,12 @@ export async function getFile(key: string, isPrivate: boolean = true): Promise<{
     throw err;
   }
 }
+
+/** Health check (§14): both buckets reachable; "memory" when the in-memory driver is on. */
+export async function storageHealth(): Promise<"ok" | "memory"> {
+  if (isMemoryDriver()) return "memory";
+  const { HeadBucketCommand } = await import("@aws-sdk/client-s3");
+  await s3Client.send(new HeadBucketCommand({ Bucket: S3_BUCKET_PUBLIC }));
+  await s3Client.send(new HeadBucketCommand({ Bucket: S3_BUCKET_PRIVATE }));
+  return "ok";
+}

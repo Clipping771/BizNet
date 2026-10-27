@@ -27,6 +27,32 @@ export interface PlatformSettings {
   evalMinCategoryAccuracy: number;
   evalMinFieldAccuracy: number;
   aiDisabledUntilDay: string | null;
+  /** §13 default thresholds (hypotheses, admin-editable). */
+  metricThresholds: MetricThresholds;
+  /** Latest real-provider AI eval report posted by the nightly CI workflow (§12). */
+  latestEvalReport: EvalReport | null;
+}
+
+export interface MetricThresholds {
+  requestsPer4Weeks: number;
+  supplierQuote24hPct: number;
+  requestToOrderPctMin: number;
+  requestToOrderPctMax: number;
+  confirmedToCompletedPct: number;
+  secondRequest30dPct: number;
+  active60to90Pct: number;
+  questionsAnswered48hPct: number;
+  assistantAcceptedOrEditedPct: number;
+}
+
+export interface EvalReport {
+  receivedAt: string;
+  provider: string;
+  categoryAccuracy: number;
+  fieldAccuracy: number;
+  uncertainFlaggedPct?: number;
+  cases: number;
+  runUrl?: string | null;
 }
 
 export const defaultSettings: PlatformSettings = {
@@ -39,6 +65,18 @@ export const defaultSettings: PlatformSettings = {
   aiDailyRequestsPerUser: 20,
   aiTimeoutMs: 8000,
   aiDisabledUntilDay: null,
+  metricThresholds: {
+    requestsPer4Weeks: 20,
+    supplierQuote24hPct: 50,
+    requestToOrderPctMin: 10,
+    requestToOrderPctMax: 15,
+    confirmedToCompletedPct: 80,
+    secondRequest30dPct: 40,
+    active60to90Pct: 25,
+    questionsAnswered48hPct: 50,
+    assistantAcceptedOrEditedPct: 70,
+  },
+  latestEvalReport: null,
   prohibitedItems: ["alcohol", "weapons", "tobacco", "drugs", "illegal"],
   matchingRadiusKm: 25,
   maxInvitesPerRequest: 15,

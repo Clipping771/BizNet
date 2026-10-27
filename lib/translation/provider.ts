@@ -10,10 +10,8 @@ export class MockTranslationProvider implements TranslationProvider {
     if (targetLang === "bn") {
       return { text: `[BN: ${text}]`, provider: "mock" };
     }
-    if (targetLang === "ar") {
-      return { text: `[AR: ${text}]`, provider: "mock" };
-    }
-    return { text, provider: "mock" };
+    // Deterministic marker per target language; placeholders like {name} pass through untouched
+    return { text: `[${targetLang.toUpperCase()}: ${text}]`, provider: "mock" };
   }
 }
 

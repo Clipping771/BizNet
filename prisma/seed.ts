@@ -17,6 +17,7 @@ import {
 } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { runComputeMarketPricesJob } from "../jobs/compute-market-prices";
+import { isCriticalKey, placeholdersOf } from "../lib/i18n-critical";
 
 const prisma = new PrismaClient();
 
@@ -96,8 +97,8 @@ async function main() {
   for (const [key, defaultText] of Object.entries(enJson)) {
     await prisma.uiString.upsert({
       where: { key },
-      update: { defaultText: String(defaultText) },
-      create: { key, defaultText: String(defaultText) },
+      update: { defaultText: String(defaultText), isCritical: isCriticalKey(key), placeholders: placeholdersOf(String(defaultText)) },
+      create: { key, defaultText: String(defaultText), isCritical: isCriticalKey(key), placeholders: placeholdersOf(String(defaultText)) },
     });
 
     if (bnJson[key]) {

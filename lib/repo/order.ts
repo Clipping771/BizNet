@@ -240,6 +240,15 @@ export async function submitReliabilityFeedbackRecord(input: SubmitFeedbackInput
     },
   });
 
+  await logAudit({
+    actorUserId: input.userId,
+    actorBusinessId: input.buyerBusinessId,
+    action: "FEEDBACK_GIVEN",
+    entityType: "ORDER",
+    entityId: input.orderId,
+    after: { onTime: feedback.onTime, quantityCorrect: feedback.quantityCorrect, matchedSpec: feedback.matchedSpec, hadIssue: feedback.hadIssue },
+  });
+
   await logEvent({
     name: "feedback_given",
     userId: input.userId,

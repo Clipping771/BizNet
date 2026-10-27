@@ -3,12 +3,15 @@ import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { submitQuoteRecord, listQuotesForRequest } from "@/lib/repo/quote";
 import { findRequestById } from "@/lib/repo/request";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "quote-submit", 60);
+    if (limited) return limited;
     const { id } = await params;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {

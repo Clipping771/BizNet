@@ -22,6 +22,7 @@ import { getSetting } from "@/lib/settings";
 import { runMatchRequestJob } from "@/jobs/match-request";
 import { buildAttributeZod, type AttributeSchema } from "@/lib/attributes";
 import { assertBusinessFileKeys } from "@/lib/storage";
+import { sanitizeText } from "@/lib/http/guard";
 
 const QUOTE_WINDOW_HOURS = [24, 48, 72, 168];
 
@@ -81,7 +82,7 @@ export async function createRequestRecord(input: CreateRequestInput) {
   }
 
   // 3. Validation: title 5-120 chars, quantity > 0
-  const title = input.title?.trim();
+  const title = sanitizeText(input.title);
   if (!title || title.length < 5 || title.length > 120) {
     throw new Error("Request title must be between 5 and 120 characters");
   }

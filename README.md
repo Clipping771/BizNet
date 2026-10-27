@@ -3,6 +3,70 @@
 BizNet is a mobile-first B2B marketplace platform connecting verified restaurants, cafes, and food businesses with trusted packaging and disposable suppliers in Dhaka and globally.
 
 ---
+## 🚀 Quick start (under 15 minutes)
+
+**Option A — everything in Docker (demo):**
+
+```bash
+docker compose up --build -d
+cp .env.example .env   # set DATABASE_URL=postgresql://postgres:admin@localhost:5432/biznet
+pnpm install
+pnpm db:seed
+```
+
+Open http://localhost:3000. Log in with a seeded phone (e.g. buyer `+8801722222202`, admin `+8801700000000`); with `SMS_PROVIDER=console` the OTP is printed in `docker compose logs app`. The `worker` service runs the scheduled jobs.
+
+**Option B — app on the host (development):**
+
+```bash
+docker compose up -d postgres s3
+cp .env.example .env          # fill DATABASE_URL, SESSION_SECRET (32+ chars), APP_URL, S3_* (endpoint http://127.0.0.1:9000)
+pnpm install
+pnpm prisma migrate deploy
+pnpm tsx scripts/ensure-buckets.ts
+pnpm db:seed
+pnpm dev                      # http://localhost:3000
+pnpm worker                   # in a second terminal
+```
+
+`pnpm test` (Vitest, separate `TEST_DATABASE_URL`), `pnpm build && pnpm test:e2e` (Playwright at 360×740).
+
+## ⚙️ Environment variables
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` / `TEST_DATABASE_URL` | PostgreSQL 16 (app / tests) |
+| `SESSION_SECRET` | iron-session password, ≥ 32 characters (required in production) |
+| `APP_URL` | Public base URL; also used for signed upload/download links and the CSRF origin check |
+| `TRUST_PROXY` | `nginx`, `cloudflare` or `none` — which forwarded-IP header to trust (see below) |
+| `STORAGE_DRIVER`, `S3_ENDPOINT`, `S3_BUCKET_PUBLIC`, `S3_BUCKET_PRIVATE`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | S3-compatible storage (R2 in production, moto locally); `memory` only for tests |
+| `SMS_PROVIDER`, `SMS_HTTP_URL`, `SMS_API_KEY`, `SMS_SENDER_ID` | `console` (dev) or `http` gateway |
+| `AI_PROVIDER`, `AI_API_KEY`, `STT_PROVIDER`, `STT_API_KEY` | AI and speech-to-text (mock by default) |
+| `TRANSLATION_PROVIDER`, `TRANSLATION_API_KEY` | UI auto-draft / content translation (mock by default; content translation is off) |
+| `DEV_TEST_PHONES`, `ADMIN_PHONES`, `ADMIN_EMAILS` | Test logins and admin bootstrap |
+| `EVAL_REPORT_TOKEN` | Bearer token the nightly AI-eval workflow uses for `POST /api/admin/eval-report` |
+| `SENTRY_DSN` | Optional error reporting |
+
+## 🚢 Deploy
+
+One Node process for the web app (`pnpm build && pnpm start`) plus one for the worker (`pnpm worker`), a managed PostgreSQL 16 and an S3 bucket pair. On each release: `pnpm prisma migrate deploy`. Health check: `GET /api/health` (database, storage, queue). The `Dockerfile` builds the same image for both processes (`docker compose` shows the wiring).
+
+## 💾 Backups
+
+Daily logical backup of the database (keep at least 14 days):
+
+```bash
+pg_dump --format=custom --no-owner "$DATABASE_URL" > "biznet-$(date +%F).dump"
+# restore: pg_restore --clean --no-owner -d "$DATABASE_URL" biznet-YYYY-MM-DD.dump
+```
+
+Storage buckets are backed up with the provider's versioning / lifecycle rules (R2 or S3).
+
+## 🛡️ Admin
+
+`/admin` (users with role ADMIN): metrics dashboard with thresholds and CSV, verifications, reports and held questions, businesses (suspend / ban), requests and concierge, categories, market prices, languages (add / auto-draft / approve / activate), settings, ops time, export. Every admin change is written to the audit log.
+
+---
 
 ## 🔒 Security Architecture & Reverse Proxy (`TRUST_PROXY`)
 

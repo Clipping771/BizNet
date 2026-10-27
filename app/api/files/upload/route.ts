@@ -3,6 +3,7 @@ import { MemberRole } from "@prisma/client";
 import { getAuthedUser } from "@/lib/auth-user";
 import { findUserMembership } from "@/lib/repo/membership";
 import { createUploadTicket, validateUploadParams, type UploadPurpose } from "@/lib/storage";
+import { limitMutation } from "@/lib/http/guard";
 
 const PURPOSES: UploadPurpose[] = [
   "verification_document",
@@ -15,6 +16,8 @@ const PURPOSES: UploadPurpose[] = [
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "upload-ticket", 60);
+    if (limited) return limited;
     const { user, session, error, status } = await getAuthedUser(req);
     if (error || !user) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });

@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { PrismaClient, TranslationSource } from "@prisma/client";
+import { isCriticalKey } from "../lib/i18n-critical";
 
 const prisma = new PrismaClient();
 
@@ -57,11 +58,11 @@ async function extractAndSeedI18n() {
 
     await prisma.uiString.upsert({
       where: { key },
-      update: { defaultText, placeholders },
+      update: { defaultText, placeholders, isCritical: isCriticalKey(key) },
       create: {
         key,
         defaultText,
-        isCritical: true,
+        isCritical: isCriticalKey(key),
         placeholders,
       },
     });

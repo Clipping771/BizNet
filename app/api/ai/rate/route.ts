@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthzContext } from "@/lib/auth-user";
 import { rateAiInteractionRecord } from "@/lib/repo/ai";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "ai-rate", 120);
+    if (limited) return limited;
     const { user, error, status } = await getAuthzContext(req);
     if (error || !user) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });

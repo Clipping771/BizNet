@@ -3,9 +3,12 @@ import { getSession } from "@/lib/session";
 import { confirmOwnershipTransfer, MembershipError } from "@/lib/repo/membership";
 import { findUserById } from "@/lib/repo/user";
 import { logAudit } from "@/lib/audit";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "ownership-confirm", 10);
+    if (limited) return limited;
     const session = await getSession(req);
     if (!session.isLoggedIn || !session.userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

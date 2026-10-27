@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/auth-user";
 import { fileExists, putFile, verifyUploadTicket } from "@/lib/storage";
+import { limitMutation } from "@/lib/http/guard";
 
 /**
  * Receives the bytes for an upload ticket issued by POST /api/files/upload.
@@ -11,6 +12,8 @@ export async function PUT(
   { params }: { params: Promise<{ key: string[] }> }
 ) {
   try {
+    const limited = await limitMutation(req, "upload-bytes", 60);
+    if (limited) return limited;
     const { user, error, status } = await getAuthedUser(req);
     if (error || !user) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });

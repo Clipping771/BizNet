@@ -4,9 +4,12 @@ import { assertCan } from "@/lib/authz";
 import { createBusiness } from "@/lib/repo/business";
 import { logAudit } from "@/lib/audit";
 import { logEvent } from "@/lib/events";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "business-create", 10);
+    if (limited) return limited;
     const { user, session, error, status } = await getAuthedUser(req);
     if (error || !user) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });

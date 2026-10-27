@@ -4,12 +4,15 @@ import { MemberRole } from "@prisma/client";
 import { revokeMemberInvite, findUserMembership, MembershipError } from "@/lib/repo/membership";
 import { findUserById } from "@/lib/repo/user";
 import { logAudit } from "@/lib/audit";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const limited = await limitMutation(req, "invite-revoke", 30);
+    if (limited) return limited;
     const session = await getSession(req);
     if (!session.isLoggedIn || !session.userId || !session.activeBusinessId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -10,6 +10,8 @@ import { detectContactBypass } from "@/lib/contact/detect";
 import { logEvent } from "@/lib/events";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { assertBusinessFileKeys } from "@/lib/storage";
+import { sanitizeText } from "@/lib/http/guard";
+import { logAudit } from "@/lib/audit";
 
 const MAX_MESSAGE_ATTACHMENTS = 3;
 const MAX_MESSAGE_LENGTH = 2000;
@@ -106,7 +108,7 @@ export async function sendMessageRecord(input: SendMessageInput): Promise<SendMe
     throw new Error("IDOR: Sender does not belong to this conversation");
   }
 
-  const body = input.body.trim();
+  const body = sanitizeText(input.body);
   if (!body) {
     throw new Error("Message body is required");
   }
@@ -242,6 +244,16 @@ export async function revealContactRecord(
       supplierBusinessId,
       reason,
     },
+  });
+
+  await logAudit({
+    actorUserId: userId,
+    actorBusinessId: buyerBusinessId,
+    action: "CONTACT_REVEALED",
+    entityType: "CONTACT_REVEAL",
+    entityId: reveal.id,
+    before: existing ? { reason: existing.reason } : null,
+    after: { reason: reveal.reason, supplierBusinessId },
   });
 
   await logEvent({

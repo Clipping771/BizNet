@@ -79,3 +79,14 @@ export async function createPriceExclusion(input: { adminUserId: string; quoteId
   });
   return exclusion;
 }
+
+export async function listPriceExclusions() {
+  return prisma.marketPriceExclusion.findMany({
+    include: {
+      quote: { select: { id: true, unitPrice: true, supplierBusiness: { select: { name: true } }, request: { select: { code: true } } } },
+      createdBy: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+}

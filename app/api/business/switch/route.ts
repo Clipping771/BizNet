@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { findUserMembership, MembershipError } from "@/lib/repo/membership";
 import { updateUserActiveBusiness, findUserById } from "@/lib/repo/user";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "business-switch", 120);
+    if (limited) return limited;
     const session = await getSession(req);
     if (!session.isLoggedIn || !session.userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthzContext } from "@/lib/auth-user";
 import { processVoiceTranscription } from "@/lib/ai/voiceTranscription";
+import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await limitMutation(req, "ai-transcribe", 30);
+    if (limited) return limited;
     const { user, ctx, error, status } = await getAuthzContext(req);
     if (error || !user || !ctx) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });
