@@ -29,10 +29,10 @@ export function HomeActivity() {
   }, []);
 
   const tiles = [
-    { href: "/requests", icon: FileText, key: "home.stat.openRequests", value: summary?.openRequests, id: "home-open-requests", tone: "bg-sky-50 text-sky-700" },
-    { href: "/orders", icon: Package, key: "home.stat.activeOrders", value: summary?.activeOrders, id: "home-active-orders", tone: "bg-primary-50 text-primary-700" },
-    { href: "/inbox", icon: MessageSquare, key: "home.stat.unreadMessages", value: summary?.unreadMessages, id: "home-unread-messages", tone: "bg-violet-50 text-violet-700" },
-    { href: "/notifications", icon: Bell, key: "home.stat.notifications", value: summary?.unreadNotifications, id: "home-notifications", tone: "bg-amber-50 text-amber-700" },
+    { href: "/requests", icon: FileText, key: "home.stat.openRequests", value: summary?.openRequests, id: "home-open-requests", tone: "bg-[#E8F0FE] text-[#1967D2]" },
+    { href: "/orders", icon: Package, key: "home.stat.activeOrders", value: summary?.activeOrders, id: "home-active-orders", tone: "bg-[#E6F4EA] text-[#137333]" },
+    { href: "/inbox", icon: MessageSquare, key: "home.stat.unreadMessages", value: summary?.unreadMessages, id: "home-unread-messages", tone: "bg-[#F3E8FD] text-[#8430CE]" },
+    { href: "/notifications", icon: Bell, key: "home.stat.notifications", value: summary?.unreadNotifications, id: "home-notifications", tone: "bg-[#FEF7E0] text-[#B06000]" },
   ];
 
   return (
@@ -40,12 +40,12 @@ export function HomeActivity() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
         {tiles.map(({ href, icon: Icon, key, value, id, tone }) => (
           <Link key={href} href={href} id={id} className="card card-link flex items-center gap-3 p-3.5 sm:flex-col sm:items-start sm:p-4">
-            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tone}`}>
               <Icon className="h-[18px] w-[18px]" />
             </span>
             <div className="min-w-0">
               {summary ? (
-                <p className="text-xl font-bold tabular-nums leading-tight tracking-tight text-gray-900 sm:text-2xl">{formatNumber(value ?? 0, lang)}</p>
+                <p className="text-xl font-semibold tabular-nums leading-tight text-gray-900 sm:text-[26px]">{formatNumber(value ?? 0, lang)}</p>
               ) : (
                 <span className="block h-7 w-8 animate-pulse rounded-md bg-gray-100" />
               )}

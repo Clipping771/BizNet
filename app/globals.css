@@ -41,7 +41,7 @@
   input[class*="border"]:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
   textarea[class*="border"]:focus,
   select[class*="border"]:focus {
-    @apply border-primary-500 ring-4 ring-primary/10;
+    @apply border-primary-600 ring-1 ring-primary-600;
   }
 
   ::selection {
@@ -60,7 +60,7 @@
   }
 
   .page-title {
-    @apply text-xl font-bold tracking-tight text-gray-900 sm:text-2xl;
+    @apply text-[22px] font-semibold leading-tight tracking-[-0.01em] text-gray-900 sm:text-[26px];
   }
 
   .page-subtitle {
@@ -68,55 +68,55 @@
   }
 
   .section-title {
-    @apply text-sm font-semibold text-gray-900;
+    @apply text-[15px] font-semibold text-gray-900;
   }
 
   .card {
-    @apply rounded-2xl border border-gray-200/80 bg-white shadow-card;
+    @apply rounded-xl border border-gray-200 bg-white;
   }
 
   .card-link {
-    @apply transition-all duration-150 hover:border-gray-300 hover:shadow-raised active:scale-[0.995];
+    @apply transition-shadow duration-200 hover:border-transparent hover:shadow-raised;
   }
 
   .btn {
-    @apply inline-flex h-10 select-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex h-10 select-none items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-[0.01em] transition-all duration-200 disabled:pointer-events-none disabled:opacity-40;
   }
 
   .btn-sm {
-    @apply h-8 gap-1.5 rounded-lg px-3 text-xs;
+    @apply h-8 gap-1.5 px-3.5 text-[13px];
   }
 
   .btn-lg {
-    @apply h-12 rounded-xl px-5 text-[15px];
+    @apply h-12 px-6 text-[15px];
   }
 
   .btn-primary {
-    @apply bg-primary text-white shadow-sm shadow-primary/20 hover:bg-primary-hover;
+    @apply bg-primary text-white hover:bg-primary-hover hover:shadow-raised;
   }
 
   .btn-secondary {
-    @apply border border-gray-200 bg-white text-gray-800 shadow-card hover:border-gray-300 hover:bg-gray-50;
+    @apply border border-gray-300 bg-white text-primary-700 hover:bg-primary-50;
   }
 
   .btn-ghost {
-    @apply text-gray-700 hover:bg-gray-100;
+    @apply text-primary-700 hover:bg-primary-50;
   }
 
   .btn-soft {
-    @apply bg-primary-50 text-primary-700 hover:bg-primary-100;
+    @apply bg-primary-100 text-primary-900 hover:shadow-raised;
   }
 
   .input {
-    @apply h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 hover:border-gray-300;
+    @apply h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 placeholder:text-gray-500 hover:border-gray-500;
   }
 
   .label {
-    @apply mb-1.5 block text-xs font-semibold text-gray-700;
+    @apply mb-1.5 block text-[13px] font-medium text-gray-700;
   }
 
   .icon-tile {
-    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700;
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-800;
   }
 
   .divider {

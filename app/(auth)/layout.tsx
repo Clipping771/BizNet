@@ -2,51 +2,41 @@ import { T } from "@/components/ui/T";
 import { Brand } from "@/components/layout/Brand";
 import { VALUE_PROPS } from "@/components/marketing/ValueProps";
 
-/** Sign-in and onboarding: form on the right, brand story on the left from lg up. */
+/** Sign-in and onboarding: one rounded card on a plain canvas, brand story beside the form from lg up. */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div aria-hidden="true" className="pointer-events-none absolute -end-24 -top-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -start-16 h-96 w-96 rounded-full bg-emerald-300/10 blur-3xl" />
-        <div className="relative">
-          <Brand href="/" inverted />
-        </div>
-        <div className="relative max-w-md space-y-8">
-          <h2 className="text-3xl font-bold leading-tight tracking-tight">
-            <T k="landing.heroTitle" />
-          </h2>
-          <ul className="space-y-5">
-            {VALUE_PROPS.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-inset ring-white/15">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span>
-                  <span className="block font-semibold">
-                    <T k={title} />
+    <div className="flex min-h-screen flex-col bg-surface-canvas">
+      <main className="flex flex-1 items-start justify-center px-0 sm:items-center sm:px-6 sm:py-10">
+        <div className="w-full max-w-[1040px] animate-fade-up bg-white px-6 pb-10 pt-8 sm:rounded-[28px] sm:p-10 lg:grid lg:grid-cols-2 lg:gap-12 lg:p-12">
+          <div className="mb-8 lg:mb-0">
+            <Brand href="/" />
+            <h1 className="mt-8 hidden text-[32px] font-normal leading-tight tracking-[-0.01em] text-gray-900 lg:block">
+              <T k="landing.heroTitle" />
+            </h1>
+            <ul className="mt-8 hidden space-y-5 lg:block">
+              {VALUE_PROPS.map(({ icon: Icon, title, body }) => (
+                <li key={title} className="flex gap-4">
+                  <span className="icon-tile">
+                    <Icon className="h-5 w-5" />
                   </span>
-                  <span className="block text-sm text-white/70">
-                    <T k={body} />
+                  <span>
+                    <span className="block text-[15px] font-medium text-gray-900">
+                      <T k={title} />
+                    </span>
+                    <span className="block text-sm text-gray-600">
+                      <T k={body} />
+                    </span>
                   </span>
-                </span>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="lg:pt-16">{children}</div>
         </div>
-        <p className="relative text-xs text-white/50">
-          <T k="landing.footer" />
-        </p>
-      </aside>
-
-      <div className="flex min-h-screen flex-col">
-        <div className="flex h-16 items-center px-5 sm:px-8 lg:hidden">
-          <Brand href="/" />
-        </div>
-        <main className="flex flex-1 items-start justify-center px-4 pb-10 pt-6 sm:items-center sm:px-8 sm:py-8">
-          <div className="w-full max-w-md animate-fade-up">{children}</div>
-        </main>
-      </div>
+      </main>
+      <footer className="px-6 py-6 text-center text-xs text-gray-500">
+        <T k="landing.footer" />
+      </footer>
     </div>
   );
 }

@@ -19,7 +19,7 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
     <div className="space-y-2.5" aria-busy="true" aria-label="loading">
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="card flex items-center gap-3 p-4">
-          <div className="h-10 w-10 animate-pulse rounded-xl bg-gray-100" />
+          <div className="h-10 w-10 animate-pulse rounded-full bg-gray-100" />
           <div className="flex-1 space-y-2">
             <div className="h-3.5 w-2/3 animate-pulse rounded bg-gray-100" />
             <div className="h-3 w-1/3 animate-pulse rounded bg-gray-100" />
@@ -32,11 +32,11 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
 
 export function EmptyState({ k, icon: Icon = Inbox, children }: { k: string; icon?: LucideIcon; children?: React.ReactNode }) {
   return (
-    <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
-        <Icon className="h-6 w-6" />
+    <div className="card flex flex-col items-center gap-4 px-6 py-12 text-center">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-700">
+        <Icon className="h-7 w-7" strokeWidth={1.6} />
       </span>
-      <p className="max-w-xs text-sm text-gray-500">
+      <p className="max-w-sm text-[15px] text-gray-600">
         <T k={k} />
       </p>
       {children}
@@ -44,19 +44,19 @@ export function EmptyState({ k, icon: Icon = Inbox, children }: { k: string; ico
   );
 }
 
+// Google-style tonal status colours
 const TONES: Record<Tone, string> = {
-  gray: "bg-gray-100 text-gray-700 ring-gray-200",
-  green: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  amber: "bg-amber-50 text-amber-800 ring-amber-200",
-  red: "bg-rose-50 text-rose-700 ring-rose-200",
-  blue: "bg-sky-50 text-sky-700 ring-sky-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
+  gray: "bg-gray-100 text-gray-700",
+  green: "bg-[#E6F4EA] text-[#137333]",
+  amber: "bg-[#FEF7E0] text-[#B06000]",
+  red: "bg-[#FCE8E6] text-[#C5221F]",
+  blue: "bg-[#E8F0FE] text-[#1967D2]",
+  violet: "bg-[#F3E8FD] text-[#8430CE]",
 };
 
 export function StatusChip({ k, tone = "gray" }: { k: string; tone?: Tone }) {
   return (
-    <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${TONES[tone]}`}>
-      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
+    <span className={`inline-flex h-6 shrink-0 items-center rounded-md px-2 text-xs font-medium ${TONES[tone]}`}>
       <T k={k} />
     </span>
   );

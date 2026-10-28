@@ -19,25 +19,23 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/85 backdrop-blur-md">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Brand href="/" />
-          <Link href={loggedIn ? "/home" : "/login"} className="btn btn-secondary btn-sm">
+          <Link href={loggedIn ? "/home" : "/login"} className="btn btn-primary">
             <T k={loggedIn ? "nav.home" : "auth.login"} />
           </Link>
         </div>
       </header>
 
       <section className="relative overflow-hidden">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-primary-50 via-white to-white" />
-        <div aria-hidden="true" className="pointer-events-none absolute -end-40 -top-40 h-[480px] w-[480px] rounded-full bg-primary-100/60 blur-3xl" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 sm:pt-20 lg:grid-cols-2 lg:pb-24">
           <div className="animate-fade-up">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-3 py-1 text-xs font-semibold text-primary-800 shadow-card">
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary-50 px-3 py-1.5 text-[13px] font-medium text-primary-800">
               <ShieldCheck className="h-3.5 w-3.5" />
               <T k="landing.trustBadge" />
             </span>
-            <h1 className="mt-5 text-4xl font-bold leading-[1.15] tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="mt-6 text-[40px] font-medium leading-[1.12] tracking-[-0.02em] text-gray-900 sm:text-[56px]">
               <T k="landing.heroTitle" />
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-gray-600 sm:text-lg">
@@ -56,8 +54,8 @@ export default async function LandingPage() {
 
           {/* Product preview: what comparing quotes looks like */}
           <div className="relative animate-fade-up [animation-delay:120ms]" aria-hidden="true">
-            <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-primary-200/40 to-sky-100/40 blur-2xl" />
-            <div className="relative rounded-3xl border border-gray-200/80 bg-white p-5 shadow-pop">
+            <div className="relative rounded-[28px] bg-primary-50 p-4 sm:p-6">
+              <div className="rounded-2xl bg-white p-5 shadow-raised">
               <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                 <div>
                   <p className="text-sm font-semibold text-gray-900">
@@ -75,7 +73,7 @@ export default async function LandingPage() {
                 {SAMPLE_QUOTES.map((q) => (
                   <li
                     key={q.name}
-                    className={`flex items-center gap-3 rounded-2xl border p-3 ${q.best ? "border-primary-200 bg-primary-50/60" : "border-gray-100"}`}
+                    className={`flex items-center gap-3 rounded-xl border p-3 ${q.best ? "border-primary-300 bg-primary-50" : "border-gray-200"}`}
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-primary-800 ring-1 ring-gray-200">
                       {q.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
@@ -102,15 +100,16 @@ export default async function LandingPage() {
                   </li>
                 ))}
               </ul>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-gray-100 bg-surface-canvas">
+      <section className="bg-surface-canvas">
         <div className="mx-auto grid max-w-6xl gap-5 px-4 py-16 sm:px-6 md:grid-cols-3">
           {VALUE_PROPS.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="card p-6">
+            <div key={title} className="rounded-[24px] bg-white p-7">
               <span className="icon-tile h-11 w-11">
                 <Icon className="h-5 w-5" />
               </span>
@@ -132,7 +131,7 @@ export default async function LandingPage() {
         <ol className="mt-10 grid gap-6 md:grid-cols-3">
           {["home.step1", "home.step2", "home.step3"].map((k, i) => (
             <li key={k} className="flex flex-col items-center text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-white shadow-sm shadow-primary/30">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-lg font-semibold text-primary-900">
                 <Num n={i + 1} />
               </span>
               <p className="mt-4 max-w-[16rem] text-sm font-medium text-gray-700">

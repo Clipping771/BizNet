@@ -30,21 +30,22 @@ export default function RequestsPage() {
   return (
     <div className="page space-y-5">
       <PageHeader titleKey="requests.mine">
-        <Link href="/requests/new" id="new-request-link" className="btn btn-primary btn-sm sm:h-10 sm:px-4 sm:text-sm">
+        <Link href="/requests/new" id="new-request-link" className="btn btn-primary hidden sm:inline-flex">
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           <T k="home.newRequest" />
         </Link>
       </PageHeader>
 
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:px-0">
         {shortcuts.map(({ href, icon: Icon, k, id }) => (
-          <Link key={href} href={href} id={id} className="card card-link flex flex-col items-center gap-2 px-2 py-3.5 text-center sm:flex-row sm:px-4 sm:text-start">
-            <span className="icon-tile h-9 w-9">
-              <Icon className="h-4 w-4" />
-            </span>
-            <span className="text-xs font-semibold leading-tight text-gray-800 sm:text-sm">
-              <T k={k} />
-            </span>
+          <Link
+            key={href}
+            href={href}
+            id={id}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+          >
+            <Icon className="h-[18px] w-[18px] text-primary-700" />
+            <T k={k} />
           </Link>
         ))}
       </div>

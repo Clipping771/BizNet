@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
+import { Fab } from "./Fab";
 import { isBareRoute } from "./nav";
 
 interface AppShellProps {
@@ -27,8 +28,7 @@ export function AppShell({ activeBusinessName, userPhone, lang, isLoggedIn, isAd
   if (bare) return <>{children}</>;
 
   return (
-    <div className={chrome ? "min-h-screen lg:ps-64" : "min-h-screen"}>
-      {chrome && <Sidebar activeBusinessName={activeBusinessName} userPhone={userPhone} isAdmin={isAdmin} />}
+    <div className="min-h-screen bg-surface-canvas">
       <Header
         activeBusinessName={activeBusinessName}
         userPhone={userPhone}
@@ -37,7 +37,9 @@ export function AppShell({ activeBusinessName, userPhone, lang, isLoggedIn, isAd
         isAdmin={isAdmin}
         withSidebar={chrome}
       />
-      <main className={`px-4 py-5 sm:px-6 lg:px-8 lg:py-8 ${chrome ? "pb-28 lg:pb-12" : "pb-12"}`}>{children}</main>
+      {chrome && <Sidebar activeBusinessName={activeBusinessName} userPhone={userPhone} isAdmin={isAdmin} />}
+      <main className={`px-4 pt-3 sm:px-6 lg:pe-8 lg:pt-4 ${chrome ? "pb-28 lg:ps-[17rem] lg:pb-12" : "pb-12 lg:px-8"}`}>{children}</main>
+      {chrome && pathname === "/requests" && <Fab />}
       {chrome && <BottomNav />}
     </div>
   );

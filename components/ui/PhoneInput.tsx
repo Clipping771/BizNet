@@ -133,7 +133,7 @@ export function PhoneInput({
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      <div className="flex h-11 items-center overflow-visible rounded-xl border border-gray-200 bg-white transition-all hover:border-gray-300 focus-within:border-primary-500 focus-within:ring-4 focus-within:ring-primary/10">
+      <div className="flex h-12 items-center overflow-visible rounded-lg border border-gray-300 bg-white transition-all hover:border-gray-500 focus-within:border-primary-600 focus-within:ring-1 focus-within:ring-primary-600">
         {/* Country Picker Trigger or Custom Dial Input */}
         {isCustomMode ? (
           <div className="flex items-center border-e border-gray-200 ps-2.5 pe-1 bg-gray-100/70 rounded-s-xl">

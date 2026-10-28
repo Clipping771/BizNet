@@ -52,12 +52,12 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto py-6 px-2">
-      <div className="card p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-1 text-center">
+    <div>
+      <div>
+        <h2 className="mb-2 text-[28px] font-normal leading-tight tracking-[-0.01em] text-gray-900">
           <T k="business.setupTitle" />
         </h2>
-        <p className="text-xs text-gray-500 mb-6 text-center">
+        <p className="mb-8 text-[15px] text-gray-600">
           <T k="business.setupSubtitle" />
         </p>
 
