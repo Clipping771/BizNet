@@ -23,7 +23,7 @@ export default function SupplierInboxPage() {
   }, []);
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
+    <div className="page space-y-4">
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <h1 className="text-base font-bold text-gray-900">
@@ -39,13 +39,13 @@ export default function SupplierInboxPage() {
             key={req.id}
             href={`/requests/${req.code}`}
             id={`inbox-request-${req.code}`}
-            className="block bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:border-primary/40 transition-all space-y-2.5"
+            className="block card p-4 hover:border-primary/40 transition-all space-y-2.5"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                 <T k={`cat.${req.category.slug}`} />
               </span>
-              <span className="text-[10px] font-mono text-gray-400">{req.code}</span>
+              <span className="text-[11px] font-mono text-gray-400">{req.code}</span>
             </div>
 
             <h2 className="text-xs font-bold text-gray-900">{req.title}</h2>
@@ -61,7 +61,7 @@ export default function SupplierInboxPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-1 border-t border-gray-50 text-[11px]">
+            <div className="flex items-center justify-between pt-1 border-t border-gray-50 text-xs">
               <span className="font-semibold text-gray-700">
                 {req.quantity?.toString()} {req.unit}
               </span>

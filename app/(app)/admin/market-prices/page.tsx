@@ -47,7 +47,7 @@ export default function AdminMarketPricesPage() {
       </button>
       {message && <p className="text-sm text-gray-700">{message}</p>}
 
-      <section className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2 text-xs">
+      <section className="card p-4 space-y-2 text-xs">
         <h2 className="text-sm font-bold text-gray-900">
           <T k="admin.prices.groups" />
         </h2>
@@ -72,7 +72,7 @@ export default function AdminMarketPricesPage() {
         ))}
       </section>
 
-      <section className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2 text-xs">
+      <section className="card p-4 space-y-2 text-xs">
         <h2 className="text-sm font-bold text-gray-900">
           <T k="admin.prices.excludeQuote" />
         </h2>

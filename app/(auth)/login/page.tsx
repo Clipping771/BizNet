@@ -185,16 +185,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-2">
-      <div className="w-full max-w-sm bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900 mb-1 text-center">
+    <div>
+      <div className="card p-6 sm:p-8">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
           {step === "INPUT" ? (
             <T k="auth.loginTitle" />
           ) : (
             <T k="auth.otpTitle" />
           )}
-        </h2>
-        <p className="text-xs text-gray-500 mb-5 text-center">
+        </h1>
+        <p className="mb-6 mt-1 text-sm text-gray-500">
           {step === "INPUT" ? (
             <T k="auth.enterPhoneSubtitle" />
           ) : (
@@ -204,12 +204,12 @@ export default function LoginPage() {
 
         {/* Multi-Method Tabs */}
         {step === "INPUT" && (
-          <div className="flex p-1 bg-gray-100 rounded-xl mb-5 text-xs font-semibold">
+          <div className="mb-6 flex rounded-xl bg-gray-100 p-1 text-xs font-semibold">
             <button
               type="button"
               data-testid="tab-phone"
               onClick={() => switchMethod("PHONE")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 transition-all ${
                 method === "PHONE"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-900"
@@ -224,7 +224,7 @@ export default function LoginPage() {
               type="button"
               data-testid="tab-email"
               onClick={() => switchMethod("EMAIL")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 transition-all ${
                 method === "EMAIL"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-900"
@@ -239,9 +239,9 @@ export default function LoginPage() {
               type="button"
               data-testid="tab-passkey"
               onClick={() => switchMethod("PASSKEY")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 transition-all ${
                 method === "PASSKEY"
-                  ? "bg-white text-primary shadow-sm"
+                  ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -254,7 +254,7 @@ export default function LoginPage() {
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-secondary text-xs rounded-lg">
+          <div role="alert" className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
             {error}
           </div>
         )}
@@ -266,7 +266,7 @@ export default function LoginPage() {
             {method === "PHONE" && (
               <form onSubmit={handleSendPhoneOtp} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="label">
                     <T k="auth.phone" />
                   </label>
                   <PhoneInput
@@ -280,7 +280,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover shadow-sm transition-all disabled:opacity-50 text-sm"
+                  className="btn btn-primary btn-lg w-full"
                 >
                   {loading ? <T k="common.loading" /> : <T k="auth.sendOtp" />}
                   <ArrowRight className="w-4 h-4 rtl:rotate-180" />
@@ -292,18 +292,18 @@ export default function LoginPage() {
             {method === "EMAIL" && (
               <form onSubmit={handleSendEmailOtp} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="label">
                     <T k="auth.email" />
                   </label>
                   <div className="relative">
-                    <Mail className="absolute start-3 top-3 w-4 h-4 text-gray-400" />
+                    <Mail className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <input
                       type="email"
                       required
                       placeholder={t("auth.emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full ps-9 pe-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900"
+                      className="input ps-10"
                     />
                   </div>
                 </div>
@@ -311,7 +311,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover shadow-sm transition-all disabled:opacity-50 text-sm"
+                  className="btn btn-primary btn-lg w-full"
                 >
                   {loading ? <T k="common.loading" /> : <T k="auth.sendEmailOtp" />}
                   <ArrowRight className="w-4 h-4 rtl:rotate-180" />
@@ -338,7 +338,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handlePasskeyLogin}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover shadow-sm transition-all disabled:opacity-50 text-sm mt-2"
+                  className="btn btn-primary btn-lg mt-2 w-full"
                 >
                   <Fingerprint className="w-4 h-4" />
                   {loading ? (
@@ -361,7 +361,7 @@ export default function LoginPage() {
             {devCode && (
               <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-emerald-700 block tracking-wider">
+                  <span className="text-[11px] uppercase font-bold text-emerald-700 block tracking-wider">
                     <T k="auth.devCodeLabel" />
                   </span>
                   <span className="text-lg font-mono font-extrabold tracking-widest text-emerald-900">
@@ -379,11 +379,11 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="label">
                 <T k="auth.enterOtp" />
               </label>
               <div className="relative">
-                <KeyRound className="absolute start-3 top-3 w-4 h-4 text-gray-400" />
+                <KeyRound className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   required
@@ -392,10 +392,12 @@ export default function LoginPage() {
                   placeholder="123456"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="w-full ps-9 pe-3 py-2.5 text-sm tracking-widest text-center font-mono font-bold bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  className="input h-12 ps-10 text-center font-mono text-lg font-bold tracking-[0.5em]"
                 />
               </div>
-              <p className="text-[11px] text-gray-400 mt-1">
+              <p className="text-xs text-gray-400 mt-1">
                 <T k="auth.devOtpNote" />
               </p>
             </div>
@@ -403,7 +405,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover shadow-sm transition-all disabled:opacity-50 text-sm"
+              className="btn btn-primary btn-lg w-full"
             >
               {loading ? <T k="common.loading" /> : <T k="auth.verifyOtp" />}
             </button>
@@ -415,14 +417,14 @@ export default function LoginPage() {
                 setDevCode(null);
                 setOtp("");
               }}
-              className="w-full text-center text-xs text-gray-500 hover:text-gray-800 py-1"
+              className="btn btn-ghost btn-sm w-full text-gray-500"
             >
               <T k="auth.changePhone" />
             </button>
           </form>
         )}
 
-        <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-center gap-1.5 text-gray-400 text-xs">
+        <div className="mt-6 flex items-center justify-center gap-1.5 border-t border-gray-100 pt-5 text-xs text-gray-500">
           <ShieldCheck className="w-4 h-4 text-primary" />
           <span>
             <T k="auth.securityBadge" />

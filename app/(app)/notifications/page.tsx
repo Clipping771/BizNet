@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Bell, CheckCheck, ReceiptText, Package, MessageSquare, FileText } from "lucide-react";
 import { T, useLang, useT } from "@/components/ui/T";
-import { EmptyState, ListSkeleton } from "@/components/ui/ListStates";
+import { EmptyState, ListSkeleton, PageHeader } from "@/components/ui/ListStates";
 import { formatDate } from "@/lib/dates";
+
+function iconFor(type: string) {
+  if (type.startsWith("QUOTE")) return ReceiptText;
+  if (type.startsWith("ORDER")) return Package;
+  if (type.startsWith("MESSAGE")) return MessageSquare;
+  if (type.startsWith("REQUEST")) return FileText;
+  return Bell;
+}
 
 /** In-app notifications (§7 /notifications): newest first; opening one marks it read. */
 export default function NotificationsPage() {
@@ -40,11 +49,8 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-gray-900">
-          <T k="notifications.title" />
-        </h1>
+    <div className="page space-y-5">
+      <PageHeader titleKey="notifications.title">
         {items && items.some((n) => !n.readAt) && (
           <button
             type="button"
@@ -53,33 +59,43 @@ export default function NotificationsPage() {
               await markRead();
               await load();
             }}
-            className="text-xs font-semibold text-primary py-2"
+            className="btn btn-ghost btn-sm text-primary-700"
           >
+            <CheckCheck className="h-4 w-4" />
             <T k="notifications.markAll" />
           </button>
         )}
-      </div>
+      </PageHeader>
       {items === null ? (
         <ListSkeleton />
       ) : items.length === 0 ? (
-        <EmptyState k="notifications.empty" />
+        <EmptyState k="notifications.empty" icon={Bell} />
       ) : (
-        <div id="notification-list" className="space-y-2">
-          {items.map((n) => (
-            <Link
-              key={n.id}
-              href={n.link || "/home"}
-              data-notification={n.type}
-              data-read={n.readAt ? "true" : "false"}
-              onClick={() => {
-                if (!n.readAt) markRead([n.id]);
-              }}
-              className={`block rounded-2xl border p-4 space-y-1 ${n.readAt ? "bg-white border-gray-100" : "bg-emerald-50 border-emerald-200"}`}
-            >
-              <p className={`text-sm ${n.readAt ? "text-gray-700" : "text-gray-900 font-semibold"}`}>{text(n)}</p>
-              <p className="text-[11px] text-gray-500">{formatDate(n.createdAt, lang, { hour: "2-digit", minute: "2-digit" })}</p>
-            </Link>
-          ))}
+        <div id="notification-list" className="card divide-y divide-gray-100 overflow-hidden">
+          {items.map((n) => {
+            const Icon = iconFor(n.type);
+            return (
+              <Link
+                key={n.id}
+                href={n.link || "/home"}
+                data-notification={n.type}
+                data-read={n.readAt ? "true" : "false"}
+                onClick={() => {
+                  if (!n.readAt) markRead([n.id]);
+                }}
+                className={`relative flex items-start gap-3.5 px-4 py-3.5 transition hover:bg-gray-50 ${n.readAt ? "" : "bg-primary-50/50"}`}
+              >
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${n.readAt ? "bg-gray-100 text-gray-500" : "bg-primary-100 text-primary-700"}`}>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm ${n.readAt ? "text-gray-600" : "font-semibold text-gray-900"}`}>{text(n)}</p>
+                  <p className="mt-0.5 text-xs text-gray-400">{formatDate(n.createdAt, lang, { hour: "2-digit", minute: "2-digit" })}</p>
+                </div>
+                {!n.readAt && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary-500" aria-hidden="true" />}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

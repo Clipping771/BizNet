@@ -463,7 +463,7 @@ export default function NewRequestPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-12">
+    <div className="page space-y-4 pb-12">
       {/* 1. AI Entry Screen (§8.4, A1) */}
       {mode === "AI_ENTRY" && (
         <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-5">
@@ -472,7 +472,7 @@ export default function NewRequestPage() {
               <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <Sparkles className="w-4 h-4" />
               </span>
-              <h1 className="text-lg font-bold text-gray-900">
+              <h1 className="page-title">
                 <T k="rfq.aiEntryTitle" />
               </h1>
             </div>
@@ -678,7 +678,7 @@ export default function NewRequestPage() {
                   <T k="rfq.photos" />
                 </label>
                 {imageKeys.length > 0 && (
-                  <p id="rfq-photo-count" className="text-[11px] text-gray-500">
+                  <p id="rfq-photo-count" className="text-xs text-gray-500">
                     {t("rfq.photoCount", undefined, { n: imageKeys.length })}
                   </p>
                 )}
@@ -997,7 +997,7 @@ export default function NewRequestPage() {
           </div>
 
           <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400"><T k="rfq.requestCode" /></span>
+            <span className="text-[11px] uppercase font-bold text-gray-400"><T k="rfq.requestCode" /></span>
             <div id="created-request-code" className="text-base font-bold text-primary font-mono">
               {createdRequest.code}
             </div>
@@ -1026,7 +1026,7 @@ export default function NewRequestPage() {
               </button>
             </div>
             {copiedLink && (
-              <p className="text-[11px] text-emerald-600 font-semibold"><T k="rfq.linkCopied" /></p>
+              <p className="text-xs text-emerald-600 font-semibold"><T k="rfq.linkCopied" /></p>
             )}
           </div>
 

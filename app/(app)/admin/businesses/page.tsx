@@ -56,7 +56,7 @@ export default function AdminBusinessesPage() {
       </form>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {rows.map((b) => (
-        <div key={b.id} data-admin-business={b.slug} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2 text-xs">
+        <div key={b.id} data-admin-business={b.slug} className="card p-4 space-y-2 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm text-gray-900">{b.name}</span>
             <VerificationBadge status={b.verificationStatus} />

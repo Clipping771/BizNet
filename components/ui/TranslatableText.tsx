@@ -75,7 +75,7 @@ export function TranslatableText({
         {shown}
       </span>
       {canTranslate && (
-        <span className="block text-[10px] text-gray-400 mt-0.5">
+        <span className="block text-[11px] text-gray-400 mt-0.5">
           {translated ? (
             <>
               {!showOriginal && (

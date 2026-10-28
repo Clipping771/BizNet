@@ -130,7 +130,7 @@ export default function BusinessVerificationPage() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto p-4 text-center text-sm text-slate-500">
+      <div className="page text-center text-sm text-slate-500">
         <T k="common.loading" />
       </div>
     );
@@ -141,12 +141,12 @@ export default function BusinessVerificationPage() {
   const isVerified = status === VerificationStatus.BASIC || status === VerificationStatus.VERIFIED;
 
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6">
+    <div className="page space-y-6">
       {/* Header */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-lg font-bold text-slate-900">
+            <h1 className="page-title">
               <T k="verification.title" />
             </h1>
             <p className="text-xs text-slate-500">
@@ -258,7 +258,7 @@ export default function BusinessVerificationPage() {
 
           {documentKeys.length > 0 && (
             <div className="space-y-1.5 pt-1">
-              <span className="text-[11px] text-slate-500 block">
+              <span className="text-xs text-slate-500 block">
                 <T k="verification.uploadedFiles" />
               </span>
               {documentKeys.map((k) => (

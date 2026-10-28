@@ -93,7 +93,7 @@ export default function BusinessSettingsPage() {
   const eligibleMembers = members.filter((m) => m.role !== "OWNER");
 
   return (
-    <div className="space-y-4">
+    <div className="page space-y-5">
       {/* Title */}
       <div className="flex items-center gap-2">
         <Settings className="w-5 h-5 text-primary" />
@@ -123,26 +123,26 @@ export default function BusinessSettingsPage() {
 
       {/* Business Details Card */}
       {business && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+        <div className="card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-sm text-gray-900">{business.name}</h3>
               <p className="text-xs text-gray-400 font-mono">{business.slug}</p>
             </div>
-            <span className="px-2 py-0.5 bg-primary/10 text-primary font-semibold rounded text-[11px]">
+            <span className="px-2 py-0.5 bg-primary/10 text-primary font-semibold rounded text-xs">
               {business.businessType}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 text-xs">
             <div>
-              <span className="text-gray-400 block text-[10px] uppercase">
+              <span className="text-gray-400 block text-[11px] uppercase">
                 <T k="business.area" />
               </span>
               <span className="font-medium text-gray-800">{business.area}</span>
             </div>
             <div>
-              <span className="text-gray-400 block text-[10px] uppercase">
+              <span className="text-gray-400 block text-[11px] uppercase">
                 <T k="business.city" />
               </span>
               <span className="font-medium text-gray-800">{business.city}</span>
@@ -153,14 +153,14 @@ export default function BusinessSettingsPage() {
 
       {/* Ownership Transfer (OWNER only) */}
       {isOwner && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+        <div className="card p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary" />
             <div>
               <h3 className="font-semibold text-xs text-gray-900">
                 <T k="business.transferTitle" />
               </h3>
-              <p className="text-[11px] text-gray-500">
+              <p className="text-xs text-gray-500">
                 <T k="business.transferSubtitle" />
               </p>
             </div>
@@ -200,7 +200,7 @@ export default function BusinessSettingsPage() {
               <p className="font-semibold text-blue-900">
                 <T k="common.confirm" />
               </p>
-              <p className="text-blue-700 font-mono text-[11px]">
+              <p className="text-blue-700 font-mono text-xs">
                 {transferId}
               </p>
             </div>

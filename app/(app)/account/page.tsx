@@ -143,7 +143,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="page space-y-5">
       {/* Page Title */}
       <div className="flex items-center gap-2">
         <User className="w-5 h-5 text-primary" />
@@ -167,7 +167,7 @@ export default function AccountPage() {
       )}
 
       {/* User Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+      <div className="card p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-bold text-sm text-gray-900">{profile?.name}</h3>
@@ -213,7 +213,7 @@ export default function AccountPage() {
       </div>
 
       {/* Active Business Switcher */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+      <div className="card p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4 text-primary" />
@@ -223,7 +223,7 @@ export default function AccountPage() {
           </div>
           <Link
             href="/onboarding"
-            className="text-[11px] font-semibold text-primary hover:underline"
+            className="text-xs font-semibold text-primary hover:underline"
           >
             <T k="business.create" />
           </Link>
@@ -239,16 +239,16 @@ export default function AccountPage() {
               >
                 <div>
                   <p className="font-semibold text-gray-900">{biz.name}</p>
-                  <p className="text-[11px] text-gray-400 font-mono">{biz.slug}</p>
+                  <p className="text-xs text-gray-400 font-mono">{biz.slug}</p>
                 </div>
                 {isActive ? (
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded text-[11px]">
+                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded text-xs">
                     <T k="account.verified" />
                   </span>
                 ) : (
                   <button
                     onClick={() => handleSwitchBusiness(biz.id)}
-                    className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded font-medium text-[11px]"
+                    className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded font-medium text-xs"
                   >
                     <T k="nav.switchBusiness" />
                   </button>
@@ -260,7 +260,7 @@ export default function AccountPage() {
       </div>
 
       {/* Quick Navigation Links */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 text-xs">
+      <div className="card divide-y divide-gray-100 text-xs">
         <Link
           href="/business/members"
           className="flex items-center justify-between p-3.5 hover:bg-gray-50 transition-colors"
@@ -296,7 +296,7 @@ export default function AccountPage() {
       </div>
 
       {/* Passkey / Security */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+      <div className="card p-4 space-y-3">
         <div className="flex items-center gap-2">
           <KeyRound className="w-4 h-4 text-primary" />
           <h4 className="font-semibold text-xs text-gray-900">

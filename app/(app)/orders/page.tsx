@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { T, useLang, useT } from "@/components/ui/T";
-import { EmptyState, ListSkeleton, StatusChip } from "@/components/ui/ListStates";
+import { Package, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { useLang, useT } from "@/components/ui/T";
+import { EmptyState, ListSkeleton, PageHeader, StatusChip, type Tone } from "@/components/ui/ListStates";
 import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 
-const TONE: Record<string, "green" | "gray" | "amber" | "red" | "blue"> = {
+const TONE: Record<string, Tone> = {
   CONFIRMED: "blue",
-  DISPATCHED: "blue",
+  DISPATCHED: "violet",
   DELIVERED: "amber",
   COMPLETED: "green",
   CANCELLED: "red",
@@ -30,32 +31,41 @@ export default function OrdersPage() {
   }, []);
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
-      <h1 className="text-lg font-bold text-gray-900">
-        <T k="orders.title" />
-      </h1>
+    <div className="page space-y-5">
+      <PageHeader titleKey="orders.title" />
       {orders === null ? (
         <ListSkeleton />
       ) : orders.length === 0 ? (
-        <EmptyState k="orders.empty" />
+        <EmptyState k="orders.empty" icon={Package} />
       ) : (
-        <div id="order-list" className="space-y-2">
-          {orders.map((o) => (
-            <Link key={o.id} href={`/orders/${o.code}`} data-order-code={o.code} className="block bg-white rounded-2xl border border-gray-100 p-4 space-y-1">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900">{o.title}</p>
-                <StatusChip k={`order.status.${o.status}`} tone={TONE[o.status] ?? "gray"} />
-              </div>
-              <p className="text-[11px] text-gray-500">
-                {t(o.side === "BUYER" ? "orders.asBuyer" : "orders.asSupplier", undefined, { name: o.otherParty })}
-              </p>
-              <div className="flex justify-between text-[11px] text-gray-500">
-                <span className="font-mono">{o.code}</span>
-                <span>{formatDate(o.createdAt, lang)}</span>
-              </div>
-              {o.total && <p className="text-sm font-bold text-primary">{formatMoney(o.total, lang)}</p>}
-            </Link>
-          ))}
+        <div id="order-list" className="space-y-2.5">
+          {orders.map((o) => {
+            const SideIcon = o.side === "BUYER" ? ArrowDownLeft : ArrowUpRight;
+            return (
+              <Link key={o.id} href={`/orders/${o.code}`} data-order-code={o.code} className="card card-link flex items-start gap-3.5 p-4">
+                <span className={`icon-tile ${o.side === "BUYER" ? "" : "bg-sky-50 text-sky-700"}`}>
+                  <SideIcon className="h-[18px] w-[18px]" />
+                </span>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-semibold text-gray-900">{o.title}</p>
+                    <StatusChip k={`order.status.${o.status}`} tone={TONE[o.status] ?? "gray"} />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {t(o.side === "BUYER" ? "orders.asBuyer" : "orders.asSupplier", undefined, { name: o.otherParty })}
+                  </p>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    {o.total ? <span className="text-sm font-bold tabular-nums text-gray-900">{formatMoney(o.total, lang)}</span> : <span />}
+                    <span className="text-xs text-gray-400">
+                      <span className="font-mono">{o.code}</span>
+                      {" · "}
+                      {formatDate(o.createdAt, lang)}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

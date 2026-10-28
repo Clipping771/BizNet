@@ -147,7 +147,7 @@ export default function NewListingPage() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto p-4 text-center text-sm text-slate-500">
+      <div className="page text-center text-sm text-slate-500">
         <T k="common.loading" />
       </div>
     );
@@ -160,7 +160,7 @@ export default function NewListingPage() {
 
   if (!isSupplier || !isVerified) {
     return (
-      <div className="max-w-xl mx-auto p-4 space-y-4">
+      <div className="page space-y-4">
         <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 space-y-3">
           <p className="font-bold text-sm">
             <T k="listing.verificationRequired" />
@@ -177,7 +177,7 @@ export default function NewListingPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6">
+    <div className="page space-y-6">
       <div className="flex items-center gap-3">
         <Link
           href="/business/listings"
@@ -186,7 +186,7 @@ export default function NewListingPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-slate-900">
+          <h1 className="page-title">
             <T k="listing.new" />
           </h1>
           <p className="text-xs text-slate-500">

@@ -113,7 +113,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
 
   if (!question) {
     return (
-      <div className="max-w-md mx-auto p-6 text-center space-y-3">
+      <div className="page p-6 text-center space-y-3">
         <p id="question-not-found" className="text-sm text-gray-600">
           <T k="q.notFound" />
         </p>
@@ -129,17 +129,17 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
   const canBuy = question.categoryHasListings && question.category && !hideBuyCard && question.status !== "PENDING_REVIEW";
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
+    <div className="page space-y-4">
       <Link href="/q" className="text-xs text-primary font-semibold">
         <T k="q.backToList" />
       </Link>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+      <div className="card p-4 space-y-3">
         <div className="flex items-center gap-2">
           <span id="question-status" data-status={question.status}>
             <QuestionStatusChip status={question.status} />
           </span>
-          {question.category && <span className="text-[11px] text-gray-500">{t(`category.${question.category.slug}`)}</span>}
+          {question.category && <span className="text-xs text-gray-500">{t(`category.${question.category.slug}`)}</span>}
         </div>
         <h1 id="question-title-heading" className="text-base font-bold text-gray-900">
           {question.title}
@@ -152,7 +152,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
           sourceLang={question.lang}
           className="text-sm text-gray-700 whitespace-pre-wrap"
         />
-        <p className="text-[11px] text-gray-400">
+        <p className="text-xs text-gray-400">
           {author}
           {" · "}
           {formatDate(question.createdAt, lang)}
@@ -196,7 +196,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
             className={`bg-white rounded-2xl border p-4 space-y-2 ${a.isAccepted ? "border-emerald-300" : "border-gray-100"}`}
           >
             {a.isAccepted && (
-              <p className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+              <p className="text-xs font-bold text-emerald-700 flex items-center gap-1">
                 <CheckCircle className="w-3.5 h-3.5" />
                 <T k="q.best" />
               </p>
@@ -209,7 +209,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
               sourceLang={a.lang}
               className="text-sm text-gray-800 whitespace-pre-wrap"
             />
-            <p className="text-[11px] text-gray-400">
+            <p className="text-xs text-gray-400">
               {a.authorBusiness?.name ?? a.authorName}
               {" · "}
               {formatDate(a.createdAt, lang)}
@@ -234,7 +234,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
 
       {question.status !== "PENDING_REVIEW" &&
         (loggedIn ? (
-          <form onSubmit={postAnswer} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
+          <form onSubmit={postAnswer} className="card p-4 space-y-2">
             <label htmlFor="answer-body" className="text-xs font-bold text-gray-700 block">
               <T k="q.yourAnswer" />
             </label>
@@ -316,7 +316,7 @@ function VoteBar({
         <ThumbsDown className="w-4 h-4" />
       </button>
       {onReport && (
-        <button type="button" onClick={onReport} disabled={reported} className="ms-auto flex items-center gap-1 text-[11px] text-gray-400">
+        <button type="button" onClick={onReport} disabled={reported} className="ms-auto flex items-center gap-1 text-xs text-gray-400">
           <Flag className="w-3 h-3" />
           {reported ? t("q.reported") : t("q.report")}
         </button>

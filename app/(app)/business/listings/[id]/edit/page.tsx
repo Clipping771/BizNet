@@ -122,14 +122,14 @@ export default function EditListingPage() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto p-4 text-center text-sm text-slate-500">
+      <div className="page text-center text-sm text-slate-500">
         <T k="common.loading" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6">
+    <div className="page space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
@@ -139,7 +139,7 @@ export default function EditListingPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-lg font-bold text-slate-900">
+            <h1 className="page-title">
               <T k="listing.edit" />
             </h1>
             <p className="text-xs text-slate-500">

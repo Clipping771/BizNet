@@ -133,7 +133,7 @@ export default function AdminVerificationsPage() {
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-        <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+        <h1 className="page-title flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-emerald-600" />
           <T k="admin.verifications.title" />
         </h1>

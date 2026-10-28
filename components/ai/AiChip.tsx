@@ -47,13 +47,13 @@ export function AiChip({ interactionId, showFeedback = false }: AiChipProps) {
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold tracking-wider">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold tracking-wider">
         <Sparkles className="w-2.5 h-2.5" />
         <T k="rfq.aiChip" />
       </span>
 
       {showFeedback && (
-        <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
+        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
           <button
             type="button"
             onClick={() => handleRate(1)}
@@ -76,7 +76,7 @@ export function AiChip({ interactionId, showFeedback = false }: AiChipProps) {
             type="button"
             onClick={handleReport}
             disabled={reported}
-            className="text-[10px] text-gray-400 hover:text-red-500 underline ml-1"
+            className="text-[11px] text-gray-400 hover:text-red-500 underline ml-1"
           >
             {reported ? (
               <span className="text-green-600"><T k="quote.reported" /></span>

@@ -111,13 +111,13 @@ test.describe("Phase 2 Acceptance: Supply Side Flow 360x740 (§16)", () => {
     await page.screenshot({ path: path.join(screenshotsDir, "01-verification-form-bn.png") });
 
     // Fill verification details
-    const licenseInput = page.locator("input").nth(0);
+    const licenseInput = page.locator("main input").nth(0);
     await licenseInput.fill(`TRAD-${suffix.toUpperCase()}-2026`);
 
-    const refNameInput = page.locator("input").nth(1);
+    const refNameInput = page.locator("main input").nth(1);
     await refNameInput.fill("Kamal Packaging Traders");
 
-    const refPhoneInput = page.locator("input").nth(2);
+    const refPhoneInput = page.locator("main input").nth(2);
     await refPhoneInput.fill("+8801712345678");
 
     // Submit verification
@@ -188,7 +188,7 @@ test.describe("Phase 2 Acceptance: Supply Side Flow 360x740 (§16)", () => {
     await page.goto("/business/listings");
     await page.screenshot({ path: path.join(screenshotsDir, "03-business-listings-bn.png") });
 
-    const newListingBtn = page.locator("a:has-text('নতুন'), a:has-text('New')").first();
+    const newListingBtn = page.locator("main a:has-text('নতুন'), main a:has-text('New')").first();
     await expect(newListingBtn).toBeVisible({ timeout: 10000 });
 
     const containersCat = await prisma.category.findUniqueOrThrow({ where: { slug: "containers" } });
@@ -292,7 +292,7 @@ test.describe("Phase 2 Acceptance: Supply Side Flow 360x740 (§16)", () => {
 
     // 1. Visit /business/listings - verify blocked banner is visible
     await page.goto("/business/listings");
-    await expect(page.locator("a:has-text('নতুন'), a:has-text('New')")).not.toBeVisible();
+    await expect(page.locator("main a:has-text('নতুন'), main a:has-text('New')")).not.toBeVisible();
     await expect(page.locator("a[href='/business/verification']")).toBeVisible();
 
     // 2. Direct API call to POST /api/business/listings is blocked with 403

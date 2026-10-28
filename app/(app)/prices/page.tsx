@@ -50,9 +50,9 @@ export default function PricesPage() {
       .join(" · ");
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
+    <div className="page space-y-4">
       <div className="space-y-1">
-        <h1 className="text-lg font-bold text-gray-900">
+        <h1 className="page-title">
           <T k="prices.title" />
         </h1>
         <p className="text-xs text-gray-500">
@@ -67,12 +67,12 @@ export default function PricesPage() {
             <section key={cat.id} data-price-category={cat.slug} className="space-y-2">
               <h2 className="text-sm font-bold text-gray-800">{t(`category.${cat.slug}`)}</h2>
               {own.length === 0 && (
-                <p className="text-xs text-gray-400 bg-white rounded-2xl border border-gray-100 p-3">
+                <p className="text-xs text-gray-400 card p-3">
                   <T k="prices.notEnough" />
                 </p>
               )}
               {own.map((g) => (
-                <div key={g.id} data-price-group={g.id} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-1.5">
+                <div key={g.id} data-price-group={g.id} className="card p-4 space-y-1.5">
                   <p className="text-xs font-semibold text-gray-800">{specText(cat.slug, g.specLabel)}</p>
                   <p className="text-base font-bold text-primary">
                     {t("prices.range", undefined, {
@@ -82,7 +82,7 @@ export default function PricesPage() {
                     })}
                   </p>
                   <p className="text-xs text-gray-600">{t("prices.median", undefined, { median: formatMoney(g.median, lang) })}</p>
-                  <div className="text-[11px] text-gray-500 flex flex-wrap gap-x-3 gap-y-0.5">
+                  <div className="text-xs text-gray-500 flex flex-wrap gap-x-3 gap-y-0.5">
                     <span>{t("prices.qty", undefined, { band: g.quantityBand, unit: g.unit })}</span>
                     <span>{g.deliveryIncluded ? t("prices.deliveryIncluded") : t("prices.deliveryExcluded")}</span>
                     {g.area && <span>{g.area}</span>}
@@ -90,7 +90,7 @@ export default function PricesPage() {
                       {t("prices.period", undefined, { from: formatDate(g.periodStart, lang), to: formatDate(g.periodEnd, lang) })}
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-xs text-gray-500">
                     {t("prices.basedOn", undefined, { n: g.sampleQuotes, m: g.sampleSuppliers })}
                   </p>
                 </div>

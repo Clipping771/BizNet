@@ -50,7 +50,7 @@ export default function AdminLanguagesPage() {
       {message && <p className="text-sm text-gray-700">{message}</p>}
 
       {languages.map((l) => (
-        <div key={l.code} data-language={l.code} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2 text-xs">
+        <div key={l.code} data-language={l.code} className="card p-4 space-y-2 text-xs">
           <div className="flex items-center justify-between gap-2">
             <span className="font-semibold text-sm">
               {l.nameNative}

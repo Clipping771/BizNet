@@ -12,7 +12,7 @@ export function QuestionStatusChip({ status }: { status: string }) {
       ? "bg-blue-100 text-blue-800"
       : "bg-gray-100 text-gray-700";
   return (
-    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tone}`}>
+    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${tone}`}>
       <T k={`q.status.${status}`} />
     </span>
   );

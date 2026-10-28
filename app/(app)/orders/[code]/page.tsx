@@ -181,7 +181,7 @@ export default function OrderDetailPage() {
           <span className="text-xs text-gray-500">
             <T k="order.title" />
           </span>
-          <h1 className="text-lg font-bold text-gray-900">{order.code}</h1>
+          <h1 className="page-title">{order.code}</h1>
           <p className="text-xs text-gray-500">{formatDate(order.createdAt, lang)}</p>
         </div>
         <span
@@ -228,7 +228,7 @@ export default function OrderDetailPage() {
             ))}
           </div>
         )}
-        <p className="text-[11px] text-gray-500 pt-1">
+        <p className="text-xs text-gray-500 pt-1">
           {t("order.paymentOutside", undefined, { term: t(`payterm.${snap.paymentTerm}`) })}
         </p>
       </div>

@@ -11,8 +11,8 @@ export default function RouteError({ error, reset }: { error: Error & { digest?:
   }, [error]);
 
   return (
-    <div className="max-w-md mx-auto p-8 text-center space-y-3">
-      <h1 className="text-lg font-bold text-gray-900">
+    <div className="page p-8 text-center space-y-3">
+      <h1 className="page-title">
         <T k="error.title" />
       </h1>
       <p className="text-sm text-gray-600">
