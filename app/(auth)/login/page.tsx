@@ -186,15 +186,15 @@ export default function LoginPage() {
 
   return (
     <div>
-      <div className="card p-6 sm:p-8">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+      <div>
+        <h1 className="text-[28px] font-normal leading-tight tracking-[-0.01em] text-gray-900">
           {step === "INPUT" ? (
             <T k="auth.loginTitle" />
           ) : (
             <T k="auth.otpTitle" />
           )}
         </h1>
-        <p className="mb-6 mt-1 text-sm text-gray-500">
+        <p className="mb-8 mt-2 text-[15px] text-gray-600">
           {step === "INPUT" ? (
             <T k="auth.enterPhoneSubtitle" />
           ) : (
@@ -204,15 +204,15 @@ export default function LoginPage() {
 
         {/* Multi-Method Tabs */}
         {step === "INPUT" && (
-          <div className="mb-6 flex rounded-xl bg-gray-100 p-1 text-xs font-semibold">
+          <div className="mb-6 flex rounded-full border border-gray-300 p-1 text-[13px] font-medium">
             <button
               type="button"
               data-testid="tab-phone"
               onClick={() => switchMethod("PHONE")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 transition-all ${
                 method === "PHONE"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-primary-100 text-primary-900"
+                  : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <Smartphone className="w-3.5 h-3.5" />
@@ -224,10 +224,10 @@ export default function LoginPage() {
               type="button"
               data-testid="tab-email"
               onClick={() => switchMethod("EMAIL")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 transition-all ${
                 method === "EMAIL"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-primary-100 text-primary-900"
+                  : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <Mail className="w-3.5 h-3.5" />
@@ -239,10 +239,10 @@ export default function LoginPage() {
               type="button"
               data-testid="tab-passkey"
               onClick={() => switchMethod("PASSKEY")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 transition-all ${
                 method === "PASSKEY"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-primary-100 text-primary-900"
+                  : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <Fingerprint className="w-3.5 h-3.5" />
