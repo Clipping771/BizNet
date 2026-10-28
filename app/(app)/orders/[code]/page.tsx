@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { T, useT, useLang } from "@/components/ui/T";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, formatNumber } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
 
 type Role = "BUYER" | "SUPPLIER" | "ADMIN";
@@ -204,13 +204,13 @@ export default function OrderDetailPage() {
       {/* Agreed terms, from the order snapshot (original language) */}
       <div className="rounded-2xl border bg-white p-4 shadow-sm space-y-2 text-sm">
         <h2 className="font-semibold text-gray-900">{snap.requestTitle}</h2>
-        <Line label={t("rfq.quantity")} value={`${Number(snap.quantity)} ${snap.unit}`} />
+        <Line label={t("rfq.quantity")} value={`${formatNumber(snap.quantity, lang)} ${snap.unit}`} />
         <Line label={t("quote.unitPriceShort")} value={formatMoney(snap.price, lang)} />
         {snap.deliveryCharge !== undefined && (
           <Line label={t("quote.deliveryCharge")} value={formatMoney(snap.deliveryCharge, lang)} />
         )}
         <Line label={t("quote.totalPrice")} value={formatMoney(snap.total, lang)} strong />
-        <Line label={t("quote.deliveryDays")} value={`${snap.deliveryDays} ${t("public.days")}`} />
+        <Line label={t("quote.deliveryDays")} value={t(snap.deliveryDays === 1 ? "unit.day.one" : "unit.day.other", undefined, { n: formatNumber(snap.deliveryDays, lang) })} />
         {order.expectedDeliveryAt && (
           <Line label={t("order.expectedDelivery")} value={formatDate(order.expectedDeliveryAt, lang)} />
         )}

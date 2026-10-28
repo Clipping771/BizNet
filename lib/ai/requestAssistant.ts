@@ -108,7 +108,8 @@ export async function processRequestWithAi(
   // 4. Check 24-hour cache by inputHash (§8.4, A7)
   const inputHash = crypto
     .createHash("sha256")
-    .update(`${redactedText}:${uiLanguage}:${categorySlugs}`)
+    // Today's date is part of the key: "কাল"/"tomorrow" resolve to a different date tomorrow
+    .update(`${redactedText}:${uiLanguage}:${categorySlugs}:${todayDhaka}`)
     .digest("hex");
 
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);

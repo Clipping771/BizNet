@@ -49,3 +49,11 @@ export function calculateQuoteTotal(
 
   return priceDec.mul(qtyDec).add(deliveryDec).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
 }
+
+/** Plain number (quantity, count, days) with Bangla digits for bn (§11: ৳১,২৫০ style). */
+export function formatNumber(value: number | string | Prisma.Decimal, locale: string = "bn"): string {
+  const num = typeof value === "object" && "toNumber" in value ? (value as Prisma.Decimal).toNumber() : Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  const formatted = num.toLocaleString("en-US", { maximumFractionDigits: 3 });
+  return locale === "bn" ? toBanglaDigits(formatted) : formatted;
+}

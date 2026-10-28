@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { PlusCircle, Search, MessageSquare, ShieldCheck, ArrowRight, Layers } from "lucide-react";
 import { T } from "@/components/ui/T";
+import { HomeActivity } from "@/components/home/HomeActivity";
 
 export default function HomePage() {
+  // Names come from the translation catalog (category.<slug>), never hard-coded text
   const categories = [
-    { slug: "containers", name: "ফুড কন্টেইনার", icon: "🍱", desc: "৭৫০ মিলি, ৫০০ মিলি, ঢাকনাওয়ালা" },
-    { slug: "food_boxes", name: "ফুড বক্স ও কার্টুন", icon: "📦", desc: "ক্রাফট পেপার, লাঞ্চ বক্স" },
-    { slug: "carry_bags", name: "শপিং ও ক্যারি ব্যাগ", icon: "🛍️", desc: "ডাই-কাট, লুপ হ্যান্ডেল" },
-    { slug: "cups", name: "ডিসপোজেবল কাপ", icon: "☕", desc: "পেপার কাপ, কোল্ড ড্রিঙ্কস" },
+    { slug: "containers", icon: "🍱" },
+    { slug: "food_boxes", icon: "📦" },
+    { slug: "carry_bags", icon: "🛍️" },
+    { slug: "cups", icon: "☕" },
   ];
 
   return (
@@ -31,6 +33,8 @@ export default function HomePage() {
           <T k="home.newRequest" />
         </Link>
       </div>
+
+      <HomeActivity />
 
       {/* Quick Search Card */}
       <div className="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
@@ -64,8 +68,9 @@ export default function HomePage() {
               className="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-100 transition-all"
             >
               <div className="text-xl mb-1">{c.icon}</div>
-              <p className="font-semibold text-xs text-gray-900">{c.name}</p>
-              <p className="text-[10px] text-gray-500 truncate">{c.desc}</p>
+              <p className="font-semibold text-xs text-gray-900">
+                <T k={`category.${c.slug}`} />
+              </p>
             </Link>
           ))}
         </div>

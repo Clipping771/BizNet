@@ -360,3 +360,14 @@ export async function listMessagesForConversation(conversationId: string) {
     orderBy: { createdAt: "asc" },
   });
 }
+
+/** Unread messages per conversation for the viewing business (messages from the other side). */
+export async function unreadCountsForBusiness(businessId: string, conversationIds: string[]) {
+  if (conversationIds.length === 0) return {} as Record<string, number>;
+  const rows = await prisma.message.groupBy({
+    by: ["conversationId"],
+    where: { conversationId: { in: conversationIds }, senderBusinessId: { not: businessId }, readAt: null },
+    _count: { _all: true },
+  });
+  return Object.fromEntries(rows.map((r) => [r.conversationId, r._count._all])) as Record<string, number>;
+}

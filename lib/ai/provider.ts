@@ -1,3 +1,4 @@
+import { getDhakaDateString } from "@/lib/dates";
 import { z } from "zod";
 
 export interface AiOptions {
@@ -158,7 +159,8 @@ export class MockAiProvider implements AiProvider {
     } else if (lower.includes("next week") || lower.includes("পরের সপ্তাহ")) {
       daysToAdd = 7;
     }
-    const neededBy = new Date(Date.now() + daysToAdd * 86400000).toISOString().split("T")[0];
+    // Relative dates resolve against today's date in Asia/Dhaka (as the real prompt instructs)
+    const neededBy = getDhakaDateString(new Date(Date.now() + daysToAdd * 86400000));
 
     // Delivery Area
     if (lower.includes("mirpur") || lower.includes("মিরপুর")) deliveryArea = "Mirpur";

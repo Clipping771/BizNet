@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { T, useLang, useT } from "@/components/ui/T";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, formatNumber } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
 
 /** Supplier lead credits (F23, READY): balance, history, and manual bKash/Nagad top-up. */
@@ -67,7 +67,7 @@ export default function CreditsPage() {
         <>
           <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-1">
             <p id="credits-balance" data-balance={data.balance} className="text-xl font-bold text-primary">
-              {t("credits.balance", undefined, { n: data.balance })}
+              {t("credits.balance", undefined, { n: formatNumber(data.balance, lang) })}
             </p>
             <p className="text-xs text-gray-500">
               <T k="credits.howItWorks" />
@@ -82,7 +82,7 @@ export default function CreditsPage() {
               {data.packs.map((p: { credits: number; priceBdt: number }, i: number) => (
                 <label key={i} className="flex items-center gap-2">
                   <input type="radio" name="pack" checked={packIndex === i} onChange={() => setPackIndex(i)} />
-                  <span>{t("credits.pack", undefined, { credits: p.credits, price: formatMoney(p.priceBdt, lang) })}</span>
+                  <span>{t("credits.pack", undefined, { credits: formatNumber(p.credits, lang), price: formatMoney(p.priceBdt, lang) })}</span>
                 </label>
               ))}
             </div>
@@ -148,7 +148,7 @@ export default function CreditsPage() {
                   {formatDate(l.createdAt, lang)}
                 </span>
                 <span className={l.delta > 0 ? "text-emerald-700 font-semibold" : "text-gray-700 font-semibold"}>
-                  {l.delta > 0 ? `+${l.delta}` : l.delta}
+                  {(l.delta > 0 ? "+" : "") + formatNumber(l.delta, lang)}
                 </span>
               </div>
             ))}

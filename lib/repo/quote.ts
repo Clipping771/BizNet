@@ -760,3 +760,22 @@ export async function listQuotesForRequest(requestId: string, supplierBusinessId
     orderBy: { createdAt: "desc" },
   });
 }
+
+/** A supplier's own quotes, newest first, with the request they answer (/quotes). */
+export async function listQuotesForSupplier(supplierBusinessId: string) {
+  return prisma.quote.findMany({
+    where: { supplierBusinessId },
+    select: {
+      id: true,
+      status: true,
+      totalPrice: true,
+      deliveryDays: true,
+      version: true,
+      updatedAt: true,
+      request: { select: { code: true, title: true, status: true, deliveryArea: true, buyerBusiness: { select: { name: true } } } },
+      order: { select: { code: true, status: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 100,
+  });
+}
