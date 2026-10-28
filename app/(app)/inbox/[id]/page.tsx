@@ -24,7 +24,7 @@ export default function ConversationPage({ params }: { params: Promise<{ id: str
   if (conversation === undefined) return null;
   if (conversation === null) {
     return (
-      <div className="max-w-md mx-auto space-y-3">
+      <div className="page space-y-3">
         <EmptyState k="list.empty" />
         <Link href="/inbox" className="text-primary text-sm font-semibold">
           <T k="inbox.back" />
@@ -36,7 +36,7 @@ export default function ConversationPage({ params }: { params: Promise<{ id: str
   const isBuyer = conversation.side === "BUYER";
   const other = isBuyer ? conversation.supplierBusiness : conversation.buyerBusiness;
   return (
-    <div className="max-w-md mx-auto space-y-3">
+    <div className="page space-y-3">
       <Link href={`/requests/${conversation.request.code}`} className="block text-xs text-primary font-semibold">
         {conversation.request.title}
       </Link>

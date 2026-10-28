@@ -40,7 +40,7 @@ export default function AdminReportsPage() {
     <div className="space-y-4">
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <section className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+      <section className="card p-4 space-y-3">
         <h2 className="text-sm font-bold text-gray-900">
           <T k="admin.reports.held" />
         </h2>
@@ -65,7 +65,7 @@ export default function AdminReportsPage() {
         ))}
       </section>
 
-      <section className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+      <section className="card p-4 space-y-3">
         <h2 className="text-sm font-bold text-gray-900">
           <T k="admin.reports.open" />
         </h2>

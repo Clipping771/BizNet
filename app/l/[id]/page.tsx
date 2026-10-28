@@ -41,15 +41,15 @@ export default async function PublicListingPage({
       {/* Main Listing Card */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
         <div className="space-y-1">
-          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block">
+          <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block">
             <T k={`category.${listing.category.slug}`} />
           </span>
-          <h1 className="text-xl font-bold text-slate-900 leading-snug">{listing.title}</h1>
+          <h1 className="page-title leading-snug">{listing.title}</h1>
         </div>
 
         {/* Pricing & Commercial Terms */}
         <div className="p-3.5 bg-slate-50 rounded-xl space-y-1.5">
-          <span className="text-[11px] text-slate-500 block">
+          <span className="text-xs text-slate-500 block">
             <T k="public.priceRange" />
           </span>
           <div className="text-lg font-bold text-slate-900 flex items-center gap-1">
@@ -128,7 +128,7 @@ export default async function PublicListingPage({
                       displayVal = (
                         <div className="flex flex-wrap gap-1">
                           {attrVal.map((v) => (
-                            <span key={v} className="bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">
+                            <span key={v} className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">
                               <T k={`attr.${listing.category.slug}.${attrKey}.opt.${v}`} />
                             </span>
                           ))}
@@ -141,7 +141,7 @@ export default async function PublicListingPage({
                         <td className="py-2.5 px-3 font-medium text-slate-500 w-1/3">
                           <T k={labelKey} />
                           {fieldDef?.unit && (
-                            <span className="text-[10px] text-slate-400 ml-1">
+                            <span className="text-[11px] text-slate-400 ml-1">
                               {fieldDef.unit}
                             </span>
                           )}

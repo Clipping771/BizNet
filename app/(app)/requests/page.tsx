@@ -2,19 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PlusCircle, Inbox, FileText, Package } from "lucide-react";
+import { Plus, Inbox, ReceiptText, Package, FileText, ChevronRight } from "lucide-react";
 import { T, useLang, useT } from "@/components/ui/T";
-import { EmptyState, ListSkeleton, StatusChip } from "@/components/ui/ListStates";
+import { EmptyState, ListSkeleton, PageHeader, StatusChip, REQUEST_STATUS_TONE } from "@/components/ui/ListStates";
 import { formatDate } from "@/lib/dates";
 import { formatNumber } from "@/lib/money";
-
-const STATUS_TONE: Record<string, "green" | "gray" | "amber" | "red" | "blue"> = {
-  OPEN: "green",
-  AWARDED: "blue",
-  CLOSED: "gray",
-  EXPIRED: "gray",
-  CANCELLED: "red",
-};
 
 /** "Requests" tab: the business's own requests, plus shortcuts for suppliers (§7). */
 export default function RequestsPage() {
@@ -29,61 +21,65 @@ export default function RequestsPage() {
       .catch(() => setRequests([]));
   }, []);
 
+  const shortcuts = [
+    { href: "/requests/inbox", icon: Inbox, k: "requests.openInbox" },
+    { href: "/quotes", icon: ReceiptText, k: "requests.myQuotes" },
+    { href: "/orders", icon: Package, k: "requests.myOrders", id: "orders-link" },
+  ];
+
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-gray-900">
-          <T k="requests.mine" />
-        </h1>
-        <Link
-          href="/requests/new"
-          id="new-request-link"
-          className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white text-xs font-semibold rounded-lg shadow-sm"
-        >
-          <PlusCircle className="w-3.5 h-3.5" />
+    <div className="page space-y-5">
+      <PageHeader titleKey="requests.mine">
+        <Link href="/requests/new" id="new-request-link" className="btn btn-primary btn-sm sm:h-10 sm:px-4 sm:text-sm">
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
           <T k="home.newRequest" />
         </Link>
-      </div>
+      </PageHeader>
 
-      <div className="grid grid-cols-3 gap-2 text-xs">
-        <Link href="/requests/inbox" className="bg-white rounded-xl border border-gray-100 p-3 flex flex-col items-center gap-1 text-gray-700">
-          <Inbox className="w-4 h-4 text-primary" />
-          <T k="requests.openInbox" />
-        </Link>
-        <Link href="/quotes" className="bg-white rounded-xl border border-gray-100 p-3 flex flex-col items-center gap-1 text-gray-700">
-          <FileText className="w-4 h-4 text-primary" />
-          <T k="requests.myQuotes" />
-        </Link>
-        <Link href="/orders" id="orders-link" className="bg-white rounded-xl border border-gray-100 p-3 flex flex-col items-center gap-1 text-gray-700">
-          <Package className="w-4 h-4 text-primary" />
-          <T k="requests.myOrders" />
-        </Link>
+      <div className="grid grid-cols-3 gap-2.5">
+        {shortcuts.map(({ href, icon: Icon, k, id }) => (
+          <Link key={href} href={href} id={id} className="card card-link flex flex-col items-center gap-2 px-2 py-3.5 text-center sm:flex-row sm:px-4 sm:text-start">
+            <span className="icon-tile h-9 w-9">
+              <Icon className="h-4 w-4" />
+            </span>
+            <span className="text-xs font-semibold leading-tight text-gray-800 sm:text-sm">
+              <T k={k} />
+            </span>
+          </Link>
+        ))}
       </div>
 
       {requests === null ? (
         <ListSkeleton />
       ) : requests.length === 0 ? (
-        <EmptyState k="requests.emptyBuyer">
-          <Link href="/requests/new" className="inline-block px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold">
+        <EmptyState k="requests.emptyBuyer" icon={FileText}>
+          <Link href="/requests/new" className="btn btn-primary btn-sm">
+            <Plus className="h-3.5 w-3.5" />
             <T k="home.newRequest" />
           </Link>
         </EmptyState>
       ) : (
-        <div id="my-requests" className="space-y-2">
+        <div id="my-requests" className="space-y-2.5">
           {requests.map((r) => (
-            <Link key={r.id} href={`/requests/${r.code}`} data-request-code={r.code} className="block bg-white rounded-2xl border border-gray-100 p-4 space-y-1">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900">{r.title}</p>
-                <StatusChip k={`reqStatus.${r.status}`} tone={STATUS_TONE[r.status] ?? "gray"} />
+            <Link key={r.id} href={`/requests/${r.code}`} data-request-code={r.code} className="card card-link group flex items-center gap-3.5 p-4">
+              <span className="icon-tile hidden sm:flex">
+                <FileText className="h-[18px] w-[18px]" />
+              </span>
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-semibold text-gray-900">{r.title}</p>
+                  <StatusChip k={`reqStatus.${r.status}`} tone={REQUEST_STATUS_TONE[r.status] ?? "gray"} />
+                </div>
+                <p className="text-xs text-gray-500">
+                  {t(`category.${r.category?.slug}`)}
+                  {" · "}
+                  {formatDate(r.createdAt, lang)}
+                </p>
+                <p className="text-xs font-medium text-gray-600">
+                  {t("requests.counts", undefined, { quotes: formatNumber(r._count?.quotes ?? 0, lang), invites: formatNumber(r._count?.invites ?? 0, lang) })}
+                </p>
               </div>
-              <p className="text-[11px] text-gray-500">
-                {t(`category.${r.category?.slug}`)}
-                {" · "}
-                {formatDate(r.createdAt, lang)}
-              </p>
-              <p className="text-[11px] text-gray-600">
-                {t("requests.counts", undefined, { quotes: formatNumber(r._count?.quotes ?? 0, lang), invites: formatNumber(r._count?.invites ?? 0, lang) })}
-              </p>
+              <ChevronRight className="hidden h-4 w-4 shrink-0 text-gray-300 transition group-hover:text-gray-500 sm:block rtl:rotate-180" />
             </Link>
           ))}
         </div>

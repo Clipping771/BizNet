@@ -3,8 +3,8 @@ import { T } from "@/components/ui/T";
 
 export default function NotFound() {
   return (
-    <div className="max-w-md mx-auto p-8 text-center space-y-3">
-      <h1 className="text-lg font-bold text-gray-900">
+    <div className="page p-8 text-center space-y-3">
+      <h1 className="page-title">
         <T k="error.notFoundTitle" />
       </h1>
       <p className="text-sm text-gray-600">

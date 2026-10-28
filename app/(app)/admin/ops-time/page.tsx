@@ -101,7 +101,7 @@ export default function AdminOpsTimePage() {
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-2">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h1 className="page-title flex items-center gap-2">
               <Clock className="w-5 h-5 text-emerald-600" />
               <T k="admin.opsTime.title" />
             </h1>
@@ -224,7 +224,7 @@ export default function AdminOpsTimePage() {
               <div key={log.id} className="py-2.5 flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-slate-800 block">{log.activity}</span>
-                  <span className="text-[11px] text-slate-400 block">
+                  <span className="text-xs text-slate-400 block">
                     <span>{log.user.name}</span>
                     {log.refType && (
                       <>

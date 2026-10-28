@@ -37,7 +37,7 @@ export default function AdminRequestsPage() {
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {rows.map((r) => (
-        <Link key={r.id} href={`/requests/${r.code}`} className="block bg-white rounded-2xl border border-gray-100 p-3 text-xs space-y-1">
+        <Link key={r.id} href={`/requests/${r.code}`} className="block card p-3 text-xs space-y-1">
           <div className="flex justify-between gap-2">
             <span className="font-mono text-gray-400">{r.code}</span>
             <span className="font-semibold">{t(`reqStatus.${r.status}`)}</span>

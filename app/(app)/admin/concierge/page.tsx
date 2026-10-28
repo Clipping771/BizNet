@@ -138,7 +138,7 @@ export default function AdminConciergePage() {
   return (
     <div className="mx-auto max-w-4xl p-4 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900"><T k="admin.concierge.title" /></h1>
+        <h1 className="page-title"><T k="admin.concierge.title" /></h1>
         <p className="text-sm text-gray-500">
           <T k="admin.concierge.subtitle" />
         </p>

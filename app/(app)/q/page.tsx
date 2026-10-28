@@ -38,9 +38,9 @@ export default function DiscussPage() {
   }, [categoryId]);
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
+    <div className="page space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-gray-900">
+        <h1 className="page-title">
           <T k="q.title" />
         </h1>
         <Link
@@ -89,10 +89,10 @@ export default function DiscussPage() {
             key={item.id}
             href={`/q/${item.id}`}
             data-question-title={item.title}
-            className="block bg-white rounded-2xl border border-gray-100 p-4 space-y-2"
+            className="block card p-4 space-y-2"
           >
             <p className="text-sm font-semibold text-gray-900">{item.title}</p>
-            <div className="flex items-center gap-3 text-[11px] text-gray-500">
+            <div className="flex items-center gap-3 text-xs text-gray-500">
               <QuestionStatusChip status={item.status} />
               <span className="flex items-center gap-0.5">
                 <MessageSquare className="w-3 h-3" />

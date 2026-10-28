@@ -59,7 +59,7 @@ export default function AdminSettingsPage() {
                 <option value="false">{t("common.no")}</option>
               </select>
             ) : typeof value === "object" && value !== null ? (
-              <textarea id={`setting-${key}`} rows={4} value={drafts[key]} onChange={(e) => setDrafts((d) => ({ ...d, [key]: e.target.value }))} className="w-full p-2 rounded-lg border border-gray-200 font-mono text-[11px]" />
+              <textarea id={`setting-${key}`} rows={4} value={drafts[key]} onChange={(e) => setDrafts((d) => ({ ...d, [key]: e.target.value }))} className="w-full p-2 rounded-lg border border-gray-200 font-mono text-xs" />
             ) : (
               <input id={`setting-${key}`} value={drafts[key] ?? ""} onChange={(e) => setDrafts((d) => ({ ...d, [key]: e.target.value }))} className="w-full p-2 rounded-lg border border-gray-200" />
             )}

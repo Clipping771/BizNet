@@ -2,25 +2,138 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 17, 24, 39;
-  --background-rgb: 249, 250, 251;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-surface-canvas text-gray-900 antialiased;
+    -webkit-tap-highlight-color: transparent;
+    /* A stray wide element must never make phones zoom out and push the tab bar off screen */
+    overflow-x: clip;
+  }
+
+  /* Bangla glyphs need a little more line height than Latin to keep matras clear */
+  :lang(bn) body {
+    line-height: 1.6;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme("colors.primary.500");
+    outline-offset: 2px;
+  }
+
+  /* Bordered fields show a soft brand ring instead of the outline; borderless inner inputs keep their own styling */
+  input[class*="border"]:focus-visible,
+  textarea[class*="border"]:focus-visible,
+  select[class*="border"]:focus-visible {
+    outline: none;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply transition-colors;
+  }
+
+  input[class*="border"]:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+  textarea[class*="border"]:focus,
+  select[class*="border"]:focus {
+    @apply border-primary-500 ring-4 ring-primary/10;
+  }
+
+  ::selection {
+    @apply bg-primary-100 text-primary-900;
+  }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
-  -webkit-tap-highlight-color: transparent;
+@layer components {
+  /* Page column: comfortable reading width on desktop, full width on phones */
+  .page {
+    @apply mx-auto w-full max-w-3xl;
+  }
+
+  .page-wide {
+    @apply mx-auto w-full max-w-6xl;
+  }
+
+  .page-title {
+    @apply text-xl font-bold tracking-tight text-gray-900 sm:text-2xl;
+  }
+
+  .page-subtitle {
+    @apply mt-0.5 text-sm text-gray-500;
+  }
+
+  .section-title {
+    @apply text-sm font-semibold text-gray-900;
+  }
+
+  .card {
+    @apply rounded-2xl border border-gray-200/80 bg-white shadow-card;
+  }
+
+  .card-link {
+    @apply transition-all duration-150 hover:border-gray-300 hover:shadow-raised active:scale-[0.995];
+  }
+
+  .btn {
+    @apply inline-flex h-10 select-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-sm {
+    @apply h-8 gap-1.5 rounded-lg px-3 text-xs;
+  }
+
+  .btn-lg {
+    @apply h-12 rounded-xl px-5 text-[15px];
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white shadow-sm shadow-primary/20 hover:bg-primary-hover;
+  }
+
+  .btn-secondary {
+    @apply border border-gray-200 bg-white text-gray-800 shadow-card hover:border-gray-300 hover:bg-gray-50;
+  }
+
+  .btn-ghost {
+    @apply text-gray-700 hover:bg-gray-100;
+  }
+
+  .btn-soft {
+    @apply bg-primary-50 text-primary-700 hover:bg-primary-100;
+  }
+
+  .input {
+    @apply h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 hover:border-gray-300;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-semibold text-gray-700;
+  }
+
+  .icon-tile {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700;
+  }
+
+  .divider {
+    @apply border-t border-gray-100;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* Ensure logical flow and max-width 640px centered for mobile-first */
-.app-container {
-  max-width: 640px;
-  min-height: 100vh;
-  margin-inline: auto;
-  position: relative;
-  background-color: #ffffff;
-  display: flex;
-  flex-direction: column;
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

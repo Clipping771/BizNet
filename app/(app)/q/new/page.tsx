@@ -74,11 +74,11 @@ export default function AskQuestionPage() {
   const titleOk = title.trim().length >= 10 && title.trim().length <= 150;
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
+    <div className="page space-y-4">
       <Link href="/q" className="text-xs text-primary font-semibold">
         <T k="q.backToList" />
       </Link>
-      <h1 className="text-lg font-bold text-gray-900">
+      <h1 className="page-title">
         <T k="q.ask" />
       </h1>
 
@@ -87,7 +87,7 @@ export default function AskQuestionPage() {
           e.preventDefault();
           submit(false);
         }}
-        className="bg-white rounded-2xl border border-gray-100 p-4 space-y-4"
+        className="card p-4 space-y-4"
       >
         <div className="space-y-1.5">
           <label htmlFor="question-title" className="text-xs font-bold text-gray-700 block">
@@ -102,7 +102,7 @@ export default function AskQuestionPage() {
           />
           {similar.length > 0 && (
             <div id="similar-questions" className="bg-gray-50 rounded-xl p-3 space-y-1.5">
-              <p className="text-[11px] font-bold text-gray-500">
+              <p className="text-xs font-bold text-gray-500">
                 <T k="q.similar" />
               </p>
               {similar.map((s) => (

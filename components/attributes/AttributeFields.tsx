@@ -185,7 +185,7 @@ export function AttributeFields({
                 <span className="font-semibold text-amber-900 mr-2">{archivedKey}</span>
                 <span>{archivedVal}</span>
               </div>
-              <span className="text-[11px] font-medium bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded">
+              <span className="text-xs font-medium bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded">
                 {t("listing.archivedField")}
               </span>
             </div>

@@ -1,13 +1,27 @@
 import "./globals.css";
+import { Inter, Hind_Siliguri } from "next/font/google";
 import { getTranslations } from "@/lib/i18n";
-import { Header } from "@/components/layout/Header";
-import { BottomNav } from "@/components/layout/BottomNav";
+import { AppShell } from "@/components/layout/AppShell";
 import { TranslationsProvider } from "@/components/ui/T";
 import { getSession } from "@/lib/session";
 import { findUserById } from "@/lib/repo/user";
 import { findBusinessById } from "@/lib/repo/business";
 import { getLanguage } from "@/lib/repo/languages";
 import { cookies } from "next/headers";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const hindSiliguri = Hind_Siliguri({
+  subsets: ["bengali", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-bn",
+  display: "swap",
+});
+
+export const viewport = {
+  themeColor: "#006A4E",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata = {
   title: "BizNet — B2B Packaging & Disposables",
@@ -72,21 +86,18 @@ export default async function RootLayout({
   const translations = await getTranslations(lang);
 
   return (
-    <html lang={lang} dir={dir}>
-      <body className="bg-gray-100 min-h-screen">
+    <html lang={lang} dir={dir} className={`${inter.variable} ${hindSiliguri.variable}`}>
+      <body className="min-h-screen font-sans">
         <TranslationsProvider lang={lang} messages={translations}>
-        <div className="app-container shadow-sm pb-20">
-          <Header
-            translations={translations}
+          <AppShell
             activeBusinessName={activeBusinessName}
             userPhone={userPhone}
             lang={lang}
             isLoggedIn={!!user}
             isAdmin={!!isAdmin}
-          />
-          <main className="flex-1 p-4">{children}</main>
-          <BottomNav translations={translations} />
-        </div>
+          >
+            {children}
+          </AppShell>
         </TranslationsProvider>
       </body>
     </html>

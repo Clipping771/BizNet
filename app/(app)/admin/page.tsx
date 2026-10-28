@@ -37,7 +37,7 @@ export default function AdminDashboardPage() {
   }, []);
 
   const section = (titleKey: string, data: Record<string, unknown>, id: string) => (
-    <section id={id} className="bg-white rounded-2xl border border-gray-100 p-4">
+    <section id={id} className="card p-4">
       <h2 className="text-sm font-bold text-gray-900 mb-2">
         <T k={titleKey} />
       </h2>
@@ -56,7 +56,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap items-end gap-2 text-xs">
+      <div className="card p-4 flex flex-wrap items-end gap-2 text-xs">
         <label className="space-y-1">
           <span className="block text-gray-500">
             <T k="admin.from" />
@@ -81,7 +81,7 @@ export default function AdminDashboardPage() {
 
       {metrics && (
         <>
-          <section id="metrics-thresholds" className="bg-white rounded-2xl border border-gray-100 p-4">
+          <section id="metrics-thresholds" className="card p-4">
             <h2 className="text-sm font-bold text-gray-900 mb-2">
               <T k="admin.section.thresholds" />
             </h2>
@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
           </section>
           {section("admin.section.funnel", metrics.funnel, "metrics-funnel")}
           {section("admin.section.ai", metrics.ai, "metrics-ai")}
-          <section className="bg-white rounded-2xl border border-gray-100 p-4 text-xs">
+          <section className="card p-4 text-xs">
             <h2 className="text-sm font-bold text-gray-900 mb-1">
               <T k="admin.section.eval" />
             </h2>

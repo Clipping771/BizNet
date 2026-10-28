@@ -49,7 +49,7 @@ export default function BusinessListingsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto p-4 text-center text-sm text-slate-500">
+      <div className="page text-center text-sm text-slate-500">
         <T k="common.loading" />
       </div>
     );
@@ -61,11 +61,11 @@ export default function BusinessListingsPage() {
   const isSupplier = business?.isSupplier;
 
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6">
+    <div className="page space-y-6">
       {/* Header */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Package className="w-5 h-5 text-emerald-600" />
             <T k="listing.title" />
           </h1>
@@ -129,7 +129,7 @@ export default function BusinessListingsPage() {
               className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between"
             >
               <div className="space-y-1">
-                <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
+                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
                   {t(`category.${item.category.slug}`)}
                 </span>
                 <h2 className="text-sm font-bold text-slate-900">{item.title}</h2>

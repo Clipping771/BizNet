@@ -1,110 +1,164 @@
 import Link from "next/link";
-import { PlusCircle, Search, MessageSquare, ShieldCheck, ArrowRight, Layers } from "lucide-react";
+import {
+  Plus,
+  Mic,
+  Search,
+  TrendingUp,
+  MessagesSquare,
+  ShieldCheck,
+  ChevronRight,
+  Box,
+  Package,
+  ShoppingBag,
+  CupSoda,
+  Sparkles,
+} from "lucide-react";
 import { T } from "@/components/ui/T";
 import { HomeActivity } from "@/components/home/HomeActivity";
+import { Num } from "@/components/ui/Num";
+import { getSession } from "@/lib/session";
+import { findBusinessById } from "@/lib/repo/business";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  const business = session.activeBusinessId ? await findBusinessById(session.activeBusinessId).catch(() => null) : null;
+
   // Names come from the translation catalog (category.<slug>), never hard-coded text
   const categories = [
-    { slug: "containers", icon: "🍱" },
-    { slug: "food_boxes", icon: "📦" },
-    { slug: "carry_bags", icon: "🛍️" },
-    { slug: "cups", icon: "☕" },
+    { slug: "containers", icon: Box },
+    { slug: "food_boxes", icon: Package },
+    { slug: "carry_bags", icon: ShoppingBag },
+    { slug: "cups", icon: CupSoda },
+  ];
+
+  const actions = [
+    { href: "/requests/new", icon: Plus, title: "home.action.request", hint: "home.action.requestHint" },
+    { href: "/search", icon: Search, title: "home.action.search", hint: "home.action.searchHint" },
+    { href: "/prices", icon: TrendingUp, title: "home.action.prices", hint: "home.action.pricesHint" },
+    { href: "/q", icon: MessagesSquare, title: "home.action.discuss", hint: "home.action.discussHint" },
   ];
 
   return (
-    <div className="space-y-4">
-      {/* Hero CTA: What do you need? */}
-      <div className="bg-gradient-to-br from-primary to-primary-hover text-white rounded-2xl p-5 shadow-sm">
-        <span className="inline-block px-2.5 py-0.5 bg-white/20 text-white text-[10px] font-bold tracking-wider uppercase rounded-full mb-2">
-          <T k="home.aiBadge" />
-        </span>
-        <h2 className="text-lg font-bold mb-1">
-          <T k="home.aiTitle" />
-        </h2>
-        <p className="text-xs text-white/80 mb-4">
-          <T k="home.aiSubtitle" />
-        </p>
-        <Link
-          href="/requests/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-primary font-bold text-xs rounded-xl shadow-sm hover:bg-gray-50 transition-all"
-        >
-          <PlusCircle className="w-4 h-4 text-primary" />
-          <T k="home.newRequest" />
-        </Link>
-      </div>
-
-      <HomeActivity />
-
-      {/* Quick Search Card */}
-      <div className="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
-        <Link
-          href="/search"
-          className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-gray-600 border border-gray-100 text-xs"
-        >
-          <Search className="w-4 h-4 text-gray-400" />
-          <T k="home.searchPlaceholder" />
-        </Link>
-      </div>
-
-      {/* Top Categories */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-primary" />
-            <T k="home.popularCategories" />
-          </h3>
-          <Link href="/search" className="text-xs text-primary font-medium flex items-center gap-0.5">
-            <T k="home.viewAll" />
-            <ArrowRight className="w-3 h-3 rtl:rotate-180" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          {categories.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/search?category=${c.slug}`}
-              className="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-100 transition-all"
-            >
-              <div className="text-xl mb-1">{c.icon}</div>
-              <p className="font-semibold text-xs text-gray-900">
-                <T k={`category.${c.slug}`} />
-              </p>
-            </Link>
-          ))}
+    <div className="page-wide space-y-6 animate-fade-up">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="page-title">
+            {business ? <T k="home.hello" params={{ name: business.name }} /> : <T k="home.helloGuest" />}
+          </h1>
+          <p className="page-subtitle">
+            <T k="home.overview" />
+          </p>
         </div>
       </div>
 
-      {/* Discussion Card */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-            <MessageSquare className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-xs text-gray-900">
-              <T k="home.discussionTitle" />
-            </h4>
-            <p className="text-[11px] text-gray-500">
-              <T k="home.discussionSubtitle" />
+      {/* AI request assistant */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 p-6 text-white shadow-raised sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 end-24 h-56 w-56 rounded-full bg-emerald-300/20 blur-3xl" />
+        <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-white/90 ring-1 ring-inset ring-white/20">
+              <Sparkles className="h-3 w-3" />
+              <T k="home.aiBadge" />
+            </span>
+            <h2 className="mt-3 text-xl font-bold leading-snug sm:text-2xl">
+              <T k="home.aiTitle" />
+            </h2>
+            <p className="mt-1.5 text-sm text-white/75">
+              <T k="home.aiSubtitle" />
             </p>
           </div>
+          <div className="flex shrink-0 flex-wrap gap-2.5">
+            <Link href="/requests/new" className="btn btn-lg bg-white text-primary-800 shadow-sm hover:bg-primary-50">
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              <T k="home.newRequest" />
+            </Link>
+            <Link href="/requests/new" aria-label="voice" className="btn btn-lg w-12 bg-white/15 px-0 text-white ring-1 ring-inset ring-white/25 hover:bg-white/25">
+              <Mic className="h-5 w-5" />
+            </Link>
+          </div>
         </div>
-        <Link
-          href="/q"
-          className="text-xs font-semibold text-primary px-3 py-1.5 rounded-lg bg-primary-light hover:bg-primary/20 shrink-0"
-        >
-          <T k="home.viewDiscussion" />
-        </Link>
-      </div>
+      </section>
 
-      {/* Trust & Identity Badge */}
-      <div className="p-3 rounded-xl bg-gray-50 border border-gray-200/60 flex items-center gap-2 text-xs text-gray-600">
-        <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-        <p className="text-[11px]">
-          <T k="home.trustBadge" />
-        </p>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
+          <HomeActivity />
+        </div>
+
+        <aside className="min-w-0 space-y-6">
+          <section className="card p-2">
+            <h2 className="section-title px-3 pb-1 pt-3">
+              <T k="home.quickActions" />
+            </h2>
+            <ul>
+              {actions.map(({ href, icon: Icon, title, hint }) => (
+                <li key={href + title}>
+                  <Link href={href} className="group flex items-center gap-3 rounded-xl p-3 transition hover:bg-gray-50">
+                    <span className="icon-tile">
+                      <Icon className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold text-gray-900">
+                        <T k={title} />
+                      </span>
+                      <span className="block truncate text-xs text-gray-500">
+                        <T k={hint} />
+                      </span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-gray-300 transition group-hover:text-gray-500 rtl:rotate-180" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="card p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="section-title">
+                <T k="home.popularCategories" />
+              </h2>
+              <Link href="/search" className="text-xs font-semibold text-primary-700 hover:underline">
+                <T k="common.viewAll" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {categories.map(({ slug, icon: Icon }) => (
+                <Link
+                  key={slug}
+                  href={`/search?category=${slug}`}
+                  className="group flex flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-3 transition hover:border-primary-200 hover:bg-primary-50/60"
+                >
+                  <Icon className="h-5 w-5 text-gray-500 transition group-hover:text-primary-700" />
+                  <span className="text-xs font-semibold text-gray-800">
+                    <T k={`category.${slug}`} />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <section className="card p-5">
+            <h2 className="section-title mb-3">
+              <T k="home.howItWorks" />
+            </h2>
+            <ol className="space-y-3">
+              {["home.step1", "home.step2", "home.step3"].map((k, i) => (
+                <li key={k} className="flex items-start gap-3 text-sm text-gray-600">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-800">
+                    <Num n={i + 1} />
+                  </span>
+                  <span className="pt-0.5">
+                    <T k={k} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4 flex items-start gap-2 rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" />
+              <T k="home.trustBadge" />
+            </div>
+          </section>
+        </aside>
       </div>
     </div>
   );

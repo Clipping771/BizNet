@@ -123,7 +123,7 @@ export default function BusinessMembersPage() {
   const isOwner = currentUserRole === "OWNER";
 
   return (
-    <div className="space-y-4">
+    <div className="page space-y-5">
       {/* Title */}
       <div className="flex items-center gap-2">
         <Users className="w-5 h-5 text-primary" />
@@ -153,7 +153,7 @@ export default function BusinessMembersPage() {
 
       {/* Invite Member Form (OWNER only) */}
       {isOwner && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+        <div className="card p-4 space-y-3">
           <div className="flex items-center gap-2">
             <UserPlus className="w-4 h-4 text-primary" />
             <h3 className="font-semibold text-xs text-gray-900">
@@ -203,7 +203,7 @@ export default function BusinessMembersPage() {
 
       {/* Pending Invites */}
       {invites.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+        <div className="card p-4 space-y-3">
           <h3 className="font-semibold text-xs text-gray-900">
             <T k="business.pendingInvites" />
           </h3>
@@ -212,7 +212,7 @@ export default function BusinessMembersPage() {
               <div key={inv.id} className="py-2.5 flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-gray-900">{inv.phone || inv.email}</p>
-                  <p className="text-[11px] text-gray-400 font-mono">{inv.role}</p>
+                  <p className="text-xs text-gray-400 font-mono">{inv.role}</p>
                 </div>
                 {isOwner && (
                   <button
@@ -230,7 +230,7 @@ export default function BusinessMembersPage() {
       )}
 
       {/* Current Members List */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+      <div className="card p-4 space-y-3">
         <h3 className="font-semibold text-xs text-gray-900">
           <T k="business.currentMembers" />
         </h3>
@@ -239,12 +239,12 @@ export default function BusinessMembersPage() {
             <div key={m.id} className="py-2.5 flex items-center justify-between">
               <div>
                 <p className="font-semibold text-gray-900">{m.user.name}</p>
-                <p className="text-[11px] text-gray-500 font-mono">
+                <p className="text-xs text-gray-500 font-mono">
                   {m.user.phone || m.user.email}
                 </p>
               </div>
               <span
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                className={`px-2 py-0.5 rounded text-xs font-semibold ${
                   m.role === "OWNER"
                     ? "bg-primary/10 text-primary"
                     : m.role === "MANAGER"

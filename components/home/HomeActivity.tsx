@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FileText, Package, MessageSquare, Bell } from "lucide-react";
+import { FileText, Package, MessageSquare, Bell, Plus } from "lucide-react";
 import { T, useLang, useT } from "@/components/ui/T";
+import { StatusChip, REQUEST_STATUS_TONE } from "@/components/ui/ListStates";
 import { formatNumber } from "@/lib/money";
 
 interface Summary {
@@ -27,41 +28,79 @@ export function HomeActivity() {
       .catch(() => setSummary(null));
   }, []);
 
-  if (!summary) return null;
-
   const tiles = [
-    { href: "/requests", icon: FileText, label: t("home.openRequests", undefined, { n: formatNumber(summary.openRequests, lang) }), id: "home-open-requests" },
-    { href: "/orders", icon: Package, label: t("home.activeOrders", undefined, { n: formatNumber(summary.activeOrders, lang) }), id: "home-active-orders" },
-    { href: "/inbox", icon: MessageSquare, label: t("home.unreadMessages", undefined, { n: formatNumber(summary.unreadMessages, lang) }), id: "home-unread-messages" },
-    { href: "/notifications", icon: Bell, label: t("home.unreadNotifications", undefined, { n: formatNumber(summary.unreadNotifications, lang) }), id: "home-notifications" },
+    { href: "/requests", icon: FileText, key: "home.stat.openRequests", value: summary?.openRequests, id: "home-open-requests", tone: "bg-sky-50 text-sky-700" },
+    { href: "/orders", icon: Package, key: "home.stat.activeOrders", value: summary?.activeOrders, id: "home-active-orders", tone: "bg-primary-50 text-primary-700" },
+    { href: "/inbox", icon: MessageSquare, key: "home.stat.unreadMessages", value: summary?.unreadMessages, id: "home-unread-messages", tone: "bg-violet-50 text-violet-700" },
+    { href: "/notifications", icon: Bell, key: "home.stat.notifications", value: summary?.unreadNotifications, id: "home-notifications", tone: "bg-amber-50 text-amber-700" },
   ];
 
   return (
-    <section id="home-activity" className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-      <h3 className="font-bold text-sm text-gray-900">
-        <T k="home.greeting" />
-      </h3>
-      <div className="grid grid-cols-2 gap-2">
-        {tiles.map(({ href, icon: Icon, label, id }) => (
-          <Link key={href} href={href} id={id} className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100 text-xs font-semibold text-gray-800">
-            <Icon className="w-4 h-4 text-primary shrink-0" />
-            <span>{label}</span>
+    <section id="home-activity" aria-label={t("home.greeting")} className="space-y-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+        {tiles.map(({ href, icon: Icon, key, value, id, tone }) => (
+          <Link key={href} href={href} id={id} className="card card-link flex items-center gap-3 p-3.5 sm:flex-col sm:items-start sm:p-4">
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+              <Icon className="h-[18px] w-[18px]" />
+            </span>
+            <div className="min-w-0">
+              {summary ? (
+                <p className="text-xl font-bold tabular-nums leading-tight tracking-tight text-gray-900 sm:text-2xl">{formatNumber(value ?? 0, lang)}</p>
+              ) : (
+                <span className="block h-7 w-8 animate-pulse rounded-md bg-gray-100" />
+              )}
+              <p className="truncate text-xs font-medium text-gray-500">{t(key)}</p>
+            </div>
           </Link>
         ))}
       </div>
-      {summary.recentRequests.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-[11px] font-bold text-gray-500">
+
+      <div className="card overflow-hidden">
+        <div className="flex items-center justify-between px-5 pb-3 pt-4">
+          <h2 className="section-title">
             <T k="home.recentRequests" />
-          </p>
-          {summary.recentRequests.map((r) => (
-            <Link key={r.code} href={`/requests/${r.code}`} className="flex items-center justify-between gap-2 text-xs py-1">
-              <span className="truncate text-gray-800">{r.title}</span>
-              <span className="shrink-0 text-gray-500">{t(`reqStatus.${r.status}`)}</span>
-            </Link>
-          ))}
+          </h2>
+          <Link href="/requests" className="text-xs font-semibold text-primary-700 hover:underline">
+            <T k="common.viewAll" />
+          </Link>
         </div>
-      )}
+        {!summary ? (
+          <div className="space-y-2 px-5 pb-5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-12 animate-pulse rounded-xl bg-gray-50" />
+            ))}
+          </div>
+        ) : summary.recentRequests.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 px-5 pb-6 pt-2 text-center">
+            <p className="text-sm text-gray-500">
+              <T k="home.recentEmpty" />
+            </p>
+            <Link href="/requests/new" className="btn btn-soft btn-sm">
+              <Plus className="h-3.5 w-3.5" />
+              <T k="home.newRequest" />
+            </Link>
+          </div>
+        ) : (
+          <ul className="divide-y divide-gray-100 border-t border-gray-100">
+            {summary.recentRequests.map((r) => (
+              <li key={r.code}>
+                <Link href={`/requests/${r.code}`} className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-gray-50">
+                  <span className="icon-tile h-9 w-9">
+                    <FileText className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-gray-900">{r.title}</span>
+                    <span className="block text-xs text-gray-500">
+                      {t("home.quoteCount", undefined, { n: formatNumber(r._count.quotes, lang) })}
+                    </span>
+                  </span>
+                  <StatusChip k={`reqStatus.${r.status}`} tone={REQUEST_STATUS_TONE[r.status] ?? "gray"} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }

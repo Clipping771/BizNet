@@ -54,18 +54,18 @@ export default function CreditsPage() {
   const receiver = method === "BKASH" ? data.receivers?.bkash : data.receivers?.nagad;
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
-      <h1 className="text-lg font-bold text-gray-900">
+    <div className="page space-y-4">
+      <h1 className="page-title">
         <T k="credits.title" />
       </h1>
 
       {!data.enabled ? (
-        <p id="credits-not-active" className="bg-white rounded-2xl border border-gray-100 p-4 text-sm text-gray-600">
+        <p id="credits-not-active" className="card p-4 text-sm text-gray-600">
           <T k="credits.notActive" />
         </p>
       ) : (
         <>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-1">
+          <div className="card p-4 space-y-1">
             <p id="credits-balance" data-balance={data.balance} className="text-xl font-bold text-primary">
               {t("credits.balance", undefined, { n: formatNumber(data.balance, lang) })}
             </p>
@@ -74,7 +74,7 @@ export default function CreditsPage() {
             </p>
           </div>
 
-          <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3 text-xs">
+          <form onSubmit={submit} className="card p-4 space-y-3 text-xs">
             <h2 className="text-sm font-bold text-gray-900">
               <T k="credits.buy" />
             </h2>
@@ -123,7 +123,7 @@ export default function CreditsPage() {
           </form>
 
           {data.payments.length > 0 && (
-            <section className="bg-white rounded-2xl border border-gray-100 p-4 space-y-1.5 text-xs">
+            <section className="card p-4 space-y-1.5 text-xs">
               <h2 className="text-sm font-bold text-gray-900">
                 <T k="credits.payments" />
               </h2>
@@ -136,7 +136,7 @@ export default function CreditsPage() {
             </section>
           )}
 
-          <section className="bg-white rounded-2xl border border-gray-100 p-4 space-y-1.5 text-xs">
+          <section className="card p-4 space-y-1.5 text-xs">
             <h2 className="text-sm font-bold text-gray-900">
               <T k="credits.history" />
             </h2>

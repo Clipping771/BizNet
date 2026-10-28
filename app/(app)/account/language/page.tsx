@@ -45,7 +45,7 @@ export default function LanguagePage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="page space-y-5">
       <div className="flex items-center gap-2 mb-2">
         <Globe className="w-5 h-5 text-primary" />
         <h2 className="text-lg font-bold text-gray-900">
@@ -55,7 +55,7 @@ export default function LanguagePage() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
+      <div className="card divide-y divide-gray-100">
         {languages.map((l) => (
           <button
             key={l.code}
@@ -72,7 +72,7 @@ export default function LanguagePage() {
               <p className="text-xs text-gray-500">
                 <span>{l.nameEnglish}</span>
                 {l.status !== "ACTIVE" && (
-                  <span className="ms-2 px-1.5 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded font-mono">
+                  <span className="ms-2 px-1.5 py-0.5 text-[11px] bg-amber-100 text-amber-800 rounded font-mono">
                     <T k="common.draft" />
                   </span>
                 )}

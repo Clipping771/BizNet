@@ -53,7 +53,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="max-w-md mx-auto py-6 px-2">
-      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="card p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-1 text-center">
           <T k="business.setupTitle" />
         </h2>

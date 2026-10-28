@@ -158,3 +158,13 @@ All deviations from the original specification require explicit founder review a
 | Translation budget: full cost reserved up front per call against `translationDailyBudgetUsd` (same atomic counter as AI) + 200 translations/user/day; results cached by source hash | `lib/repo/content-translation.ts` | Hard daily cap; repeated views cost nothing. |
 | Real adapter: DeepL (`TRANSLATION_PROVIDER=deepl`, `TRANSLATION_API_KEY`); mock otherwise | `lib/translation/provider.ts` | §3 lists deepl; unsupported language pairs fall back to the original. |
 | The language picker lists languages from the database (ACTIVE; admins also see DRAFT/BETA) and stores the choice in the `biznet_lang` cookie and on the user | `app/api/languages`, `app/api/account/language` | The old picker only changed the page's `lang` attribute and was lost on navigation. |
+
+## UI redesign decisions
+
+| Decision | Where | Why |
+|---|---|---|
+| Responsive shell: phones keep the 5-tab bottom bar; from `lg` a fixed sidebar (primary nav, trade, business, admin) and a header search box replace it; the content column is no longer a 640px phone frame on desktop | `components/layout/*` | Buyers and suppliers also work from a desktop; the phone frame wasted most of the screen. |
+| Landing, sign-in and onboarding render without the app chrome; sign-in/onboarding use a split layout with the value proposition on the left from `lg` | `app/(auth)/layout.tsx`, `app/page.tsx` | First impression for new businesses; forms stay focused. |
+| Design tokens in Tailwind (slate neutrals, emerald brand scale, card/raised/pop shadows) and shared component classes (`card`, `btn-*`, `input`, `label`, `page`, `page-title`) in `globals.css` | `tailwind.config.ts`, `app/globals.css` | One visual language instead of per-page ad-hoc classes. |
+| Inter for Latin + Hind Siliguri for Bangla via `next/font` (self-hosted at build time) | `app/layout.tsx` | Consistent, legible Bangla on every device; no runtime font requests. |
+| Minimum body text 12px (former 10–11px text raised one step) | all pages | Bangla conjuncts at 10–11px were hard to read on phones. |

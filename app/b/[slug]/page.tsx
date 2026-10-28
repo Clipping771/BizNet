@@ -25,10 +25,10 @@ export default async function PublicBusinessProfilePage({
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block">
+            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block">
               {business.businessType}
             </span>
-            <h1 className="text-xl font-bold text-slate-900">{business.name}</h1>
+            <h1 className="page-title">{business.name}</h1>
           </div>
           <VerificationBadge status={business.verificationStatus} />
         </div>
@@ -47,7 +47,7 @@ export default async function PublicBusinessProfilePage({
         </div>
 
         {/* Contact Protection Notice (§10, D1) */}
-        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-[11px] text-slate-500 flex items-center gap-2">
+        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-500 flex items-center gap-2">
           <Shield className="w-4 h-4 text-slate-400 shrink-0" />
           <span>
             <T k="public.contactNotice" />
@@ -76,7 +76,7 @@ export default async function PublicBusinessProfilePage({
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
+                    <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
                       <T k={`category.${l.category.slug}`} />
                     </span>
                     <h3 className="text-sm font-bold text-slate-900">{l.title}</h3>

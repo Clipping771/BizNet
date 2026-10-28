@@ -14,7 +14,7 @@ export default function AdminExportPage() {
   const [to, setTo] = useState(iso(new Date()));
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3 text-xs">
+    <div className="card p-4 space-y-3 text-xs">
       <label className="block space-y-1">
         <span className="text-gray-500">
           <T k="admin.export.entity" />

@@ -233,7 +233,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
 
   if (notFound || !request) {
     return (
-      <div className="max-w-md mx-auto p-6 text-center space-y-3">
+      <div className="page p-6 text-center space-y-3">
         <p id="request-not-found" className="text-sm text-gray-600">
           <T k="rfq.notFound" />
         </p>
@@ -248,15 +248,15 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
   const rowById = (id: string | null | undefined) => rows.find((r) => r.quoteId === id) || null;
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
+    <div className="page space-y-4">
       {/* Request summary */}
       <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-mono font-bold text-gray-400">{request.code}</span>
+          <span className="text-[11px] font-mono font-bold text-gray-400">{request.code}</span>
           <span
             id="request-status-badge"
             data-status={request.status}
-            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"
+            className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"
           >
             <T k={`reqStatus.${request.status}`} />
           </span>
@@ -288,7 +288,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
 
         {Object.keys(attributes).length > 0 && (
           <div className="space-y-1">
-            <p className="text-[11px] font-bold text-gray-500">
+            <p className="text-xs font-bold text-gray-500">
               <T k="rfq.specification" />
             </p>
             <ul className="text-xs text-gray-700 space-y-0.5">
@@ -364,7 +364,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
               <h2 className="text-sm font-bold text-gray-900">
                 <T k="quote.comparisonTitle" />
               </h2>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-xs text-gray-400">
                 <T k="quote.comparisonSubtitle" />
               </p>
             </div>
@@ -389,7 +389,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                 type="button"
                 id={`comp-priority-${p}`}
                 onClick={() => onPriority(p)}
-                className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border ${
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border ${
                   priority === p ? "bg-primary text-white border-primary" : "bg-gray-50 text-gray-600 border-gray-200"
                 }`}
               >
@@ -399,7 +399,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
           </div>
 
           {aiUnavailable && (
-            <p id="ai-unavailable" className="text-[11px] text-gray-500 bg-gray-50 rounded-xl p-2.5">
+            <p id="ai-unavailable" className="text-xs text-gray-500 bg-gray-50 rounded-xl p-2.5">
               <T k="cmp.aiUnavailable" />
             </p>
           )}
@@ -413,7 +413,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                 </span>
                 <AiChip showFeedback={true} />
               </div>
-              <p id="ai-label" className="text-[11px] font-semibold text-gray-600">
+              <p id="ai-label" className="text-xs font-semibold text-gray-600">
                 <T k="cmp.aiLabel" />
               </p>
               {aiAnalysis.summaryText && (
@@ -480,7 +480,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                         onClick={() =>
                           openChat(row.supplier.id, t("msg.withSupplier", undefined, { name: row.supplier.name }), question)
                         }
-                        className="text-[11px] px-2.5 py-1 rounded-full bg-white border border-primary/30 text-primary"
+                        className="text-xs px-2.5 py-1 rounded-full bg-white border border-primary/30 text-primary"
                       >
                         {row.supplier.name}
                         {" · "}
@@ -550,7 +550,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
             </div>
             <p
               id="order-terms-final-notice"
-              className="text-[11px] text-gray-500 italic bg-amber-50 p-3 rounded-xl border border-amber-200"
+              className="text-xs text-gray-500 italic bg-amber-50 p-3 rounded-xl border border-amber-200"
             >
               <T k="quote.termsFinalNotice" />
             </p>
@@ -689,14 +689,14 @@ function QuoteCard({
             <span className="font-bold text-xs text-gray-900 truncate">{row.supplier.name}</span>
             <VerificationBadge status={row.supplier.verificationStatus as any} />
           </div>
-          {row.supplier.area && <p className="text-[11px] text-gray-400">{row.supplier.area}</p>}
+          {row.supplier.area && <p className="text-xs text-gray-400">{row.supplier.area}</p>}
         </div>
         <div className="text-right shrink-0">
           <div className="text-sm font-bold text-primary">{formatMoney(row.totalPrice, lang)}</div>
           {row.isBestFit && (
             <span
               id={`best-fit-badge-${row.quoteRef}`}
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800"
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800"
             >
               <T k="quote.bestFit" />
             </span>
@@ -714,7 +714,7 @@ function QuoteCard({
       {row.isLate ? (
         <div
           id={`quote-late-warning-${row.quoteRef}`}
-          className="flex items-start gap-1 text-[11px] font-semibold text-red-600 bg-red-50 p-2 rounded-xl"
+          className="flex items-start gap-1 text-xs font-semibold text-red-600 bg-red-50 p-2 rounded-xl"
         >
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>
@@ -727,7 +727,7 @@ function QuoteCard({
           </span>
         </div>
       ) : (
-        <p className="text-[11px] text-gray-500">
+        <p className="text-xs text-gray-500">
           {t("cmp.arrivesOn", undefined, { date: formatDate(row.estimatedArrival, lang) })}
         </p>
       )}
@@ -735,14 +735,14 @@ function QuoteCard({
       <div className="text-xs">
         <span className="font-semibold text-gray-800">{t(`payterm.${row.paymentTerm}`)}</span>
         {request.preferredPaymentTerm && (
-          <span className={`ms-1.5 text-[11px] ${row.paymentTermMatches ? "text-emerald-700" : "text-amber-700"}`}>
+          <span className={`ms-1.5 text-xs ${row.paymentTermMatches ? "text-emerald-700" : "text-amber-700"}`}>
             {row.paymentTermMatches ? t("cmp.termMatches") : t("cmp.termDiffers")}
           </span>
         )}
       </div>
 
       {row.specMatch.length > 0 && (
-        <ul className="text-[11px] space-y-0.5" id={`spec-match-${row.quoteRef}`}>
+        <ul className="text-xs space-y-0.5" id={`spec-match-${row.quoteRef}`}>
           {row.specMatch.map((s) => (
             <li key={s.field} className="flex justify-between gap-2">
               <span className="text-gray-500">{fieldLabel(s.field)}</span>
@@ -767,7 +767,7 @@ function QuoteCard({
         </ul>
       )}
 
-      <p className="text-[11px] text-gray-500">
+      <p className="text-xs text-gray-500">
         <span className="font-semibold">
           {t("cmp.reliability")}
           {": "}
@@ -783,7 +783,7 @@ function QuoteCard({
       {row.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {row.tags.map((tag) => (
-            <span key={tag} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+            <span key={tag} className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
               <T k={`cmp.tag.${tag}`} />
             </span>
           ))}
@@ -797,7 +797,7 @@ function QuoteCard({
           field="notes"
           text={row.notes}
           sourceLang={row.lang}
-          className="text-[11px] text-gray-600 whitespace-pre-wrap"
+          className="text-xs text-gray-600 whitespace-pre-wrap"
         />
       )}
 
@@ -808,7 +808,7 @@ function QuoteCard({
               key={key}
               type="button"
               onClick={() => openFile(key)}
-              className="text-[11px] text-primary underline flex items-center gap-1"
+              className="text-xs text-primary underline flex items-center gap-1"
             >
               <Paperclip className="w-3 h-3" />
               {t("quote.viewFile", undefined, { n: i + 1 })}
@@ -1004,7 +1004,7 @@ function SupplierPanel({
             <span
               id="my-quote-status"
               data-status={myQuote.status}
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700"
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700"
             >
               <T k={`quoteStatus.${myQuote.status}`} />
             </span>
@@ -1017,7 +1017,7 @@ function SupplierPanel({
           <SheetLine label={t("quote.paymentTerm")} value={t(`payterm.${myQuote.paymentTerm}`)} />
           <SheetLine label={t("quote.validUntil")} value={formatDate(myQuote.validUntil, lang)} />
           {(myQuote.attachmentKeys || []).map((key: string, i: number) => (
-            <button key={key} type="button" onClick={() => openFile(key)} className="text-[11px] text-primary underline me-2">
+            <button key={key} type="button" onClick={() => openFile(key)} className="text-xs text-primary underline me-2">
               {t("quote.viewFile", undefined, { n: i + 1 })}
             </button>
           ))}
@@ -1136,7 +1136,7 @@ function SupplierPanel({
                   type="button"
                   id={`quote-payterm-${pt}`}
                   onClick={() => setPaymentTerm(pt)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
                     paymentTerm === pt ? "bg-primary text-white border-primary" : "bg-gray-50 text-gray-600 border-gray-200"
                   } ${request.preferredPaymentTerm === pt ? "ring-2 ring-amber-300" : ""}`}
                 >
@@ -1145,7 +1145,7 @@ function SupplierPanel({
               ))}
             </div>
             {request.preferredPaymentTerm && (
-              <p className="text-[10px] text-amber-700">
+              <p className="text-[11px] text-amber-700">
                 {t(`payterm.${request.preferredPaymentTerm}`)}
                 {" · "}
                 <T k="quote.buyerPrefers" />
@@ -1160,7 +1160,7 @@ function SupplierPanel({
               </p>
               {comparable.map((f) => (
                 <div key={f.key} className="space-y-1">
-                  <p className="text-[11px] text-gray-600">
+                  <p className="text-xs text-gray-600">
                     {fieldLabel(f.key)}
                     {" · "}
                     {t("cmp.specRequested", undefined, { value: valueLabel(f.key, request.attributes?.[f.key]) })}
@@ -1172,7 +1172,7 @@ function SupplierPanel({
                         type="button"
                         id={`spec-${f.key}-${s}`}
                         onClick={() => setSpec((prev) => ({ ...prev, [f.key]: s }))}
-                        className={`px-2.5 py-1 rounded-full text-[11px] border ${
+                        className={`px-2.5 py-1 rounded-full text-xs border ${
                           (spec[f.key] || "NOT_STATED") === s
                             ? "bg-primary text-white border-primary"
                             : "bg-gray-50 text-gray-600 border-gray-200"
@@ -1214,7 +1214,7 @@ function SupplierPanel({
               <T k="quote.attachments" />
             </p>
             {attachmentKeys.map((key, i) => (
-              <div key={key} className="flex items-center gap-2 text-[11px]">
+              <div key={key} className="flex items-center gap-2 text-xs">
                 <span>{t("quote.viewFile", undefined, { n: i + 1 })}</span>
                 <button
                   type="button"
@@ -1235,11 +1235,11 @@ function SupplierPanel({
                   if (file) uploadFile(file);
                   e.target.value = "";
                 }}
-                className="text-[11px]"
+                className="text-xs"
               />
             )}
             {uploading && (
-              <p className="text-[11px] text-gray-500">
+              <p className="text-xs text-gray-500">
                 <T k="quote.uploading" />
               </p>
             )}

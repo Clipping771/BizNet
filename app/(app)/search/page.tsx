@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Search as SearchIcon, SlidersHorizontal, MapPin, Package } from "lucide-react";
 import { T, useT, useLang } from "@/components/ui/T";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
@@ -61,8 +62,6 @@ export default function SearchPage() {
         if (match) setCategoryId(match.id);
       })
       .catch(() => {});
-    const initial = params.get("q");
-    if (initial) setQ(initial);
   }, []);
 
   const run = useCallback(
@@ -90,6 +89,19 @@ export default function SearchPage() {
     [tab, q, verifiedOnly, categoryId, area, priceMin, priceMax, moqMax, attrs]
   );
 
+  // ?q= from the header search box (also when it changes while this page is open)
+  const urlQ = useSearchParams().get("q") || "";
+  const [urlRun, setUrlRun] = useState(0);
+  useEffect(() => {
+    if (!urlQ) return;
+    setQ(urlQ);
+    setUrlRun((n) => n + 1);
+  }, [urlQ]);
+  useEffect(() => {
+    if (urlRun) run(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlRun]);
+
   // Re-run when the tab or filters change (the text query runs on submit)
   useEffect(() => {
     run(0);
@@ -102,8 +114,8 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-16">
-      <h1 className="text-lg font-bold text-gray-900">
+    <div className="page space-y-4">
+      <h1 className="page-title">
         <T k="search.title" />
       </h1>
 
@@ -165,7 +177,7 @@ export default function SearchPage() {
       </div>
 
       {showFilters && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3 text-xs">
+        <div className="card p-4 space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-2">
             <select
               id="search-category"
@@ -279,7 +291,7 @@ export default function SearchPage() {
       <div id="search-results" className="space-y-3">
         {tab === "products" &&
           results.map((r) => (
-            <div key={r.id} data-listing-title={r.title} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
+            <div key={r.id} data-listing-title={r.title} className="card p-4 space-y-2">
               <Link href={`/l/${r.id}`} className="font-semibold text-sm text-gray-900 block">
                 {r.title}
               </Link>
@@ -316,7 +328,7 @@ export default function SearchPage() {
 
         {tab === "businesses" &&
           results.map((b) => (
-            <div key={b.id} data-business-name={b.name} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
+            <div key={b.id} data-business-name={b.name} className="card p-4 space-y-2">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <Link href={`/b/${b.slug}`} className="font-semibold text-sm text-gray-900">
                   {b.name}
@@ -334,7 +346,7 @@ export default function SearchPage() {
                 </span>
               </div>
               {(b.categorySlugs ?? []).length > 0 && (
-                <p className="text-[11px] text-gray-500">
+                <p className="text-xs text-gray-500">
                   {b.categorySlugs.map((s: string) => t(`category.${s}`)).join(" · ")}
                 </p>
               )}
@@ -348,7 +360,7 @@ export default function SearchPage() {
           ))}
 
         {searched && !loading && results.length === 0 && (
-          <div id="search-empty" className="bg-white rounded-2xl border border-gray-100 p-6 text-center space-y-3">
+          <div id="search-empty" className="card p-6 text-center space-y-3">
             <p className="text-sm text-gray-600">
               <T k="search.notFound" />
             </p>

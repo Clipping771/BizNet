@@ -37,7 +37,7 @@ export default function AdminPaymentsPage() {
         </p>
       )}
       {payments.map((p) => (
-        <div key={p.id} data-payment={p.trxId} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2 text-xs">
+        <div key={p.id} data-payment={p.trxId} className="card p-4 space-y-2 text-xs">
           <p className="font-semibold text-gray-900">
             {t("admin.payments.line", undefined, {
               business: p.business.name,

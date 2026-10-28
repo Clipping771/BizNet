@@ -90,7 +90,7 @@ export default function AdminCategoriesPage() {
             <span className="text-gray-500">
               <T k="admin.categories.schema" />
             </span>
-            <textarea rows={12} value={draft.schema} onChange={(e) => setDraft({ ...draft, schema: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200 font-mono text-[11px]" />
+            <textarea rows={12} value={draft.schema} onChange={(e) => setDraft({ ...draft, schema: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200 font-mono text-xs" />
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label className="block space-y-1">
@@ -128,7 +128,7 @@ export default function AdminCategoriesPage() {
           key={c.id}
           type="button"
           onClick={() => setDraft(toDraft(c))}
-          className="w-full text-start bg-white rounded-2xl border border-gray-100 p-3 text-xs flex justify-between gap-2"
+          className="w-full text-start card p-3 text-xs flex justify-between gap-2"
         >
           <span>
             <span className="font-semibold text-gray-900">{t(`category.${c.slug}`)}</span>
