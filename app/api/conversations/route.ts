@@ -3,6 +3,7 @@ import { getAuthzContext } from "@/lib/auth-user";
 import {
   getOrCreateConversationRecord,
   listConversationsForBusiness,
+  unreadCountsForBusiness,
 } from "@/lib/repo/messaging";
 import { findRequestById } from "@/lib/repo/request";
 import { limitMutation } from "@/lib/http/guard";
@@ -67,8 +68,13 @@ export async function GET(req: NextRequest) {
     }
 
     const conversations = await listConversationsForBusiness(ctx.activeBusinessId);
+    const unread = await unreadCountsForBusiness(ctx.activeBusinessId, conversations.map((c) => c.id));
 
-    return NextResponse.json(conversations);
+    return NextResponse.json(conversations.map((c) => ({
+        ...c,
+        unread: unread[c.id] ?? 0,
+        side: c.buyerBusinessId === ctx.activeBusinessId ? "BUYER" : "SUPPLIER",
+      })));
   } catch (err: any) {
     console.error("List conversations error:", err);
     return NextResponse.json({ error: "Failed to list conversations" }, { status: 500 });

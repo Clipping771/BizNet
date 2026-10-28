@@ -17,9 +17,10 @@ import {
 import { T, useT, useLang } from "@/components/ui/T";
 import { AiChip } from "@/components/ai/AiChip";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
-import { formatMoney, calculateQuoteTotal } from "@/lib/money";
+import { formatMoney, formatNumber, calculateQuoteTotal } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
 import { TranslatableText } from "@/components/ui/TranslatableText";
+import { ChatPanel, type ChatState } from "@/components/chat/ChatPanel";
 
 const PRIORITIES = ["BALANCED", "PRICE", "SPEED", "PAYMENT_TERMS"];
 const PAYMENT_TERMS = ["CASH_ON_DELIVERY", "ADVANCE", "CREDIT_7", "CREDIT_15", "CREDIT_30", "OTHER"];
@@ -52,10 +53,6 @@ interface CompareRow {
   reliability: { feedbackCount: number; onTimeCount: number; onTimeAnswered: number } | null;
 }
 
-interface ChatState {
-  conversationId: string;
-  title: string;
-}
 
 interface RequestDetailProps {
   params: Promise<{ code: string }>;
@@ -99,9 +96,10 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
       if (Array.isArray(value)) return value.map((v) => valueLabel(key, v)).join(", ");
       const field = schemaFields.find((f) => f.key === key);
       if (field?.options?.includes(String(value))) return t(`attr.${categorySlug}.${key}.opt.${value}`);
-      return field?.unit ? `${value} ${field.unit}` : String(value);
+      const shown = typeof value === "number" ? formatNumber(value, lang) : String(value);
+      return field?.unit ? `${shown} ${field.unit}` : shown;
     },
-    [t, categorySlug, schemaFields]
+    [t, categorySlug, schemaFields, lang]
   );
 
   const loadRequest = useCallback(async () => {
@@ -269,7 +267,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
         </h1>
 
         <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-3 rounded-2xl">
-          <Info label={t("rfq.quantity")} value={`${Number(request.quantity)} ${request.unit}`} />
+          <Info label={t("rfq.quantity")} value={`${formatNumber(request.quantity, lang)} ${request.unit}`} />
           <Info label={t("rfq.deliveryArea")} value={request.deliveryArea} />
           <Info
             label={t("rfq.neededBy")}
@@ -531,10 +529,10 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
             <p className="text-xs font-semibold text-gray-700">{orderRow.supplier.name}</p>
             <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
               <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(orderRow.unitPrice, lang)} />
-              <SheetLine label={t("rfq.quantity")} value={`${Number(orderRow.quantity)} ${request.unit}`} />
+              <SheetLine label={t("rfq.quantity")} value={`${formatNumber(orderRow.quantity, lang)} ${request.unit}`} />
               <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(orderRow.deliveryCharge, lang)} />
               <SheetLine label={t("quote.totalPrice")} value={formatMoney(orderRow.totalPrice, lang)} strong />
-              <SheetLine label={t("quote.deliveryDays")} value={`${orderRow.deliveryDays} ${t("public.days")}`} />
+              <SheetLine label={t("quote.deliveryDays")} value={daysText(t, orderRow.deliveryDays, lang)} />
               <SheetLine label={t("quote.paymentTerm")} value={t(`payterm.${orderRow.paymentTerm}`)} />
               {orderRow.specMatch
                 .filter((s) => s.status !== "MATCH")
@@ -632,6 +630,11 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
   );
 }
 
+/** "{n} day(s)" with localized digits. */
+function daysText(t: (key: string, lang?: string, params?: Record<string, string | number>) => string, n: number, lang: string) {
+  return t(n === 1 ? "unit.day.one" : "unit.day.other", undefined, { n: formatNumber(n, lang) });
+}
+
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -704,7 +707,7 @@ function QuoteCard({
       <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
         <Info label={t("quote.unitPriceShort")} value={formatMoney(row.unitPrice, lang)} />
         <Info label={t("quote.deliveryCharge")} value={formatMoney(row.deliveryCharge, lang)} />
-        <Info label={t("quote.delivery")} value={`${row.deliveryDays} ${t("public.days")}`} />
+        <Info label={t("quote.delivery")} value={daysText(t, row.deliveryDays, lang)} />
         <Info label={t("quote.validUntil")} value={formatDate(row.validUntil, lang)} />
       </div>
 
@@ -1010,7 +1013,7 @@ function SupplierPanel({
           <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(myQuote.unitPrice, lang)} />
           <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(myQuote.deliveryCharge, lang)} />
           <SheetLine label={t("quote.totalPrice")} value={formatMoney(myQuote.totalPrice, lang)} strong />
-          <SheetLine label={t("quote.deliveryDays")} value={`${myQuote.deliveryDays} ${t("public.days")}`} />
+          <SheetLine label={t("quote.deliveryDays")} value={daysText(t, myQuote.deliveryDays, lang)} />
           <SheetLine label={t("quote.paymentTerm")} value={t(`payterm.${myQuote.paymentTerm}`)} />
           <SheetLine label={t("quote.validUntil")} value={formatDate(myQuote.validUntil, lang)} />
           {(myQuote.attachmentKeys || []).map((key: string, i: number) => (
@@ -1290,208 +1293,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div className="space-y-1">
       <label className="text-xs font-bold text-gray-700 block">{label}</label>
       {children}
-    </div>
-  );
-}
-
-function ChatPanel({
-  chat,
-  isBuyer,
-  prefill,
-  onClose,
-}: {
-  chat: ChatState;
-  isBuyer: boolean;
-  prefill: string;
-  onClose: () => void;
-}) {
-  const t = useT();
-  const [messages, setMessages] = useState<any[]>([]);
-  const [text, setText] = useState(prefill);
-  const [blocked, setBlocked] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
-  const [contact, setContact] = useState<any>(null);
-  const [reported, setReported] = useState<Record<string, boolean>>({});
-  const listRef = useRef<HTMLDivElement>(null);
-
-  const refresh = useCallback(async () => {
-    const [msgRes, visRes] = await Promise.all([
-      fetch(`/api/conversations/${chat.conversationId}/messages`),
-      fetch(`/api/conversations/${chat.conversationId}/reveal-contact`),
-    ]);
-    if (msgRes.ok) setMessages(await msgRes.json());
-    if (visRes.ok) setContact(await visRes.json());
-  }, [chat.conversationId]);
-
-  // Poll every 10 s while the conversation is open (§8.12)
-  useEffect(() => {
-    refresh();
-    const id = setInterval(refresh, 10000);
-    return () => clearInterval(id);
-  }, [refresh]);
-
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
-  }, [messages.length]);
-
-  const send = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-    setSending(true);
-    setBlocked(null);
-    setError(null);
-    try {
-      const res = await fetch(`/api/conversations/${chat.conversationId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: text.trim() }),
-      });
-      const json = await res.json();
-      if (res.status === 422 && json.blocked) {
-        // Soft block: nothing was sent; the user can edit and retry (§8.12)
-        setBlocked(t("msg.contactNotice"));
-        return;
-      }
-      if (!res.ok) {
-        setError(json.error || t("common.tryAgain"));
-        return;
-      }
-      setText("");
-      setMessages((prev) => [...prev, json]);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const reveal = async () => {
-    const res = await fetch(`/api/conversations/${chat.conversationId}/reveal-contact`, { method: "POST" });
-    if (!res.ok) setError((await res.json()).error || t("common.tryAgain"));
-    await refresh();
-  };
-
-  const report = async (messageId: string) => {
-    const res = await fetch("/api/reports", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetType: "MESSAGE", targetId: messageId, reason: "USER_REPORT" }),
-    });
-    if (res.ok) setReported((prev) => ({ ...prev, [messageId]: true }));
-  };
-
-  const other = isBuyer ? contact?.supplierContact : contact?.buyerContact;
-
-  return (
-    <div className="fixed inset-0 z-[60] bg-black/50 flex items-end justify-center">
-      <div id="chat-panel" className="bg-white w-full max-w-md rounded-t-3xl p-4 space-y-3 h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-gray-900">{chat.title}</h3>
-          <button type="button" id="close-chat-btn" onClick={onClose} aria-label={t("common.close")}>
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {other ? (
-          <div id="contact-card" className="text-[11px] bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 space-y-0.5">
-            <p className="font-bold">
-              {isBuyer ? t("msg.supplierContact") : t("msg.buyerContact")}
-              {": "}
-              {other.name}
-            </p>
-            {other.phonePublic && (
-              <p>
-                {t("msg.phone")}
-                {": "}
-                {other.phonePublic}
-              </p>
-            )}
-            {other.whatsapp && (
-              <p>
-                {t("msg.whatsapp")}
-                {": "}
-                {other.whatsapp}
-              </p>
-            )}
-            {other.addressLine && (
-              <p>
-                {t("msg.address")}
-                {": "}
-                {other.addressLine}
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="text-[11px] text-gray-500 bg-gray-50 rounded-xl p-2.5 flex items-center justify-between gap-2">
-            <span>
-              <T k="msg.contactNotice" />
-            </span>
-            {isBuyer && (
-              <button type="button" id="show-contact-btn" onClick={reveal} className="shrink-0 font-bold text-primary">
-                <T k="msg.showContact" />
-              </button>
-            )}
-          </div>
-        )}
-
-        <div ref={listRef} className="flex-1 overflow-y-auto space-y-2" id="chat-messages">
-          {messages.length === 0 && (
-            <p className="text-center text-xs text-gray-400 py-6">
-              <T k="msg.noMessages" />
-            </p>
-          )}
-          {messages.map((m) => (
-            <div key={m.id} className="text-xs bg-gray-50 rounded-xl p-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-gray-700">{m.senderBusiness?.name}</span>
-                <button
-                  type="button"
-                  onClick={() => report(m.id)}
-                  disabled={reported[m.id]}
-                  className="text-[10px] text-gray-400 flex items-center gap-0.5"
-                >
-                  <Flag className="w-3 h-3" />
-                  {reported[m.id] ? t("msg.reported") : t("msg.report")}
-                </button>
-              </div>
-              <TranslatableText
-                entityType="MESSAGE"
-                entityId={m.id}
-                field="body"
-                text={m.body}
-                sourceLang={m.lang}
-                className="whitespace-pre-wrap text-gray-800"
-              />
-            </div>
-          ))}
-        </div>
-
-        {blocked && (
-          <p id="msg-soft-block" className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2">
-            {blocked}
-          </p>
-        )}
-        {error && <p className="text-[11px] text-red-700">{error}</p>}
-
-        <form onSubmit={send} className="flex items-center gap-2">
-          <input
-            id="chat-input"
-            value={text}
-            maxLength={2000}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={t("msg.typeMessage")}
-            className="flex-1 text-xs p-2.5 rounded-xl border border-gray-200"
-          />
-          <button
-            type="submit"
-            id="chat-send-btn"
-            disabled={sending || !text.trim()}
-            className="p-2.5 rounded-xl bg-primary text-white disabled:opacity-50"
-            aria-label={t("msg.send")}
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
-      </div>
     </div>
   );
 }

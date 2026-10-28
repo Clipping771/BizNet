@@ -166,6 +166,21 @@ export async function updateOrderStatusRecord(input: UpdateOrderStatusInput) {
     return updated;
   });
 
+  // Tell the other side of the deal (and both sides when an admin decides)
+  const notifyBusinesses =
+    input.actorSide === "BUYER" ? [order.supplierBusinessId] : input.actorSide === "SUPPLIER" ? [order.buyerBusinessId] : [order.buyerBusinessId, order.supplierBusinessId];
+  const members = await prisma.membership.findMany({ where: { businessId: { in: notifyBusinesses } }, select: { userId: true } });
+  if (members.length > 0) {
+    await prisma.notification.createMany({
+      data: members.map((m) => ({
+        userId: m.userId,
+        type: "ORDER_STATUS",
+        params: { orderCode: order.code, status: input.toStatus },
+        link: `/orders/${order.code}`,
+      })),
+    });
+  }
+
   // 3. Log Audit & Event
   await logAudit({
     actorUserId: input.actorUserId,

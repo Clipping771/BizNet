@@ -49,11 +49,19 @@ export default function SearchPage() {
   const [searched, setSearched] = useState(false);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const categorySlug = params.get("category");
     fetch("/api/categories")
       .then((r) => r.json())
-      .then((d) => Array.isArray(d) && setCategories(d))
+      .then((d) => {
+        if (!Array.isArray(d)) return;
+        setCategories(d);
+        // Category tiles on the home page link here with ?category=<slug>
+        const match = categorySlug ? d.find((c: Category) => c.slug === categorySlug) : null;
+        if (match) setCategoryId(match.id);
+      })
       .catch(() => {});
-    const initial = new URLSearchParams(window.location.search).get("q");
+    const initial = params.get("q");
     if (initial) setQ(initial);
   }, []);
 

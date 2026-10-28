@@ -11,6 +11,9 @@ const PROTECTED_PREFIXES = [
   "/business",
   "/admin",
   "/q/new",
+  "/orders",
+  "/quotes",
+  "/notifications",
 ];
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -83,6 +86,9 @@ export const config = {
     "/business/:path*",
     "/admin/:path*",
     "/q/new",
+    "/orders/:path*",
+    "/quotes/:path*",
+    "/notifications/:path*",
     "/login",
     "/api/:path*",
   ],
