@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { validateListingAttributes, AttributeSchema } from "@/lib/attributes";
 import { Decimal } from "@prisma/client/runtime/library";
 import { VerificationStatus } from "@prisma/client";
+import { listActiveCategories } from "@/lib/repo/category";
 
 export class ListingError extends Error {
   constructor(message: string) {
@@ -349,8 +350,5 @@ export async function getPublicBusinessBySlug(slug: string) {
 }
 
 export async function getAllCategories() {
-  return prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: "asc" },
-  });
+  return listActiveCategories();
 }

@@ -84,7 +84,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
   const [chatPrefill, setChatPrefill] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const role: "BUYER" | "SUPPLIER" | "ADMIN" | null = request?.viewerRole ?? null;
+  const role: "BUYER" | "SUPPLIER" | "ADMIN" | "PUBLIC" | null = request?.viewerRole ?? null;
   const isBuyerSide = role === "BUYER" || role === "ADMIN";
   const categorySlug: string = request?.category?.slug ?? "";
   const schemaFields: any[] = useMemo(() => request?.category?.attributeSchema?.fields ?? [], [request]);
@@ -381,6 +381,24 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
           onOpenChat={(supplierId) => openChat(supplierId, t("msg.withBuyer"))}
           openFile={openFile}
         />
+      )}
+      {role === "PUBLIC" && (
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-center space-y-3">
+          <h2 className="text-sm font-bold text-gray-900">
+            {t("rfq.supplierCtaTitle") || "Are you a packaging supplier?"}
+          </h2>
+          <p className="text-xs text-gray-500 max-w-sm mx-auto">
+            {t("rfq.supplierCtaSubtitle") || "Log in or sign up to submit competitive quotes and connect directly with the buyer."}
+          </p>
+          <div className="pt-2">
+            <Link
+              href={`/login?redirect=/requests/${encodeURIComponent(code)}`}
+              className="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-xs font-bold rounded-2xl hover:bg-primary-hover shadow-sm transition"
+            >
+              <span>{t("nav.login") || "Log in to Submit Quote"}</span>
+            </Link>
+          </div>
+        </div>
       )}
 
       {isBuyerSide && (

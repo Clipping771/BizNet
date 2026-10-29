@@ -209,8 +209,8 @@ export function assertCan(
       return;
 
     case "discussion:post":
-      if (!ctx.phoneVerified) {
-        throw new AuthorizationError("Phone verification required to participate in discussion");
+      if (!ctx.phoneVerified && !ctx.emailVerified) {
+        throw new AuthorizationError("Phone or email verification required to participate in discussion");
       }
       return;
 

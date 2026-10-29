@@ -58,14 +58,14 @@ export function generateRequestCode(): string {
 }
 
 export async function createRequestRecord(input: CreateRequestInput) {
-  // 1. Verify buyer user phone is verified (§8.5, B2)
+  // 1. Verify buyer user phone or email is verified (§8.5, B2)
   const user = await prisma.user.findUnique({
     where: { id: input.createdByUserId },
-    select: { phoneVerified: true, role: true },
+    select: { phoneVerified: true, emailVerified: true, role: true },
   });
 
-  if (!user?.phoneVerified && user?.role !== "ADMIN") {
-    throw new Error("Phone verification required to create a request");
+  if (!user?.phoneVerified && !user?.emailVerified && user?.role !== "ADMIN") {
+    throw new Error("Phone or email verification required to create a request");
   }
 
   // 2. Validate max open requests per business (§8.5, B2)
@@ -406,7 +406,7 @@ export async function findRequestByCode(code: string) {
   });
 }
 
-export type RequestViewerRole = "BUYER" | "SUPPLIER" | "ADMIN";
+export type RequestViewerRole = "BUYER" | "SUPPLIER" | "ADMIN" | "PUBLIC";
 
 /**
  * Loads a request (by id or code) for a viewer, enforcing resource-level read rules (§4):
@@ -414,7 +414,8 @@ export type RequestViewerRole = "BUYER" | "SUPPLIER" | "ADMIN";
  * - a supplier sees the request only if invited, if it already quoted, or if the
  *   request is OPEN in a category it serves (and not reserved for another supplier),
  *   and then sees only its own quote and invite.
- * Returns null when the request does not exist or the viewer may not read it.
+ * - public viewers (unauthenticated or without business) see safe request details without private quotes.
+ * Returns null when the request does not exist.
  */
 export async function getRequestForViewer(
   idOrCode: string,
@@ -434,7 +435,17 @@ export async function getRequestForViewer(
   }
 
   const supplierId = viewer.businessId;
-  if (!supplierId) return null;
+  if (!supplierId) {
+    return {
+      ...request,
+      originalNeedText: null,
+      aiInteractionId: null,
+      quotes: [],
+      invites: [],
+      order: null,
+      viewerRole: "PUBLIC" as RequestViewerRole,
+    };
+  }
 
   const invite = request.invites.find((i) => i.supplierBusinessId === supplierId) || null;
   const ownQuote = request.quotes.find((q) => q.supplierBusinessId === supplierId) || null;

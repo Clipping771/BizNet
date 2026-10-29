@@ -13,14 +13,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const { user, ctx, error, status } = await getAuthzContext(req);
-    if (error || !user || !ctx) {
-      return NextResponse.json({ error: error || "Unauthorized" }, { status });
-    }
-
+    const { ctx } = await getAuthzContext(req);
     const request = await getRequestForViewer(id, {
-      businessId: ctx.activeBusinessId,
-      isAdmin: ctx.role === "ADMIN",
+      businessId: ctx?.activeBusinessId || null,
+      isAdmin: ctx?.role === "ADMIN",
     });
     if (!request) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });

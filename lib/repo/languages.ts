@@ -21,12 +21,48 @@ export class LanguageError extends Error {
   }
 }
 
+async function ensureDefaultLanguages() {
+  try {
+    const count = await prisma.language.count();
+    if (count === 0) {
+      await prisma.language.createMany({
+        data: [
+          {
+            code: "bn",
+            nameNative: "বাংলা",
+            nameEnglish: "Bengali",
+            direction: "ltr",
+            fontFamily: "Noto Sans Bengali",
+            status: LanguageStatus.ACTIVE,
+          },
+          {
+            code: "en",
+            nameNative: "English",
+            nameEnglish: "English",
+            direction: "ltr",
+            status: LanguageStatus.ACTIVE,
+          },
+        ],
+        skipDuplicates: true,
+      });
+    }
+  } catch {
+    // Gracefully handle if DB is offline or migrating
+  }
+}
+
 export async function getLanguage(code: string) {
   if (!code) return null;
-  return prisma.language.findUnique({ where: { code } });
+  let lang = await prisma.language.findUnique({ where: { code } });
+  if (!lang && (code === "bn" || code === "en")) {
+    await ensureDefaultLanguages();
+    lang = await prisma.language.findUnique({ where: { code } });
+  }
+  return lang;
 }
 
 export async function listLanguagesWithProgress() {
+  await ensureDefaultLanguages();
   const [languages, totalKeys, criticalKeys] = await Promise.all([
     prisma.language.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.uiString.count(),

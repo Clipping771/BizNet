@@ -119,6 +119,15 @@ export default function NewRequestPage() {
             if (curr) return curr;
             const def = data.find((c: any) => c.slug === "containers") || data[0];
             if (def && def.defaultUnits?.[0]) setUnit(def.defaultUnits[0]);
+            if (def?.attributeSchema?.fields) {
+              const defaults: Record<string, any> = {};
+              for (const f of def.attributeSchema.fields) {
+                if (f.required && f.type === "select" && f.options?.length) {
+                  defaults[f.key] = f.options[0];
+                }
+              }
+              setAttributes((prev) => ({ ...defaults, ...prev }));
+            }
             return def;
           });
         }
@@ -609,6 +618,15 @@ export default function NewRequestPage() {
                       onClick={() => {
                         setSelectedCategory(cat);
                         if (cat.defaultUnits?.[0]) setUnit(cat.defaultUnits[0]);
+                        if (cat?.attributeSchema?.fields) {
+                          const defaults: Record<string, any> = {};
+                          for (const f of cat.attributeSchema.fields) {
+                            if (f.required && f.type === "select" && f.options?.length) {
+                              defaults[f.key] = f.options[0];
+                            }
+                          }
+                          setAttributes((prev) => ({ ...defaults, ...prev }));
+                        }
                       }}
                       className={`p-3 rounded-2xl border text-left text-xs font-semibold transition-all ${
                         selectedCategory?.slug === cat.slug
@@ -759,14 +777,26 @@ export default function NewRequestPage() {
                 type="button"
                 id="rfq-next-step-1"
                 onClick={() => {
-                  if (!selectedCategory && categories.length > 0) {
-                    const fallback = categories[0];
-                    setSelectedCategory(fallback);
-                    if (fallback.defaultUnits?.[0]) setUnit(fallback.defaultUnits[0]);
+                  let cat = selectedCategory;
+                  if (!cat && categories.length > 0) {
+                    cat = categories[0];
+                    setSelectedCategory(cat);
+                    if (cat.defaultUnits?.[0]) setUnit(cat.defaultUnits[0]);
                   }
                   if (!title.trim()) {
                     setFormErrors((prev) => ({ ...prev, title: t("common.required") || "Please enter product title" }));
                     return;
+                  }
+                  if (cat?.attributeSchema?.fields) {
+                    const newAttrs = { ...attributes };
+                    let changed = false;
+                    for (const f of cat.attributeSchema.fields) {
+                      if (f.required && f.type === "select" && f.options?.length && !newAttrs[f.key]) {
+                        newAttrs[f.key] = f.options[0];
+                        changed = true;
+                      }
+                    }
+                    if (changed) setAttributes(newAttrs);
                   }
                   setFormErrors((prev) => {
                     const copy = { ...prev };
@@ -775,8 +805,7 @@ export default function NewRequestPage() {
                   });
                   setStep(2);
                 }}
-                disabled={!title.trim()}
-                className="w-full py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover transition-all flex items-center justify-center gap-2"
               >
                 <span><T k="rfq.step2" /></span>
                 <ArrowRight className="w-4 h-4" />
@@ -804,6 +833,9 @@ export default function NewRequestPage() {
                     placeholder="500"
                     className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none"
                   />
+                  {formErrors.quantity && (
+                    <p className="text-xs text-red-500 font-semibold">{formErrors.quantity}</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -959,9 +991,19 @@ export default function NewRequestPage() {
                 <button
                   type="button"
                   id="rfq-next-step-2"
-                  onClick={() => setStep(3)}
-                  disabled={!quantity || Number(quantity) <= 0}
-                  className="flex-1 py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  onClick={() => {
+                    if (!quantity || Number(quantity) <= 0) {
+                      setFormErrors((prev) => ({ ...prev, quantity: "Please enter a valid quantity greater than zero" }));
+                      return;
+                    }
+                    setFormErrors((prev) => {
+                      const copy = { ...prev };
+                      delete copy.quantity;
+                      return copy;
+                    });
+                    setStep(3);
+                  }}
+                  className="flex-1 py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover transition-all flex items-center justify-center gap-2"
                 >
                   <span><T k="rfq.step3" /></span>
                   <ArrowRight className="w-4 h-4" />

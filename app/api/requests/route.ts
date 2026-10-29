@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { createRequestRecord, listRequestsForBuyer } from "@/lib/repo/request";
+import { createBusiness } from "@/lib/repo/business";
+import { getSession } from "@/lib/session";
 import { limitMutation } from "@/lib/http/guard";
 
 export async function POST(req: NextRequest) {
@@ -13,11 +15,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error || "Unauthorized" }, { status });
     }
 
-    if (!ctx.activeBusinessId) {
-      return NextResponse.json({ error: "Active business required" }, { status: 403 });
+    let activeBusinessId = ctx.activeBusinessId;
+    if (!activeBusinessId) {
+      const biz = await createBusiness(user.id, {
+        name: user.name || "My Business",
+        businessType: "Buyer",
+        isBuyer: true,
+        isSupplier: false,
+        area: "Dhaka",
+        city: "Dhaka",
+      });
+      activeBusinessId = biz.id;
+      ctx.activeBusinessId = biz.id;
+      ctx.businessRole = "OWNER";
+      const session = await getSession();
+      session.activeBusinessId = biz.id;
+      session.businessRole = "OWNER";
+      await session.save();
     }
 
-    assertCan(ctx, "request:create", { buyerBusinessId: ctx.activeBusinessId });
+    assertCan(ctx, "request:create", { buyerBusinessId: activeBusinessId });
 
     const body = await req.json();
     const {
@@ -47,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     const request = await createRequestRecord({
-      buyerBusinessId: ctx.activeBusinessId,
+      buyerBusinessId: activeBusinessId!,
       createdByUserId: user.id,
       categoryId,
       title,
