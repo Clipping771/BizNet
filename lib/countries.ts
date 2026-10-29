@@ -7,15 +7,15 @@ export interface Country {
 
 export const COUNTRIES: Country[] = [
   // Frequently used
-  { code: "BD", name: "Bangladesh", dial: "+880", flag: "🇧🇩" },
   { code: "US", name: "United States", dial: "+1", flag: "🇺🇸" },
   { code: "GB", name: "United Kingdom", dial: "+44", flag: "🇬🇧" },
-  { code: "AE", name: "United Arab Emirates", dial: "+971", flag: "🇦🇪" },
-  { code: "SA", name: "Saudi Arabia", dial: "+966", flag: "🇸🇦" },
-  { code: "IN", name: "India", dial: "+91", flag: "🇮🇳" },
   { code: "CA", name: "Canada", dial: "+1", flag: "🇨🇦" },
   { code: "AU", name: "Australia", dial: "+61", flag: "🇦🇺" },
+  { code: "AE", name: "United Arab Emirates", dial: "+971", flag: "🇦🇪" },
   { code: "SG", name: "Singapore", dial: "+65", flag: "🇸🇬" },
+  { code: "BD", name: "Bangladesh", dial: "+880", flag: "🇧🇩" },
+  { code: "IN", name: "India", dial: "+91", flag: "🇮🇳" },
+  { code: "SA", name: "Saudi Arabia", dial: "+966", flag: "🇸🇦" },
   { code: "MY", name: "Malaysia", dial: "+60", flag: "🇲🇾" },
 
   // Middle East & Africa
@@ -69,7 +69,7 @@ export const COUNTRIES: Country[] = [
   { code: "CO", name: "Colombia", dial: "+57", flag: "🇨🇴" },
 ];
 
-export const DEFAULT_COUNTRY = COUNTRIES[0]; // Bangladesh (+880)
+export const DEFAULT_COUNTRY = COUNTRIES[0]; // United States (+1)
 
 export function findCountryByDial(dial: string): Country | undefined {
   return COUNTRIES.find((c) => c.dial === dial);

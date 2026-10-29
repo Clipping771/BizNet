@@ -49,7 +49,7 @@ export async function createBusiness(
         isSupplier: input.isSupplier ?? false,
         area: input.area,
         city: input.city,
-        addressLine: input.addressLine || `${input.area}, ${input.city || "Dhaka"}`,
+        addressLine: input.addressLine || `${input.area}, ${input.city || "Global"}`,
         whatsapp: input.whatsapp ?? null,
         phonePublic: input.phonePublic ?? null,
         deliveryAreas: input.deliveryAreas || [input.area],

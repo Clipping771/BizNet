@@ -14,8 +14,8 @@ export function toBanglaDigits(num: number | string): string {
  */
 export function formatMoney(
   amount: number | string | Prisma.Decimal,
-  locale: string = "bn",
-  currency: string = "BDT"
+  locale: string = "en",
+  currency?: string
 ): string {
   const num = typeof amount === "object" && "toNumber" in amount
     ? (amount as Prisma.Decimal).toNumber()
@@ -26,7 +26,29 @@ export function formatMoney(
     maximumFractionDigits: 2,
   });
 
-  const symbol = currency === "BDT" ? "৳" : currency + " ";
+  const effectiveCurrency = currency || (locale === "bn" ? "BDT" : "USD");
+  let symbol = "$";
+  if (effectiveCurrency === "BDT") {
+    symbol = "৳";
+  } else if (effectiveCurrency === "USD") {
+    symbol = "$";
+  } else if (effectiveCurrency === "EUR") {
+    symbol = "€";
+  } else if (effectiveCurrency === "GBP") {
+    symbol = "£";
+  } else if (effectiveCurrency === "INR") {
+    symbol = "₹";
+  } else if (effectiveCurrency === "AED") {
+    symbol = "AED ";
+  } else if (effectiveCurrency === "CAD") {
+    symbol = "CA$";
+  } else if (effectiveCurrency === "AUD") {
+    symbol = "A$";
+  } else if (effectiveCurrency === "SGD") {
+    symbol = "S$";
+  } else {
+    symbol = `${effectiveCurrency} `;
+  }
 
   if (locale === "bn") {
     return `${symbol}${toBanglaDigits(formatted)}`;

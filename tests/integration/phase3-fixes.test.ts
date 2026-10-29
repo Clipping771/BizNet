@@ -315,6 +315,11 @@ describe("Phase 3 review fixes", () => {
       const freshUser = await makeUser();
       const fresh = await makeBusiness(freshUser.id, { supplier: true, categoryIds: [categoryId] });
       const req = await newRequest();
+      await prisma.requestInvite.upsert({
+        where: { requestId_supplierBusinessId: { requestId: req.id, supplierBusinessId: fresh.id } },
+        create: { requestId: req.id, supplierBusinessId: fresh.id, rank: 1, score: 100, reasons: ["MATCH"], notifiedAt: new Date() },
+        update: {},
+      });
       const conv = await (await createConversationRoute(json("/api/conversations", buyerCookie, { requestId: req.id, supplierBusinessId: fresh.id }))).json();
       expect(conv.id).toBeTruthy();
       const early = await revealContactRoute(json(`/api/conversations/${conv.id}/reveal-contact`, buyerCookie), {

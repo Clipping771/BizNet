@@ -11,7 +11,7 @@ export default function OnboardingPage() {
   const [name, setName] = useState("");
   const [businessType, setBusinessType] = useState("Restaurant / Café");
   const [area, setArea] = useState("");
-  const [city, setCity] = useState("Dhaka");
+  const [city, setCity] = useState("");
   const [addressLine, setAddressLine] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function OnboardingPage() {
           isBuyer: role === "buyer" || role === "both",
           isSupplier: role === "supplier" || role === "both",
           area: area || "Main",
-          city: city || "Dhaka",
+          city: city || "Global",
           addressLine,
           whatsapp,
         }),
@@ -175,7 +175,7 @@ export default function OnboardingPage() {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Dhaka / Dubai"
+                placeholder="e.g. New York, London, Dubai, Dhaka"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full px-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"

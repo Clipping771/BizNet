@@ -33,18 +33,23 @@ interface Category {
   defaultUnits: string[];
 }
 
-const DHAKA_AREAS = [
-  "Mirpur",
-  "Dhanmondi",
-  "Mohammadpur",
-  "Uttara",
-  "Gulshan",
-  "Chawkbazar",
-  "Motijheel",
-  "Banani",
-  "Tejgaon",
-  "Badda",
-  "OldDhaka",
+const POPULAR_LOCATIONS = [
+  "New York, USA",
+  "London, UK",
+  "Dubai, UAE",
+  "Singapore",
+  "Toronto, Canada",
+  "Sydney, Australia",
+  "Berlin, Germany",
+  "Paris, France",
+  "Tokyo, Japan",
+  "Hong Kong",
+  "Mumbai, India",
+  "Dhaka, Bangladesh",
+  "Chittagong, Bangladesh",
+  "Kuala Lumpur, Malaysia",
+  "Riyadh, Saudi Arabia",
+  "Doha, Qatar",
 ];
 
 export default function NewRequestPage() {
@@ -94,7 +99,7 @@ export default function NewRequestPage() {
   const [unit, setUnit] = useState("pcs");
   const [neededByChip, setNeededByChip] = useState("tomorrow");
   const [customNeededByDate, setCustomNeededByDate] = useState("");
-  const [deliveryArea, setDeliveryArea] = useState("Mirpur");
+  const [deliveryArea, setDeliveryArea] = useState("");
   const [preferredPaymentTerm, setPreferredPaymentTerm] = useState("CASH_ON_DELIVERY");
   const [priority, setPriority] = useState("BALANCED");
   const [budgetNote, setBudgetNote] = useState("");
@@ -902,18 +907,23 @@ export default function NewRequestPage() {
                   </label>
                   {aiPrefilledKeys.has("deliveryArea") && <AiChip />}
                 </div>
-                <select
-                  id="rfq-delivery-area-select"
+                <input
+                  type="text"
+                  id="rfq-delivery-area-input"
+                  list="popular-delivery-locations"
                   value={deliveryArea}
                   onChange={(e) => setDeliveryArea(e.target.value)}
+                  placeholder={t("rfq.deliveryAreaPlaceholder") || "e.g. New York, London, Dubai, or your city"}
                   className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none bg-white"
-                >
-                  {DHAKA_AREAS.map((a) => (
-                    <option key={a} value={a}>
-                      {a}
-                    </option>
+                />
+                <datalist id="popular-delivery-locations">
+                  {POPULAR_LOCATIONS.map((loc) => (
+                    <option key={loc} value={loc} />
                   ))}
-                </select>
+                </datalist>
+                {formErrors.deliveryArea && (
+                  <p className="text-xs text-red-500 font-semibold">{formErrors.deliveryArea}</p>
+                )}
               </div>
 
               {/* Payment Term Chips */}
@@ -996,9 +1006,14 @@ export default function NewRequestPage() {
                       setFormErrors((prev) => ({ ...prev, quantity: "Please enter a valid quantity greater than zero" }));
                       return;
                     }
+                    if (!deliveryArea.trim()) {
+                      setFormErrors((prev) => ({ ...prev, deliveryArea: "Please enter your delivery city or area" }));
+                      return;
+                    }
                     setFormErrors((prev) => {
                       const copy = { ...prev };
                       delete copy.quantity;
+                      delete copy.deliveryArea;
                       return copy;
                     });
                     setStep(3);
