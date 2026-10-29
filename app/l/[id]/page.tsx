@@ -47,6 +47,27 @@ export default async function PublicListingPage({
           <h1 className="page-title leading-snug">{listing.title}</h1>
         </div>
 
+        {Array.isArray(listing.imageKeys) && listing.imageKeys.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {listing.imageKeys.map((k: string, i: number) => (
+              <a
+                key={k}
+                href={`/api/files/download?key=${encodeURIComponent(k)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-20 h-20 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 block hover:opacity-90 transition"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/files/download?key=${encodeURIComponent(k)}`}
+                  alt={`${listing.title} ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </a>
+            ))}
+          </div>
+        )}
+
         {/* Pricing & Commercial Terms */}
         <div className="p-3.5 bg-slate-50 rounded-xl space-y-1.5">
           <span className="text-xs text-slate-500 block">

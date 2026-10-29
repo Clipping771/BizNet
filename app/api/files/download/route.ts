@@ -8,22 +8,33 @@ export async function GET(req: NextRequest) {
     const expires = searchParams.get("expires");
     const sig = searchParams.get("sig");
 
-    if (!key || !expires || !sig) {
-      return NextResponse.json({ error: "Missing signed URL parameters" }, { status: 400 });
+    if (!key) {
+      return NextResponse.json({ error: "Missing key parameter" }, { status: 400 });
     }
 
-    const expiresAt = parseInt(expires, 10);
-    if (Number.isNaN(expiresAt)) {
-      return NextResponse.json({ error: "Invalid expiry timestamp" }, { status: 400 });
-    }
-
-    // Verify token & expiry (§8.3, B6, B7)
-    const isValid = verifySignedDownloadToken(key, expiresAt, sig);
-    if (!isValid) {
-      return NextResponse.json({ error: "Signed URL is invalid or has expired" }, { status: 403 });
+    if (key.includes("..")) {
+      return NextResponse.json({ error: "Invalid file key" }, { status: 400 });
     }
 
     const isPrivate = key.startsWith("private/");
+
+    if (isPrivate) {
+      if (!expires || !sig) {
+        return NextResponse.json({ error: "Missing signed URL parameters" }, { status: 400 });
+      }
+
+      const expiresAt = parseInt(expires, 10);
+      if (Number.isNaN(expiresAt)) {
+        return NextResponse.json({ error: "Invalid expiry timestamp" }, { status: 400 });
+      }
+
+      // Verify token & expiry (§8.3, B6, B7)
+      const isValid = verifySignedDownloadToken(key, expiresAt, sig);
+      if (!isValid) {
+        return NextResponse.json({ error: "Signed URL is invalid or has expired" }, { status: 403 });
+      }
+    }
+
     const file = await getFile(key, isPrivate);
 
     if (!file) {
@@ -34,7 +45,7 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": file.contentType,
-        "Cache-Control": "private, max-age=300",
+        "Cache-Control": isPrivate ? "private, max-age=300" : "public, max-age=86400, stale-while-revalidate=3600",
       },
     });
   } catch (err: any) {

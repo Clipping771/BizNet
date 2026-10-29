@@ -186,6 +186,7 @@ export function createUploadTicket(params: {
   filename: string;
   contentType: string;
   purpose: UploadPurpose;
+  baseUrl?: string;
 }): UploadTicket {
   const rule = UPLOAD_RULES[params.purpose];
   const sanitizedName = params.filename.replace(/[^a-zA-Z0-9.-]/g, "_").slice(-80);
@@ -195,7 +196,7 @@ export function createUploadTicket(params: {
     uploadPayload({ key, contentType: params.contentType, maxBytes: rule.maxBytes, expiresAt, userId: params.userId })
   );
 
-  const baseUrl = process.env.APP_URL || "http://localhost:3000";
+  const baseUrl = (params.baseUrl || process.env.APP_URL || "http://localhost:3000").replace(/\/+$/, "");
   const query = new URLSearchParams({
     ct: params.contentType,
     max: String(rule.maxBytes),

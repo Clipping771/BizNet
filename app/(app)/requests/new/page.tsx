@@ -18,6 +18,8 @@ import {
   Calendar,
   Send,
   ChevronRight,
+  Upload,
+  X,
 } from "lucide-react";
 import { T, useT } from "@/components/ui/T";
 import { AiChip } from "@/components/ai/AiChip";
@@ -98,6 +100,8 @@ export default function NewRequestPage() {
   const [budgetNote, setBudgetNote] = useState("");
   const [quoteWindowHours, setQuoteWindowHours] = useState(48);
   const [imageKeys, setImageKeys] = useState<string[]>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
@@ -159,18 +163,31 @@ export default function NewRequestPage() {
 
   const uploadRequestPhoto = async (file: File) => {
     try {
+      setUploadingPhoto(true);
+      setPhotoError(null);
       const ticketRes = await fetch("/api/files/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: file.name, contentType: file.type, sizeBytes: file.size, purpose: "request_image" }),
+        body: JSON.stringify({ filename: file.name, contentType: file.type || "image/jpeg", sizeBytes: file.size, purpose: "request_image" }),
       });
       const ticket = await ticketRes.json();
-      if (!ticketRes.ok) throw new Error(ticket.error);
-      const put = await fetch(ticket.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      if (!put.ok) throw new Error((await put.json().catch(() => ({}))).error);
+      if (!ticketRes.ok) throw new Error(ticket.error || "Failed to initialize upload");
+
+      const targetUrl = ticket.uploadUrl.startsWith("http")
+        ? new URL(ticket.uploadUrl).pathname + new URL(ticket.uploadUrl).search
+        : ticket.uploadUrl;
+
+      const put = await fetch(targetUrl, { method: "PUT", headers: { "Content-Type": file.type || "image/jpeg" }, body: file });
+      if (!put.ok) {
+        const errJson = await put.json().catch(() => ({}));
+        throw new Error(errJson.error || "Failed to upload photo bytes");
+      }
       setImageKeys((prev) => [...prev, ticket.key].slice(0, 5));
     } catch (err: any) {
-      setFormErrors({ general: err?.message || t("common.tryAgain") });
+      console.error("Photo upload error:", err);
+      setPhotoError(err?.message || t("common.tryAgain"));
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -673,27 +690,58 @@ export default function NewRequestPage() {
               )}
 
               {/* Photos (≤ 5) */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-700">
                   <T k="rfq.photos" />
                 </label>
+
+                {/* Thumbnails preview */}
                 {imageKeys.length > 0 && (
-                  <p id="rfq-photo-count" className="text-xs text-gray-500">
-                    {t("rfq.photoCount", undefined, { n: imageKeys.length })}
-                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {imageKeys.map((k, idx) => (
+                      <div key={k} className="relative group w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`/api/files/download?key=${encodeURIComponent(k)}`}
+                          alt={`Uploaded ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setImageKeys((prev) => prev.filter((item) => item !== k))}
+                          className="absolute top-1 end-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80 transition"
+                          title="Remove"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
+
                 {imageKeys.length < 5 && (
-                  <input
-                    type="file"
-                    id="rfq-photo-input"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) uploadRequestPhoto(file);
-                      e.target.value = "";
-                    }}
-                    className="text-xs"
-                  />
+                  <div>
+                    <label className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-gray-50 transition ${uploadingPhoto ? "opacity-50 pointer-events-none" : ""}`}>
+                      <Upload className="w-4 h-4 text-gray-500" />
+                      <span>{uploadingPhoto ? t("common.loading") : t("rfq.photos")}</span>
+                      <input
+                        type="file"
+                        id="rfq-photo-input"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={uploadingPhoto}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadRequestPhoto(file);
+                          e.target.value = "";
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {photoError && (
+                  <p className="text-xs text-red-500 font-semibold">{photoError}</p>
                 )}
               </div>
 

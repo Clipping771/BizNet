@@ -71,16 +71,20 @@ export default function BusinessVerificationPage() {
       }
 
       const { uploadUrl, key } = await ticketRes.json();
+      const targetUrl = uploadUrl.startsWith("http")
+        ? new URL(uploadUrl).pathname + new URL(uploadUrl).search
+        : uploadUrl;
 
       // 2. Upload file via presigned PUT
-      const uploadRes = await fetch(uploadUrl, {
+      const uploadRes = await fetch(targetUrl, {
         method: "PUT",
         headers: { "Content-Type": file.type || "application/octet-stream" },
         body: file,
       });
 
       if (!uploadRes.ok) {
-        throw new Error("Failed to upload file content");
+        const errJson = await uploadRes.json().catch(() => ({}));
+        throw new Error(errJson.error || "Failed to upload file content");
       }
 
       if (purpose === "verification_document") {

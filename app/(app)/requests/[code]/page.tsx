@@ -312,6 +312,32 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
           </p>
         )}
 
+        {Array.isArray(request.imageKeys) && request.imageKeys.length > 0 && (
+          <div className="space-y-1.5 pt-1">
+            <p className="text-xs font-bold text-gray-500">
+              <T k="rfq.photos" />
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {request.imageKeys.map((k: string, i: number) => (
+                <a
+                  key={k}
+                  href={`/api/files/download?key=${encodeURIComponent(k)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 block hover:opacity-90 transition"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/files/download?key=${encodeURIComponent(k)}`}
+                    alt={`Photo ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between pt-1 text-xs">
           {role === "BUYER" && request.status === "OPEN" && (
             <button
@@ -921,8 +947,11 @@ function SupplierPanel({
       });
       const ticket = await ticketRes.json();
       if (!ticketRes.ok) throw new Error(ticket.error);
-      const put = await fetch(ticket.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      if (!put.ok) throw new Error((await put.json().catch(() => ({}))).error);
+      const targetUrl = ticket.uploadUrl.startsWith("http")
+        ? new URL(ticket.uploadUrl).pathname + new URL(ticket.uploadUrl).search
+        : ticket.uploadUrl;
+      const put = await fetch(targetUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+      if (!put.ok) throw new Error((await put.json().catch(() => ({}))).error || "Failed to upload file");
       setAttachmentKeys((prev) => [...prev, ticket.key]);
     } catch (err: any) {
       onError(err?.message || t("common.tryAgain"));

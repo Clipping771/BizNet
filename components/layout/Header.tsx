@@ -98,7 +98,7 @@ export function Header({ activeBusinessName, userPhone, lang = "bn", isLoggedIn 
               )}
             </Link>
           )}
-          {isLoggedIn || activeBusinessName ? (
+          {isLoggedIn || activeBusinessName || withSidebar ? (
             <AccountMenu activeBusinessName={activeBusinessName} userPhone={userPhone} lang={lang} isAdmin={isAdmin} />
           ) : (
             <Link href="/login" className="btn btn-primary">

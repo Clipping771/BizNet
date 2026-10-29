@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       filename,
       contentType,
       purpose,
+      baseUrl: req.nextUrl.origin,
     });
 
     return NextResponse.json(ticket);

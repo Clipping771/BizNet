@@ -28,6 +28,9 @@ export const metadata = {
   description: "B2B platform connecting buyers, restaurants, and businesses with verified packaging suppliers",
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function RootLayout({
   children,
 }: {

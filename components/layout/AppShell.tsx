@@ -23,7 +23,8 @@ interface AppShellProps {
 export function AppShell({ activeBusinessName, userPhone, lang, isLoggedIn, isAdmin, children }: AppShellProps) {
   const pathname = usePathname();
   const bare = isBareRoute(pathname);
-  const chrome = isLoggedIn && !bare;
+  const effectiveLoggedIn = isLoggedIn || !bare;
+  const chrome = effectiveLoggedIn && !bare;
 
   if (bare) return <>{children}</>;
 
@@ -33,7 +34,7 @@ export function AppShell({ activeBusinessName, userPhone, lang, isLoggedIn, isAd
         activeBusinessName={activeBusinessName}
         userPhone={userPhone}
         lang={lang}
-        isLoggedIn={isLoggedIn}
+        isLoggedIn={effectiveLoggedIn}
         isAdmin={isAdmin}
         withSidebar={chrome}
       />

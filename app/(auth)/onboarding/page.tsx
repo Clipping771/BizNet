@@ -43,7 +43,7 @@ export default function OnboardingPage() {
         throw new Error(data.error || "Failed to create business");
       }
 
-      router.push("/home");
+      window.location.href = "/home";
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -70,9 +70,9 @@ export default function LoginPage() {
         throw new Error(data.error || t("auth.invalidOtp"));
       }
       if (data.isNewUser || !data.hasBusiness) {
-        router.push("/onboarding");
+        window.location.href = "/onboarding";
       } else {
-        router.push("/home");
+        window.location.href = "/home";
       }
     } catch (err: any) {
       setError(err.message);
@@ -123,9 +123,9 @@ export default function LoginPage() {
         throw new Error(data.error || "Failed to verify email code");
       }
       if (data.isNewUser || !data.hasBusiness) {
-        router.push("/onboarding");
+        window.location.href = "/onboarding";
       } else {
-        router.push("/home");
+        window.location.href = "/home";
       }
     } catch (err: any) {
       setError(err.message);
@@ -163,9 +163,9 @@ export default function LoginPage() {
       }
 
       if (verifyData.isNewUser || !verifyData.hasBusiness) {
-        router.push("/onboarding");
+        window.location.href = "/onboarding";
       } else {
-        router.push("/home");
+        window.location.href = "/home";
       }
     } catch (err: any) {
       if (err.name !== "NotAllowedError") {

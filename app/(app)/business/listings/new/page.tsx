@@ -94,11 +94,18 @@ export default function NewListingPage() {
       }
 
       const { uploadUrl, key } = await ticketRes.json();
-      await fetch(uploadUrl, {
+      const targetUrl = uploadUrl.startsWith("http")
+        ? new URL(uploadUrl).pathname + new URL(uploadUrl).search
+        : uploadUrl;
+      const putRes = await fetch(targetUrl, {
         method: "PUT",
         headers: { "Content-Type": file.type || "image/jpeg" },
         body: file,
       });
+      if (!putRes.ok) {
+        const errJson = await putRes.json().catch(() => ({}));
+        throw new Error(errJson.error || "Failed to store image content");
+      }
 
       setImageKeys((prev) => [...prev, key]);
     } catch (err: any) {
