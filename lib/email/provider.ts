@@ -43,11 +43,14 @@ export class HttpEmailProvider implements EmailProvider {
       });
 
       if (!res.ok) {
-        return { success: false, error: `HTTP ${res.status}` };
+        const errBody = await res.text();
+        console.error(`[Email Provider Error] HTTP ${res.status}:`, errBody);
+        return { success: false, error: `HTTP ${res.status}: ${errBody}` };
       }
       const data = await res.json();
       return { success: true, messageId: data.id || data.message_id };
     } catch (err: any) {
+      console.error("[Email Provider Error] Exception:", err);
       return { success: false, error: err.message };
     }
   }
@@ -59,7 +62,7 @@ export function getEmailProvider(): EmailProvider {
     return new HttpEmailProvider(
       process.env.EMAIL_HTTP_URL,
       process.env.EMAIL_API_KEY,
-      process.env.EMAIL_FROM || "BizNet <noreply@biznet.global>"
+      process.env.EMAIL_FROM || "BizNet <onboarding@resend.dev>"
     );
   }
   return new ConsoleEmailProvider();
