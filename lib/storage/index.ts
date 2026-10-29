@@ -47,7 +47,7 @@ function signSecret(): string {
  */
 function isMemoryDriver(): boolean {
   if ((process.env.STORAGE_DRIVER || "s3") !== "memory") return false;
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_INSECURE_MEMORY_STORAGE !== "true") {
     const host = new URL(process.env.APP_URL || "http://localhost").hostname;
     if (host !== "localhost" && host !== "127.0.0.1") {
       throw new Error("STORAGE_DRIVER=memory is not allowed in production; configure S3");
