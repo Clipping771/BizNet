@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     // Send email
     const emailProvider = getEmailProvider();
-    await emailProvider.sendEmail(
+    const sendResult = await emailProvider.sendEmail(
       email,
       "Your BizNet Verification Code",
       `Your verification code is: ${code}. This code is valid for 10 minutes.`,
@@ -64,6 +64,13 @@ export async function POST(req: NextRequest) {
         <p style="font-size: 12px; color: #64748b;">This code expires in 10 minutes. If you did not request this, please ignore this email.</p>
       </div>`
     );
+
+    if (!sendResult.success) {
+      return NextResponse.json(
+        { error: sendResult.error || "Failed to deliver verification email. Please check your email address or server configuration." },
+        { status: 502 }
+      );
+    }
 
     const shouldExposeDevOtp =
       process.env.EXPOSE_DEV_OTP === "true" &&
