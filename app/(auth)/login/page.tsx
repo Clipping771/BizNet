@@ -28,6 +28,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getDestination = (hasBusiness: boolean) => {
+    if (typeof window === "undefined") return "/home";
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get("redirect") || params.get("next");
+    if (!hasBusiness) {
+      return target ? `/onboarding?next=${encodeURIComponent(target)}` : "/onboarding";
+    }
+    if (target && target.startsWith("/") && !target.startsWith("//")) {
+      return target;
+    }
+    return "/home";
+  };
+
   const handleSendPhoneOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -69,11 +82,7 @@ export default function LoginPage() {
       if (!res.ok) {
         throw new Error(data.error || t("auth.invalidOtp"));
       }
-      if (data.isNewUser || !data.hasBusiness) {
-        window.location.href = "/onboarding";
-      } else {
-        window.location.href = "/home";
-      }
+      window.location.href = getDestination(!data.isNewUser && data.hasBusiness);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -122,11 +131,7 @@ export default function LoginPage() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to verify email code");
       }
-      if (data.isNewUser || !data.hasBusiness) {
-        window.location.href = "/onboarding";
-      } else {
-        window.location.href = "/home";
-      }
+      window.location.href = getDestination(!data.isNewUser && data.hasBusiness);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -162,11 +167,7 @@ export default function LoginPage() {
         throw new Error(verifyData.error || "Passkey verification failed");
       }
 
-      if (verifyData.isNewUser || !verifyData.hasBusiness) {
-        window.location.href = "/onboarding";
-      } else {
-        window.location.href = "/home";
-      }
+      window.location.href = getDestination(!verifyData.isNewUser && verifyData.hasBusiness);
     } catch (err: any) {
       if (err.name !== "NotAllowedError") {
         setError(err.message || "Passkey login failed");

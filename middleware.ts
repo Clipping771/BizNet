@@ -52,7 +52,13 @@ export async function middleware(req: NextRequest) {
     }
     return NextResponse.next();
   }
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isPublicRequestDetail =
+    pathname.startsWith("/requests/") &&
+    pathname !== "/requests/new" &&
+    !pathname.startsWith("/requests/inbox");
+
+  const isProtected =
+    PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) && !isPublicRequestDetail;
 
   if (!isProtected && pathname !== "/login") {
     return NextResponse.next();

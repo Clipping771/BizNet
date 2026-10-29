@@ -43,7 +43,13 @@ export default function OnboardingPage() {
         throw new Error(data.error || "Failed to create business");
       }
 
-      window.location.href = "/home";
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get("next") || params.get("redirect");
+      if (target && target.startsWith("/") && !target.startsWith("//")) {
+        window.location.href = target;
+      } else {
+        window.location.href = "/home";
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

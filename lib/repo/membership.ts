@@ -179,6 +179,13 @@ export async function acceptMemberInvite(rawToken: string, userId: string): Prom
 
     const role = invite.role === InviteRole.MANAGER ? MemberRole.MANAGER : MemberRole.STAFF;
 
+    if (!user.activeBusinessId) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { activeBusinessId: invite.businessId },
+      });
+    }
+
     return tx.membership.upsert({
       where: {
         userId_businessId: {
