@@ -113,8 +113,14 @@ export default function NewRequestPage() {
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setCategories(data);
+          setSelectedCategory((curr) => {
+            if (curr) return curr;
+            const def = data.find((c: any) => c.slug === "containers") || data[0];
+            if (def && def.defaultUnits?.[0]) setUnit(def.defaultUnits[0]);
+            return def;
+          });
         }
       })
       .catch((err) => console.error("Categories fetch error:", err));
@@ -752,8 +758,24 @@ export default function NewRequestPage() {
               <button
                 type="button"
                 id="rfq-next-step-1"
-                onClick={() => setStep(2)}
-                disabled={!selectedCategory || !title.trim()}
+                onClick={() => {
+                  if (!selectedCategory && categories.length > 0) {
+                    const fallback = categories[0];
+                    setSelectedCategory(fallback);
+                    if (fallback.defaultUnits?.[0]) setUnit(fallback.defaultUnits[0]);
+                  }
+                  if (!title.trim()) {
+                    setFormErrors((prev) => ({ ...prev, title: t("common.required") || "Please enter product title" }));
+                    return;
+                  }
+                  setFormErrors((prev) => {
+                    const copy = { ...prev };
+                    delete copy.title;
+                    return copy;
+                  });
+                  setStep(2);
+                }}
+                disabled={!title.trim()}
                 className="w-full py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 <span><T k="rfq.step2" /></span>
