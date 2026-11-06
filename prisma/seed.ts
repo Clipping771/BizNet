@@ -140,7 +140,7 @@ async function main() {
       name: "BizNet Admin",
       role: PlatformRole.ADMIN,
       phoneVerified: true,
-      uiLanguage: "bn",
+      uiLanguage: "en",
     },
   });
 
@@ -270,9 +270,9 @@ async function main() {
       phone: "+8801711111101",
       ownerName: "Rahim Ahmed",
       listings: [
-        { title: "৭৫০ মিলি ফুড কন্টেইনার ঢাকনাসহ", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.5, priceMax: 9.0, moq: 200 },
-        { title: "১০০ পিস ক্রাফট পেপার বক্স", cat: "food_boxes", attrs: { material: "kraft", compartments: 1, has_lid: true, printing: "none" }, unit: "pcs", priceMin: 12.0, priceMax: 14.0, moq: 500 },
-        { title: "২৫০ মিলি পেপার কাপ", cat: "cups", attrs: { capacity_ml: 250, has_lid: true, material: "paper" }, unit: "pcs", priceMin: 3.5, priceMax: 4.0, moq: 1000 },
+        { title: "750ml Food Container with Lid", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.5, priceMax: 9.0, moq: 200 },
+        { title: "100 pcs Kraft Paper Box", cat: "food_boxes", attrs: { material: "kraft", compartments: 1, has_lid: true, printing: "none" }, unit: "pcs", priceMin: 12.0, priceMax: 14.0, moq: 500 },
+        { title: "250ml Paper Cup", cat: "cups", attrs: { capacity_ml: 250, has_lid: true, material: "paper" }, unit: "pcs", priceMin: 3.5, priceMax: 4.0, moq: 1000 },
       ],
     },
     {
@@ -283,9 +283,9 @@ async function main() {
       phone: "+8801711111102",
       ownerName: "Karim Uddin",
       listings: [
-        { title: "৫০০ মিলি ফুড বক্স ৩ চেম্বার", cat: "food_boxes", attrs: { material: "plastic_pp", compartments: 3, has_lid: true, printing: "none" }, unit: "pcs", priceMin: 15.0, priceMax: 16.5, moq: 300 },
-        { title: "৭৫০ মিলি পিপি কন্টেইনার", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.8, priceMax: 9.2, moq: 250 },
-        { title: "ফেসিয়াল টিস্যু প্যাক", cat: "tissue", attrs: { ply: 2, sheets_per_pack: 100 }, unit: "pack", priceMin: 45.0, priceMax: 50.0, moq: 50 },
+        { title: "500ml 3-Chamber Food Box", cat: "food_boxes", attrs: { material: "plastic_pp", compartments: 3, has_lid: true, printing: "none" }, unit: "pcs", priceMin: 15.0, priceMax: 16.5, moq: 300 },
+        { title: "750ml PP Container", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.8, priceMax: 9.2, moq: 250 },
+        { title: "Facial Tissue 2-Ply Pack", cat: "tissue", attrs: { ply: 2, sheets_per_pack: 100 }, unit: "pack", priceMin: 45.0, priceMax: 50.0, moq: 50 },
       ],
     },
     {
@@ -296,9 +296,9 @@ async function main() {
       phone: "+8801711111103",
       ownerName: "Tanvir Hasan",
       listings: [
-        { title: "ক্রাফট পেপার ক্যারি ব্যাগ", cat: "carry_bags", attrs: { material: "kraft", handle_type: "twisted", printing: "custom_logo" }, unit: "pcs", priceMin: 18.0, priceMax: 22.0, moq: 500 },
-        { title: "অ্যালুমিনিয়াম ফয়েল রোল ৩০ মিটার", cat: "foil_wrap", attrs: { width_cm: 30, length_m: 30 }, unit: "roll", priceMin: 180.0, priceMax: 200.0, moq: 10 },
-        { title: "ডিসপোজেবল প্লাস্টিক চামচ", cat: "cutlery", attrs: { material: "plastic_pp", item_type: "spoon" }, unit: "pcs", priceMin: 1.2, priceMax: 1.5, moq: 1000 },
+        { title: "Kraft Paper Carry Bag", cat: "carry_bags", attrs: { material: "kraft", handle_type: "twisted", printing: "custom_logo" }, unit: "pcs", priceMin: 18.0, priceMax: 22.0, moq: 500 },
+        { title: "Aluminum Foil Roll 30m", cat: "foil_wrap", attrs: { width_cm: 30, length_m: 30 }, unit: "roll", priceMin: 180.0, priceMax: 200.0, moq: 10 },
+        { title: "Disposable Plastic Spoons", cat: "cutlery", attrs: { material: "plastic_pp", item_type: "spoon" }, unit: "pcs", priceMin: 1.2, priceMax: 1.5, moq: 1000 },
       ],
     },
     {
@@ -309,9 +309,9 @@ async function main() {
       phone: "+8801711111104",
       ownerName: "Mahbub Alam",
       listings: [
-        { title: "বারবার্গার ক্রাফট বক্স", cat: "food_boxes", attrs: { material: "kraft", compartments: 1, has_lid: true, printing: "custom_logo" }, unit: "pcs", priceMin: 9.0, priceMax: 11.0, moq: 500 },
-        { title: "৭৫০ মিলি কন্টেইনার", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.7, priceMax: 9.1, moq: 200 },
-        { title: "ওয়ান টাইম পেপার গ্লাস", cat: "cups", attrs: { capacity_ml: 200, has_lid: false, material: "paper" }, unit: "pcs", priceMin: 2.8, priceMax: 3.2, moq: 1000 },
+        { title: "Burger Kraft Box", cat: "food_boxes", attrs: { material: "kraft", compartments: 1, has_lid: true, printing: "custom_logo" }, unit: "pcs", priceMin: 9.0, priceMax: 11.0, moq: 500 },
+        { title: "750ml Clear Container", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.7, priceMax: 9.1, moq: 200 },
+        { title: "Disposable Paper Glass", cat: "cups", attrs: { capacity_ml: 200, has_lid: false, material: "paper" }, unit: "pcs", priceMin: 2.8, priceMax: 3.2, moq: 1000 },
       ],
     },
     {
@@ -322,9 +322,9 @@ async function main() {
       phone: "+8801711111105",
       ownerName: "Shafiqul Islam",
       listings: [
-        { title: "৭৫০ মিলি গোল কন্টেইনার", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.9, priceMax: 9.3, moq: 300 },
-        { title: "ডাই-কাট প্লাস্টিক ব্যাগ", cat: "carry_bags", attrs: { material: "plastic_pp", handle_type: "die_cut", printing: "none" }, unit: "pcs", priceMin: 5.0, priceMax: 6.5, moq: 1000 },
-        { title: "ন্যাপকিন পেপার টিস্যু", cat: "tissue", attrs: { ply: 1, sheets_per_pack: 50 }, unit: "pack", priceMin: 20.0, priceMax: 25.0, moq: 100 },
+        { title: "750ml Round Food Container", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 8.9, priceMax: 9.3, moq: 300 },
+        { title: "Die-Cut Plastic Bags", cat: "carry_bags", attrs: { material: "plastic_pp", handle_type: "die_cut", printing: "none" }, unit: "pcs", priceMin: 5.0, priceMax: 6.5, moq: 1000 },
+        { title: "Napkin Paper Tissue Pack", cat: "tissue", attrs: { ply: 1, sheets_per_pack: 50 }, unit: "pack", priceMin: 20.0, priceMax: 25.0, moq: 100 },
       ],
     },
     {
@@ -335,9 +335,9 @@ async function main() {
       phone: "+8801711111106",
       ownerName: "Fahim Shahriar",
       listings: [
-        { title: "প্রিমিয়াম ব্ল্যাক পেপার কাপ", cat: "cups", attrs: { capacity_ml: 350, has_lid: true, material: "paper" }, unit: "pcs", priceMin: 6.0, priceMax: 7.5, moq: 500 },
-        { title: "উডেন কাটলারি সেট", cat: "cutlery", attrs: { material: "wood", item_type: "set" }, unit: "set", priceMin: 8.0, priceMax: 10.0, moq: 200 },
-        { title: "৭৫০ মিলি প্রিমিয়াম ফুড বক্স", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 9.5, priceMax: 10.5, moq: 200 },
+        { title: "Premium Black Paper Cup 350ml", cat: "cups", attrs: { capacity_ml: 350, has_lid: true, material: "paper" }, unit: "pcs", priceMin: 6.0, priceMax: 7.5, moq: 500 },
+        { title: "Wooden Eco Cutlery Set", cat: "cutlery", attrs: { material: "wood", item_type: "set" }, unit: "set", priceMin: 8.0, priceMax: 10.0, moq: 200 },
+        { title: "750ml Premium Food Box", cat: "containers", attrs: { capacity_ml: 750, has_lid: true, material: "plastic_pp", microwave_safe: true }, unit: "pcs", priceMin: 9.5, priceMax: 10.5, moq: 200 },
       ],
     },
   ];
@@ -347,7 +347,7 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { phone: s.phone },
       update: { name: s.ownerName, phoneVerified: true },
-      create: { phone: s.phone, name: s.ownerName, phoneVerified: true, uiLanguage: "bn" },
+      create: { phone: s.phone, name: s.ownerName, phoneVerified: true, uiLanguage: "en" },
     });
 
     const business = await prisma.business.upsert({
@@ -418,7 +418,7 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { phone: b.phone },
       update: { name: b.ownerName, phoneVerified: true },
-      create: { phone: b.phone, name: b.ownerName, phoneVerified: true, uiLanguage: "bn" },
+      create: { phone: b.phone, name: b.ownerName, phoneVerified: true, uiLanguage: "en" },
     });
 
     const business = await prisma.business.upsert({
@@ -458,7 +458,7 @@ async function main() {
         buyerBusinessId: buyer.business.id,
         createdByUserId: buyer.user.id,
         categoryId: cat.id,
-        title: "৫০০ পিস ৭৫০ মিলি কন্টেইনার",
+        title: "500 pcs 750ml Containers",
         quantity: new Decimal(500),
         unit: "pcs",
         deliveryArea: "Mirpur",
@@ -525,7 +525,7 @@ async function main() {
       buyerBusinessId: openBuyer.business.id,
       createdByUserId: openBuyer.user.id,
       categoryId: categories["containers"].id,
-      title: "কাল মিরপুরে ৫০০টা ৭৫০ মিলি ঢাকনাওয়ালা কন্টেইনার লাগবে",
+      title: "Need 500 pcs 750ml Containers with Lid in Mirpur by tomorrow",
       quantity: new Decimal(500),
       unit: "pcs",
       neededBy: new Date(Date.now() + 86400000), // tomorrow
@@ -583,7 +583,7 @@ async function main() {
       buyerBusinessId: buyerBusinesses[3].business.id,
       createdByUserId: buyerBusinesses[3].user.id,
       categoryId: categories["foil_wrap"].id,
-      title: "১০ রোল অ্যালুমিনিয়াম ফয়েল",
+      title: "10 Rolls Heavy-Duty Aluminum Foil",
       quantity: new Decimal(10),
       unit: "roll",
       deliveryArea: "Mohammadpur",
@@ -595,11 +595,11 @@ async function main() {
 
   // 9. Seed 5 Discussion Questions (2 solved)
   const qData = [
-    { title: "খাবারের বক্সে খাবার কতক্ষণ গরম থাকে?", body: "কন্টেইনারের গুণমান যাচাইয়ের পদ্ধতি কী?", solved: true },
-    { title: "ক্রাফট পেপার ব্যাগে কত কেজি ওজন রাখা যায়?", body: "১০০ জিএসএম পেপার ব্যাগের ধারণক্ষমতা জানতে চাই।", solved: true },
-    { title: "ঢাকনা সহ প্লাস্টিক কাপ কোথা থেকে কিনব?", body: "চৌকবাজারে সেরা ডিলার কারা?", solved: false },
-    { title: "ডেলিভারি চার্জের নিয়ম কী?", body: "ঢাকার ভেতরে কুরিয়ারের স্ট্যান্ডার্ড রেট কত?", solved: false },
-    { title: "কাস্টম লোগো প্রিন্টিং এর খরচ কেমন?", body: "৫০ পিসে প্রিন্ট করা যাবে কি না?", solved: false },
+    { title: "How long does food stay hot in PP 3-chamber food boxes?", body: "What is the standard procedure to test food-grade packaging quality?", solved: true },
+    { title: "How much weight can a 100 GSM kraft paper bag reliably hold?", body: "Looking for verified load limits for twisted-handle kraft bags.", solved: true },
+    { title: "Where to source wholesale plastic cups with dome lids in bulk?", body: "Who are the best verified container and cup distributors?", solved: false },
+    { title: "What is the standard shipping rate structure for packaging deliveries?", body: "What is the typical intra-city flat rate for heavy packaging cartons?", solved: false },
+    { title: "What are typical setup costs for custom 2-color brand logo printing?", body: "Is there any supplier offering low-MOQ custom printing from 100 pcs?", solved: false },
   ];
 
   for (let i = 0; i < qData.length; i++) {
@@ -620,7 +620,7 @@ async function main() {
         questionId: question.id,
         authorUserId: supplierBusinesses[i % supplierBusinesses.length].user.id,
         authorBusinessId: supplierBusinesses[i % supplierBusinesses.length].business.id,
-        body: "পিপি প্লাস্টিক ও ঢাকনা ভালোভাবে আটকানো থাকলে খাবার দীর্ঘক্ষণ গরম থাকে।",
+        body: "Food-grade PP plastic with tightly sealed airtight lids keeps food warm for 2 to 3 hours.",
       },
     });
 
@@ -654,7 +654,7 @@ async function main() {
         buyerBusinessId: buyerBusinesses[buyerIdx].business.id,
         createdByUserId: buyerBusinesses[buyerIdx].user.id,
         categoryId: categories[cat].id,
-        title: cat === "cups" ? "১০০০ পিস ২৫০ মিলি পেপার কাপ" : "৫০০ পিস ৭৫০ মিলি কন্টেইনার",
+        title: cat === "cups" ? "1000 pcs 250ml Paper Cups" : "500 pcs 750ml Containers",
         quantity: new Decimal(quantity),
         unit: "pcs",
         deliveryArea: area,

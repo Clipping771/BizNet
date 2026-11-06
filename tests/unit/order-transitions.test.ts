@@ -10,6 +10,90 @@ describe("lib/orders/transitions.ts - Order State Machine Transition Table Tests
   const fixedNow = new Date("2026-10-27T12:00:00.000Z");
 
   describe("Valid Transitions (§8.9 Table)", () => {
+    it("PENDING_CONFIRMATION -> CONFIRMED by SUPPLIER sets supplierConfirmedAt and status CONFIRMED when buyer has confirmed", () => {
+      const res = validateOrderTransition({
+        fromStatus: OrderStatus.PENDING_CONFIRMATION,
+        toStatus: OrderStatus.CONFIRMED,
+        actorSide: "SUPPLIER",
+        actorUserId: "user_supp_1",
+        buyerConfirmedAt: fixedNow,
+        now: fixedNow,
+      });
+      expect(res.updatedFields.status).toBe(OrderStatus.CONFIRMED);
+      expect(res.updatedFields.buyerConfirmedAt).toEqual(fixedNow);
+      expect(res.updatedFields.supplierConfirmedAt).toEqual(fixedNow);
+      expect(res.statusChangeRecord.actorSide).toBe("SUPPLIER");
+    });
+
+    it("PENDING_CONFIRMATION -> CONFIRMED by BUYER sets buyerConfirmedAt and status CONFIRMED when supplier has confirmed", () => {
+      const res = validateOrderTransition({
+        fromStatus: OrderStatus.PENDING_CONFIRMATION,
+        toStatus: OrderStatus.CONFIRMED,
+        actorSide: "BUYER",
+        actorUserId: "user_buyer_1",
+        supplierConfirmedAt: fixedNow,
+        now: fixedNow,
+      });
+      expect(res.updatedFields.status).toBe(OrderStatus.CONFIRMED);
+      expect(res.updatedFields.buyerConfirmedAt).toEqual(fixedNow);
+      expect(res.updatedFields.supplierConfirmedAt).toEqual(fixedNow);
+      expect(res.statusChangeRecord.actorSide).toBe("BUYER");
+    });
+
+    it("PENDING_CONFIRMATION -> CONFIRMED by ADMIN confirms order unilaterally setting both timestamps", () => {
+      const res = validateOrderTransition({
+        fromStatus: OrderStatus.PENDING_CONFIRMATION,
+        toStatus: OrderStatus.CONFIRMED,
+        actorSide: "ADMIN",
+        actorUserId: "user_admin_1",
+        now: fixedNow,
+      });
+      expect(res.updatedFields.status).toBe(OrderStatus.CONFIRMED);
+      expect(res.updatedFields.buyerConfirmedAt).toEqual(fixedNow);
+      expect(res.updatedFields.supplierConfirmedAt).toEqual(fixedNow);
+      expect(res.statusChangeRecord.actorSide).toBe("ADMIN");
+    });
+
+    it("PENDING_CONFIRMATION -> CONFIRMED throws if SUPPLIER tries to confirm without buyer confirmation", () => {
+      expect(() =>
+        validateOrderTransition({
+          fromStatus: OrderStatus.PENDING_CONFIRMATION,
+          toStatus: OrderStatus.CONFIRMED,
+          actorSide: "SUPPLIER",
+          actorUserId: "user_supp_1",
+          buyerConfirmedAt: null,
+          now: fixedNow,
+        })
+      ).toThrow("buyer confirmation is required");
+    });
+
+    it("PENDING_CONFIRMATION -> CONFIRMED throws if BUYER tries to confirm without supplier confirmation", () => {
+      expect(() =>
+        validateOrderTransition({
+          fromStatus: OrderStatus.PENDING_CONFIRMATION,
+          toStatus: OrderStatus.CONFIRMED,
+          actorSide: "BUYER",
+          actorUserId: "user_buyer_1",
+          supplierConfirmedAt: null,
+          now: fixedNow,
+        })
+      ).toThrow("supplier confirmation is required");
+    });
+
+    it("PENDING_CONFIRMATION -> CANCELLED by BUYER cancels order", () => {
+      const res = validateOrderTransition({
+        fromStatus: OrderStatus.PENDING_CONFIRMATION,
+        toStatus: OrderStatus.CANCELLED,
+        actorSide: "BUYER",
+        actorUserId: "user_buyer_1",
+        reason: "Terms mismatch on translation",
+        now: fixedNow,
+      });
+      expect(res.updatedFields.status).toBe(OrderStatus.CANCELLED);
+      expect(res.updatedFields.cancelledAt).toEqual(fixedNow);
+      expect(res.updatedFields.cancelledBySide).toBe("BUYER");
+    });
+
     it("CONFIRMED -> DISPATCHED by SUPPLIER sets dispatchedAt", () => {
       const res = validateOrderTransition({
         fromStatus: OrderStatus.CONFIRMED,
@@ -129,6 +213,10 @@ describe("lib/orders/transitions.ts - Order State Machine Transition Table Tests
       {
         name: "Same status transition (CONFIRMED -> CONFIRMED)",
         ctx: { fromStatus: OrderStatus.CONFIRMED, toStatus: OrderStatus.CONFIRMED, actorSide: "SUPPLIER" },
+      },
+      {
+        name: "PENDING_CONFIRMATION cannot jump directly to DISPATCHED",
+        ctx: { fromStatus: OrderStatus.PENDING_CONFIRMATION, toStatus: OrderStatus.DISPATCHED, actorSide: "SUPPLIER" },
       },
       {
         name: "BUYER cannot dispatch order (CONFIRMED -> DISPATCHED)",

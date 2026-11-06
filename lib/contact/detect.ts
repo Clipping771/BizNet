@@ -146,9 +146,10 @@ export function detectContactBypass(rawText: string): ContactDetectResult {
   }
 
   // 7. Strip allowed unit numbers before checking digit sequences:
-  // Numbers followed by units should not be glued into phone numbers or flagged if <= 7 digits
+  // Numbers with units or international currency symbols ($50, 100 USD, 5000 EUR, ৳1500, etc.)
+  // should not be glued into phone numbers or falsely flagged
   const unitRegex =
-    /(\d+)\s*(?:টাকা|tk|৳|taka|bdt|pcs|পিস|কেজি|kg|gm|গ্রাম|ml|মিলি|লিটার|l|ltr|litre|boxes|বক্স|কার্টন|carton|বস্তা|ব্যাগ|bag|meter|মিটার|inch|ইঞ্চি|gauge|গেজ|gsm|জিএসএম)\b/gi;
+    /(?:[\$€£¥₹৳]\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*(?:[\$€£¥₹৳]|usd|eur|gbp|inr|aed|cad|aud|sgd|jpy|cny|sar|qar|kwd|omr|bdt|tk|taka|টাকা|pcs|পিস|কেজি|kg|gm|গ্রাম|ml|মিলি|লিটার|l|ltr|litre|boxes|বক্স|কার্টন|carton|বস্তা|ব্যাগ|bag|meter|মিটার|inch|ইঞ্চি|gauge|গেজ|gsm|জিএসএম)(?!\w))/gi;
 
   const textWithoutUnits = textWithoutDates.replace(
     unitRegex,

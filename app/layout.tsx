@@ -18,7 +18,7 @@ const hindSiliguri = Hind_Siliguri({
 });
 
 export const viewport = {
-  themeColor: "#006A4E",
+  themeColor: "#FFFFFF",
   width: "device-width",
   initialScale: 1,
 };
@@ -48,11 +48,12 @@ export default async function RootLayout({
     user = await findUserById(session.userId);
     if (user) {
       userPhone = user.phone || undefined;
+      userLang = user.uiLanguage;
       if (session.activeBusinessId) {
         const biz = await findBusinessById(session.activeBusinessId);
         if (biz) {
           activeBusinessName = biz.name;
-          userLang = biz.lang;
+          if (!userLang) userLang = biz.lang;
         }
       }
     }

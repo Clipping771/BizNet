@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       businessId: ctx.activeBusinessId || undefined,
       userText: text.trim(),
-      uiLanguage: uiLanguage || user.uiLanguage || "bn",
+      uiLanguage: uiLanguage || user.uiLanguage || "en",
       buyerBusinessArea,
     });
 

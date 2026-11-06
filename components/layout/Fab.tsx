@@ -1,20 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import { useT } from "@/components/ui/T";
 
-/** Extended floating action button for a new request on phones (the rail has it on desktop). */
+/** Floating "new request" button on phones; desktop has the button in the page header. */
 export function Fab() {
   const t = useT();
   return (
     <Link
       href="/requests/new"
       id="fab-new-request"
-      className="fixed bottom-[88px] end-4 z-40 inline-flex h-14 items-center gap-3 rounded-2xl bg-primary-100 pe-5 ps-4 text-sm font-medium text-primary-900 shadow-fab transition-shadow active:shadow-raised lg:hidden"
+      aria-label={t("home.newRequest")}
+      className="fixed bottom-[72px] end-4 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-600 text-white shadow-fab transition-colors active:bg-primary-700 md:hidden"
     >
-      <Pencil className="h-5 w-5" />
-      {t("home.newRequest")}
+      <Plus size={24} weight="bold" />
     </Link>
   );
 }

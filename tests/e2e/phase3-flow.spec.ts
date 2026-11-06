@@ -43,7 +43,7 @@ async function newSession(
   page.on("dialog", (d) => d.accept());
   await clearRateLimits();
   await page.goto("/login");
-  await page.locator("input[type='tel']").fill(phone.replace("+880", ""));
+  await page.locator("input[type='tel']").fill(phone);
   await page.locator("button[type='submit']").click();
   const otpInput = page.getByTestId("otp-input");
   await expect(otpInput).toBeVisible({ timeout: 10000 });
@@ -178,7 +178,7 @@ test.describe("Phase 3 acceptance: core loop at 360×740 (§16)", () => {
     await buyerPage.locator("#rfq-next-step-1").click();
     await expect(buyerPage.locator("#rfq-quantity-input")).toHaveValue("500");
     await expect(buyerPage.locator("#needed-by-chip-tomorrow")).toHaveClass(/bg-primary/);
-    await expect(buyerPage.locator("#rfq-delivery-area-select")).toHaveValue("Mirpur");
+    await expect(buyerPage.locator("#rfq-delivery-area-input")).toHaveValue("Mirpur");
     await buyerPage.locator("#rfq-next-step-2").click();
     await buyerPage.locator("#send-request-submit-btn").click();
     await expect(buyerPage.locator("#created-request-code")).toBeVisible({ timeout: 15000 });

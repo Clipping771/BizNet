@@ -26,10 +26,10 @@ export default function SupplierInboxPage() {
     <div className="page space-y-4">
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <h1 className="text-base font-bold text-gray-900">
+          <h1 className="page-title">
             <T k="nav.inbox" />
           </h1>
-          <p className="text-xs text-gray-400"><T k="inbox.subtitle" /></p>
+          <p className="page-subtitle"><T k="inbox.subtitle" /></p>
         </div>
       </div>
 
@@ -43,7 +43,7 @@ export default function SupplierInboxPage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                <T k={`cat.${req.category.slug}`} />
+                <T k={`category.${req.category.slug}`} />
               </span>
               <span className="text-[11px] font-mono text-gray-400">{req.code}</span>
             </div>

@@ -1,6 +1,13 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "biznet-dev", "runtimeExecutable": "pnpm", "runtimeArgs": ["dev"], "port": 3000 }
+    {
+      "name": "biznet-preview",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["exec", "next", "dev", "--port", "3007"],
+      "env": { "NEXT_DIST_DIR": ".next-preview" },
+      "port": 3007,
+      "autoPort": false
+    }
   ]
 }

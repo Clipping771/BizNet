@@ -120,21 +120,8 @@ export default function NewRequestPage() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setCategories(data);
-          setSelectedCategory((curr) => {
-            if (curr) return curr;
-            const def = data.find((c: any) => c.slug === "containers") || data[0];
-            if (def && def.defaultUnits?.[0]) setUnit(def.defaultUnits[0]);
-            if (def?.attributeSchema?.fields) {
-              const defaults: Record<string, any> = {};
-              for (const f of def.attributeSchema.fields) {
-                if (f.required && f.type === "select" && f.options?.length) {
-                  defaults[f.key] = f.options[0];
-                }
-              }
-              setAttributes((prev) => ({ ...defaults, ...prev }));
-            }
-            return def;
-          });
+          // No category or spec is preselected: the buyer (or the AI draft) chooses, so suppliers never
+          // receive a request with silently defaulted specs
         }
       })
       .catch((err) => console.error("Categories fetch error:", err));

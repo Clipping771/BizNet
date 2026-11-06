@@ -218,7 +218,7 @@ describe("Phase 3 review fixes", () => {
       const original = await newRequest();
       const q = await submitQuoteRecord(quoteInput(original.id, s1.id, s1User.id));
       const order = await acceptQuoteAndCreateOrderRecord(q.id, buyer.id, buyerUser.id);
-      for (const to of [OrderStatus.DISPATCHED, OrderStatus.DELIVERED]) {
+      for (const to of [OrderStatus.CONFIRMED, OrderStatus.DISPATCHED, OrderStatus.DELIVERED]) {
         await updateOrderStatusRecord({ orderId: order.id, toStatus: to, actorSide: "SUPPLIER", actorUserId: s1User.id });
       }
       await updateOrderStatusRecord({ orderId: order.id, toStatus: OrderStatus.COMPLETED, actorSide: "BUYER", actorUserId: buyerUser.id });
@@ -422,6 +422,7 @@ describe("Phase 3 review fixes", () => {
       const req = await newRequest();
       const q = await submitQuoteRecord(quoteInput(req.id, s1.id, s1User.id));
       const order = await acceptQuoteAndCreateOrderRecord(q.id, buyer.id, buyerUser.id);
+      await updateOrderStatusRecord({ orderId: order.id, toStatus: OrderStatus.CONFIRMED, actorSide: "SUPPLIER", actorUserId: s1User.id });
       const results = await Promise.allSettled([
         updateOrderStatusRecord({ orderId: order.id, toStatus: OrderStatus.DISPATCHED, actorSide: "SUPPLIER", actorUserId: s1User.id }),
         updateOrderStatusRecord({ orderId: order.id, toStatus: OrderStatus.DISPATCHED, actorSide: "SUPPLIER", actorUserId: s1User.id }),

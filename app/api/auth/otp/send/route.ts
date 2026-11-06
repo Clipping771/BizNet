@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     const sms = getSmsProvider();
     await sms.sendSms(
       phone,
-      `আপনার BizNet কোড: ${code}। মেয়াদ ৫ মিনিট। / Your BizNet verification code is ${code}. Valid for 5 minutes.`
+      `Your BizNet verification code is ${code}. Valid for 5 minutes.`
     );
 
     const shouldExposeDevOtp =

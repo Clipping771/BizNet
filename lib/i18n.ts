@@ -17,7 +17,7 @@ let catalogVersion = 1;
 /**
  * Loads translations for the specified language with fallback to English.
  */
-export async function getTranslations(lang: string = "bn"): Promise<Translations> {
+export async function getTranslations(lang: string = "en"): Promise<Translations> {
   const cached = memoryCache.get(lang);
   if (cached && cached.version === catalogVersion && Date.now() - cached.timestamp < 60000) {
     return cached.translations;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { COUNTRIES, Country, DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES, Country } from "@/lib/countries";
 import { ChevronDown, Search, Globe, Check, Edit3 } from "lucide-react";
 import { T, useT } from "@/components/ui/T";
 
@@ -25,7 +25,8 @@ export function PhoneInput({
   const t = useT();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
+  // International app: no country is assumed until the user picks one or types +<code>
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [customDial, setCustomDial] = useState("+");
   const [localNumber, setLocalNumber] = useState("");
@@ -115,15 +116,35 @@ export function PhoneInput({
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
+    // "+<code>..." typed straight into the number box picks the country by its dial code
+    if (raw.trim().startsWith("+")) {
+      const digits = "+" + raw.replace(/[^\d]/g, "");
+      const matched = COUNTRIES.slice()
+        .sort((a, b) => b.dial.length - a.dial.length)
+        .find((c) => digits.startsWith(c.dial));
+      if (matched) {
+        setSelectedCountry(matched);
+        setIsCustomMode(false);
+        setLocalNumber(digits.slice(matched.dial.length));
+      } else {
+        setLocalNumber(raw);
+      }
+      onChange(digits);
+      return;
+    }
     setLocalNumber(raw);
-    const activeDial = isCustomMode ? customDial : selectedCountry.dial;
-    emitChange(activeDial, raw);
+    if (isCustomMode) emitChange(customDial, raw);
+    else if (selectedCountry) emitChange(selectedCountry.dial, raw);
+    else onChange("");
   };
 
+  const needsCountry = !isCustomMode && !selectedCountry && localNumber.trim().length > 0;
+
   const filteredCountries = useMemo(() => {
-    if (!search.trim()) return COUNTRIES;
+    const all = COUNTRIES.slice().sort((x, y) => x.name.localeCompare(y.name));
+    if (!search.trim()) return all;
     const q = search.toLowerCase().trim();
-    return COUNTRIES.filter(
+    return all.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.code.toLowerCase().includes(q) ||
@@ -133,17 +154,17 @@ export function PhoneInput({
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      <div className="flex h-12 items-center overflow-visible rounded-lg border border-gray-300 bg-white transition-all hover:border-gray-500 focus-within:border-primary-600 focus-within:ring-1 focus-within:ring-primary-600">
+      <div className="flex h-12 items-center overflow-visible rounded-xl border border-slate-300 bg-white shadow-2xs transition-all hover:border-slate-400 focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20">
         {/* Country Picker Trigger or Custom Dial Input */}
         {isCustomMode ? (
-          <div className="flex items-center border-e border-gray-200 ps-2.5 pe-1 bg-gray-100/70 rounded-s-xl">
+          <div className="flex items-center border-e border-slate-200 ps-2.5 pe-1 bg-slate-100/70 rounded-s-xl">
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="p-1 text-gray-500 hover:text-primary transition-colors"
+              className="p-1 text-slate-500 hover:text-teal-700 transition-colors"
               title={t("auth.selectCountry")}
             >
-              <Globe className="w-4 h-4 text-primary" />
+              <Globe className="w-4 h-4 text-teal-700" />
             </button>
             <input
               type="text"
@@ -151,12 +172,12 @@ export function PhoneInput({
               onChange={handleCustomDialChange}
               placeholder={"+..."}
               maxLength={6}
-              className="w-14 px-1 py-2 text-xs font-mono font-bold text-gray-900 bg-transparent focus:outline-none"
+              className="w-14 px-1 py-2 text-xs font-mono font-bold text-slate-900 bg-transparent focus:outline-none"
             />
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="px-1 text-gray-400 hover:text-gray-600"
+              className="px-1 text-slate-400 hover:text-slate-600"
             >
               <ChevronDown className="w-3 h-3" />
             </button>
@@ -166,15 +187,20 @@ export function PhoneInput({
             type="button"
             disabled={disabled}
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-gray-100/60 hover:bg-gray-100 border-e border-gray-200 rounded-s-xl text-xs font-semibold text-gray-800 transition-colors shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-50/80 hover:bg-slate-100 border-e border-slate-200 rounded-s-xl text-xs font-semibold text-slate-800 transition-colors shrink-0"
           >
-            <span className="text-base leading-none select-none">
-              {selectedCountry.flag}
-            </span>
-            <span className="font-mono text-gray-900">
-              {selectedCountry.dial}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+            {selectedCountry ? (
+              <>
+                <span className="text-base leading-none select-none">{selectedCountry.flag}</span>
+                <span className="font-mono text-slate-900 font-bold">{selectedCountry.dial}</span>
+              </>
+            ) : (
+              <>
+                <Globe className="h-4 w-4 text-slate-500" />
+                <span className="text-slate-600">{t("auth.country")}</span>
+              </>
+            )}
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
         )}
 
@@ -187,9 +213,17 @@ export function PhoneInput({
           value={localNumber}
           onChange={handleNumberChange}
           placeholder={t("auth.phoneNumberPlaceholder")}
+          aria-invalid={needsCountry || undefined}
+          aria-describedby={needsCountry ? `${id}-hint` : undefined}
           className="flex-1 w-full px-3 py-2.5 text-sm bg-transparent focus:outline-none text-gray-900 placeholder:text-gray-400 font-medium"
         />
       </div>
+
+      {needsCountry && (
+        <p id={`${id}-hint`} className="mt-1.5 text-xs text-amber-700">
+          {t("auth.pickCountryHint")}
+        </p>
+      )}
 
       {/* Dropdown Popover */}
       {isOpen && (
@@ -239,7 +273,7 @@ export function PhoneInput({
             ) : (
               filteredCountries.map((c) => {
                 const isSelected =
-                  !isCustomMode && selectedCountry.code === c.code;
+                  !isCustomMode && selectedCountry?.code === c.code;
                 return (
                   <button
                     key={c.code}

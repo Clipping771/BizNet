@@ -9,7 +9,7 @@ const randomBdPhone = () => `+88018${Math.floor(10000000 + Math.random() * 90000
 
 async function loginWithPhone(page: Page, fullPhone: string) {
   await page.goto("/login");
-  await page.locator("input[type='tel']").fill(fullPhone.replace("+880", ""));
+  await page.locator("input[type='tel']").fill(fullPhone);
   await page.locator("button[type='submit']").click();
 
   const otpInput = page.getByTestId("otp-input");

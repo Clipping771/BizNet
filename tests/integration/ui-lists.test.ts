@@ -72,6 +72,7 @@ describe("list screen APIs", () => {
     await sendMessageRecord({ conversationId: conv.id, senderUserId: supplierUser.id, senderBusinessId: supplier.id, body: "Free delivery in Mirpur" });
     const order = await acceptQuoteAndCreateOrderRecord(quote.id, buyer.id, buyerUser.id);
     orderCode = order.code;
+    await updateOrderStatusRecord({ orderId: order.id, toStatus: OrderStatus.CONFIRMED, actorSide: "SUPPLIER", actorUserId: supplierUser.id });
     await updateOrderStatusRecord({ orderId: order.id, toStatus: OrderStatus.DISPATCHED, actorSide: "SUPPLIER", actorUserId: supplierUser.id });
   });
 

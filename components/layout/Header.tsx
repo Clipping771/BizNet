@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { Bell, Search, Home, FileText, ReceiptText, MessageSquare, TrendingUp } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, MagnifyingGlass } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useT } from "@/components/ui/T";
 import { formatNumber } from "@/lib/money";
 import { Brand } from "./Brand";
 import { AccountMenu } from "./AccountMenu";
-import { isActivePath } from "./nav";
+import { TOP_NAV, isActivePath } from "./nav";
 
 interface HeaderProps {
   activeBusinessName?: string;
@@ -16,17 +16,16 @@ interface HeaderProps {
   lang?: string;
   isLoggedIn?: boolean;
   isAdmin?: boolean;
-  /** Signed-in app pages: full-width app bar above the navigation rail, with the search field. */
+  /** Signed-in app pages: navigation tabs and search. */
   withSidebar?: boolean;
 }
 
-/** Top app bar: brand, search, LinkedIn-style navigation tabs, notifications and account avatar. */
-export function Header({ activeBusinessName, userPhone, lang = "bn", isLoggedIn = false, isAdmin = false, withSidebar = false }: HeaderProps) {
+/** Quiet top bar: brand, text tabs, search, alerts and the account menu. */
+export function Header({ activeBusinessName, userPhone, lang = "en", isLoggedIn = false, isAdmin = false, withSidebar = false }: HeaderProps) {
   const t = useT();
-  const router = useRouter();
   const pathname = usePathname();
+  const router = useRouter();
   const [unread, setUnread] = useState(0);
-  const [q, setQ] = useState("");
   const [scrolled, setScrolled] = useState(false);
 
   // Unread notification badge, refreshed every minute while the app is open
@@ -42,106 +41,97 @@ export function Header({ activeBusinessName, userPhone, lang = "bn", isLoggedIn 
     return () => clearInterval(id);
   }, [isLoggedIn]);
 
-  // The bar lifts off the page once content scrolls under it
+  // "/" opens search from anywhere except while typing
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
+    if (!withSidebar) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing = el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
+      if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        router.push("/search");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [withSidebar, router]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const topNavTabs = [
-    { href: "/home", label: "Home", icon: Home },
-    { href: "/requests", label: "RFQs", icon: FileText },
-    { href: "/quotes", label: "Quotes", icon: ReceiptText },
-    { href: "/prices", label: "Market", icon: TrendingUp },
-    { href: "/inbox", label: "Messaging", icon: MessageSquare },
-  ];
-
-  const iconBtn = "relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900";
+  const iconBtn = "relative flex h-9 w-9 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
 
   return (
-    <header className={`sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md transition-shadow ${scrolled ? "shadow-sm" : ""}`}>
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-3 sm:px-6">
-        <div className="flex items-center gap-3 lg:gap-5">
-          <Brand href={isLoggedIn ? "/home" : "/"} />
+    <header className={`sticky top-0 z-40 bg-white/80 backdrop-blur-xl transition-[border-color] ${scrolled ? "border-b border-slate-200" : "border-b border-transparent"}`}>
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-8">
+        <Brand href={isLoggedIn ? "/home" : "/"} />
 
-          {withSidebar && (
-            <form
-              role="search"
-              className="relative hidden sm:block w-48 md:w-64 lg:w-72"
-              onSubmit={(e) => {
-                e.preventDefault();
-                router.push(q.trim() ? `/search?q=${encodeURIComponent(q.trim())}` : "/search");
-              }}
-            >
-              <label className="group relative block">
-                <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" />
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder={t("home.searchPlaceholder")}
-                  aria-label={t("nav.search")}
-                  className="h-9 w-full rounded-full border border-slate-200 bg-slate-100/70 ps-9 pe-4 text-xs text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary"
-                />
-              </label>
-            </form>
-          )}
-        </div>
-
-        {/* Center LinkedIn-style desktop navigation tabs */}
-        {isLoggedIn && (
-          <nav aria-label="Global Navigation" className="hidden md:flex items-center gap-1 lg:gap-2">
-            {topNavTabs.map((tab) => {
-              const Icon = tab.icon;
-              const active = isActivePath(pathname, tab.href);
+        {withSidebar && (
+          <nav aria-label={t("nav.main")} className="hidden items-center gap-1 md:flex">
+            {TOP_NAV.map(({ href, labelKey, icon: Icon }) => {
+              const active = isActivePath(pathname, href);
               return (
                 <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={`group relative flex h-14 min-w-[56px] flex-col items-center justify-center px-2 text-[11px] font-medium transition-colors ${
-                    active ? "text-primary font-bold" : "text-slate-500 hover:text-slate-900"
+                  key={href}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    active ? "bg-teal-50 font-semibold text-teal-800" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
-                  <Icon className="h-5 w-5" strokeWidth={active ? 2.3 : 1.8} />
-                  <span className="truncate">{tab.label}</span>
-                  {active && (
-                    <span className="absolute bottom-0 h-0.5 w-full max-w-[40px] rounded-full bg-primary" />
-                  )}
+                  <Icon size={18} weight={active ? "fill" : "regular"} />
+                  {t(labelKey)}
                 </Link>
               );
             })}
           </nav>
         )}
 
-        {/* Right side controls */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="ms-auto flex items-center gap-1">
           {withSidebar && (
-            <Link href="/search" aria-label={t("nav.search")} className={`${iconBtn} sm:hidden`}>
-              <Search className="h-5 w-5" />
+            <Link
+              href="/search"
+              aria-label={t("nav.search")}
+              className="me-1 hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm text-slate-400 transition-colors hover:border-slate-300 hover:text-slate-500 lg:flex"
+            >
+              <MagnifyingGlass size={16} />
+              <span className="flex-1">{t("nav.search")}</span>
+              <kbd className="rounded border border-slate-200 px-1.5 font-sans text-[11px] text-slate-400">/</kbd>
             </Link>
           )}
-
+          {withSidebar && (
+            <Link href="/search" aria-label={t("nav.search")} className={`${iconBtn} lg:hidden`}>
+              <MagnifyingGlass size={20} />
+            </Link>
+          )}
           {isLoggedIn && (
             <Link href="/notifications" id="header-notifications" aria-label={t("notifications.open")} className={iconBtn}>
-              <Bell className="h-5 w-5" />
+              <Bell size={20} weight={isActivePath(pathname, "/notifications") ? "fill" : "regular"} />
               {unread > 0 && (
                 <span
                   id="header-unread"
-                  className="absolute end-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white ring-2 ring-white"
+                  className="absolute end-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white"
                 >
                   {unread > 99 ? `${formatNumber(99, lang)}+` : formatNumber(unread, lang)}
                 </span>
               )}
             </Link>
           )}
-
-          {isLoggedIn || activeBusinessName || withSidebar ? (
+          {isLoggedIn ? (
             <AccountMenu activeBusinessName={activeBusinessName} userPhone={userPhone} lang={lang} isAdmin={isAdmin} />
           ) : (
-            <Link href="/login" className="btn btn-primary btn-sm">
-              {t("auth.login")}
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="btn btn-ghost">
+                {t("auth.login")}
+              </Link>
+              <Link href="/login" className="btn btn-primary">
+                {t("landing.getStarted")}
+              </Link>
+            </div>
           )}
         </div>
       </div>

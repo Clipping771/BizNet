@@ -58,7 +58,14 @@ export async function GET(req: NextRequest) {
     await logEvent({
       name: "search",
       userId: user?.id ?? null,
-      props: { q: q.text, tab, filters: { ...filters, offset: undefined }, resultCount: results.length },
+      businessId: user?.activeBusinessId ?? null,
+      props: {
+        q: q.text,
+        tab,
+        categorySlug: filters.categoryId || null,
+        filters: { ...filters, offset: undefined },
+        resultCount: results.length,
+      },
     });
 
     return NextResponse.json({ tab, results, nextOffset: results.length === 20 ? (filters.offset ?? 0) + 20 : null });

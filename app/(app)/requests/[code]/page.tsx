@@ -37,6 +37,7 @@ interface CompareRow {
   quantity: string;
   deliveryCharge: string;
   totalPrice: string;
+  currency?: string;
   deliveryDays: number;
   estimatedArrival: string;
   isLate: boolean;
@@ -572,10 +573,10 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
             </h3>
             <p className="text-xs font-semibold text-gray-700">{orderRow.supplier.name}</p>
             <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
-              <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(orderRow.unitPrice, lang)} />
+              <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(orderRow.unitPrice, lang, orderRow.currency)} />
               <SheetLine label={t("rfq.quantity")} value={`${formatNumber(orderRow.quantity, lang)} ${request.unit}`} />
-              <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(orderRow.deliveryCharge, lang)} />
-              <SheetLine label={t("quote.totalPrice")} value={formatMoney(orderRow.totalPrice, lang)} strong />
+              <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(orderRow.deliveryCharge, lang, orderRow.currency)} />
+              <SheetLine label={t("quote.totalPrice")} value={formatMoney(orderRow.totalPrice, lang, orderRow.currency)} strong />
               <SheetLine label={t("quote.deliveryDays")} value={daysText(t, orderRow.deliveryDays, lang)} />
               <SheetLine label={t("quote.paymentTerm")} value={t(`payterm.${orderRow.paymentTerm}`)} />
               {orderRow.specMatch
@@ -736,7 +737,7 @@ function QuoteCard({
           {row.supplier.area && <p className="text-xs text-gray-400">{row.supplier.area}</p>}
         </div>
         <div className="text-right shrink-0">
-          <div className="text-sm font-bold text-primary">{formatMoney(row.totalPrice, lang)}</div>
+          <div className="text-sm font-bold text-primary">{formatMoney(row.totalPrice, lang, row.currency)}</div>
           {row.isBestFit && (
             <span
               id={`best-fit-badge-${row.quoteRef}`}
@@ -749,8 +750,8 @@ function QuoteCard({
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-        <Info label={t("quote.unitPriceShort")} value={formatMoney(row.unitPrice, lang)} />
-        <Info label={t("quote.deliveryCharge")} value={formatMoney(row.deliveryCharge, lang)} />
+        <Info label={t("quote.unitPriceShort")} value={formatMoney(row.unitPrice, lang, row.currency)} />
+        <Info label={t("quote.deliveryCharge")} value={formatMoney(row.deliveryCharge, lang, row.currency)} />
         <Info label={t("quote.delivery")} value={daysText(t, row.deliveryDays, lang)} />
         <Info label={t("quote.validUntil")} value={formatDate(row.validUntil, lang)} />
       </div>
@@ -1057,9 +1058,9 @@ function SupplierPanel({
             </span>
           </div>
           <p className="text-gray-400">{t("quote.versionLabel", undefined, { v: myQuote.version })}</p>
-          <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(myQuote.unitPrice, lang)} />
-          <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(myQuote.deliveryCharge, lang)} />
-          <SheetLine label={t("quote.totalPrice")} value={formatMoney(myQuote.totalPrice, lang)} strong />
+          <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(myQuote.unitPrice, lang, myQuote.currency)} />
+          <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(myQuote.deliveryCharge, lang, myQuote.currency)} />
+          <SheetLine label={t("quote.totalPrice")} value={formatMoney(myQuote.totalPrice, lang, myQuote.currency)} strong />
           <SheetLine label={t("quote.deliveryDays")} value={daysText(t, myQuote.deliveryDays, lang)} />
           <SheetLine label={t("quote.paymentTerm")} value={t(`payterm.${myQuote.paymentTerm}`)} />
           <SheetLine label={t("quote.validUntil")} value={formatDate(myQuote.validUntil, lang)} />

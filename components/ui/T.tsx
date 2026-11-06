@@ -78,10 +78,10 @@ export function useT() {
   );
 }
 
-/** Current UI language from the server-resolved catalog (falls back to bn). */
+/** Current UI language from the server-resolved catalog (falls back to en). */
 export function useLang(): string {
   const ctx = useContext(TranslationsContext);
-  return ctx?.lang || "bn";
+  return ctx?.lang || "en";
 }
 
 export function T({ k, lang, params }: { k: string; lang?: string; params?: Params }) {

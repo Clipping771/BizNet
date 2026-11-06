@@ -103,6 +103,8 @@ export async function updateOrderStatusRecord(input: UpdateOrderStatusInput) {
     toStatus: input.toStatus,
     actorSide: input.actorSide,
     actorUserId: input.actorUserId,
+    buyerConfirmedAt: order.buyerConfirmedAt,
+    supplierConfirmedAt: order.supplierConfirmedAt,
     reason: input.reason,
     disputeResolution: input.disputeResolution,
     disputeNote: input.disputeNote,

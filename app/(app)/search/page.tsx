@@ -157,8 +157,8 @@ export default function SearchPage() {
                 setNextOffset(null);
                 setTab(value);
               }}
-              className={`px-4 py-2 rounded-full text-xs font-semibold border ${
-                tab === value ? "bg-primary text-white border-primary" : "bg-white text-gray-600 border-gray-200"
+              className={`px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${
+                tab === value ? "bg-teal-50 text-teal-800 border-teal-300 shadow-xs" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
               }`}
             >
               <T k={value === "products" ? "search.tabProducts" : "search.tabBusinesses"} />
@@ -309,8 +309,8 @@ export default function SearchPage() {
                 {r.priceMin && (
                   <span>
                     {t("search.priceRange", undefined, {
-                      min: formatMoney(r.priceMin, lang),
-                      max: formatMoney(r.priceMax ?? r.priceMin, lang),
+                      min: formatMoney(r.priceMin, lang, r.currency),
+                      max: formatMoney(r.priceMax ?? r.priceMin, lang, r.currency),
                       unit: r.unit,
                     })}
                   </span>

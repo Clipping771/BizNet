@@ -168,3 +168,18 @@ All deviations from the original specification require explicit founder review a
 | Design tokens in Tailwind (slate neutrals, emerald brand scale, card/raised/pop shadows) and shared component classes (`card`, `btn-*`, `input`, `label`, `page`, `page-title`) in `globals.css` | `tailwind.config.ts`, `app/globals.css` | One visual language instead of per-page ad-hoc classes. |
 | Inter for Latin + Hind Siliguri for Bangla via `next/font` (self-hosted at build time) | `app/layout.tsx` | Consistent, legible Bangla on every device; no runtime font requests. |
 | Minimum body text 12px (former 10–11px text raised one step) | all pages | Bangla conjuncts at 10–11px were hard to read on phones. |
+
+## UI v3 and international decisions
+
+| Decision | Where | Why |
+|---|---|---|
+| Premium, monochrome look: ink (near-black) brand colour, neutral square monograms, monochrome icons, 6px buttons, hairline borders, no gradients or illustrations | `tailwind.config.ts`, `app/globals.css`, `components/layout/*` | Founder found the colourful version cartoonish and the dense one cheap. |
+| One top bar with text tabs on every page (no sidebar); phones keep the bottom tab bar; `/` opens search | `components/layout/Header.tsx` | Fewer things on screen at once; same navigation everywhere. |
+| Home is a single calm column: greeting, one "what do you need?" entry, four numbers, then supplier opportunities / recent requests / activity | `app/(app)/home/page.tsx`, `components/home/*` | The three-column version crammed too much in one place. Prices and quotes moved to the account menu. |
+| No fabricated data on screens (removed hard-coded price index and "safe trade / escrow / GST" claims) | `components/home/*` | Only real quotes, suppliers and notifications are shown. |
+| International app: phone sign-in has no preselected country; the user picks one or types `+code` and the country is detected | `components/ui/PhoneInput.tsx` | Founder: no default country. |
+| Money shows the record's own currency (quotes/listings store one; database default BDT); the viewer's language never changes it | `lib/money.ts` | The same amount was shown as ৳ to Bangla readers and $ to everyone else. |
+| The new-request form preselects no category or spec values | `app/(app)/requests/new/page.tsx` | Silently defaulted specs would send suppliers wrong requirements. |
+| Tests never use real providers (console email) and test/preview builds use their own folders (`NEXT_DIST_DIR`) | `vitest.config.ts`, `playwright.config.ts`, `next.config.ts` | Real Resend key caused failures; shared `.next` broke the developer's running `next dev`. |
+| Home is a feed (requests for matching suppliers, your own requests, new public listings, public questions) interleaved by kind, with a right rail (your counts, market prices with a trend line from earlier nightly runs, verified suppliers, unanswered questions); only real, permission-checked data is shown | `app/(app)/home/page.tsx`, `components/home/*`, `lib/repo/home.ts` | Founder wanted a LinkedIn-style engaging feed; features the app does not have (group sourcing, live panels) are not imitated. Supersedes the single-column home above. |
+| Brand colour is indigo on neutral surfaces; icons are Phosphor (fill for active tabs, duotone in coloured tiles) | `tailwind.config.ts`, `components/layout/*` | Pure black-and-white felt wrong for a social business app; line icons looked plain. |

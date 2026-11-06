@@ -227,8 +227,8 @@
   "listing.titlePlaceholder": "e.g., 500ml Microwave PP Food Container with Lid",
   "listing.description": "Product Description",
   "listing.unit": "Unit",
-  "listing.priceMin": "Min Price (BDT)",
-  "listing.priceMax": "Max Price (BDT)",
+  "listing.priceMin": "Min Price ({currency})",
+  "listing.priceMax": "Max Price ({currency})",
   "listing.moq": "Minimum Order Quantity (MOQ)",
   "listing.leadTime": "Lead Time (Days)",
   "listing.images": "Product Images",
@@ -259,5 +259,14 @@
   "public.viewBusiness": "View Supplier Profile",
   "public.notFound": "The requested business or listing was not found or is currently suspended.",
   "public.backToHome": "Return Home",
-  "public.noListings": "This supplier has no active product listings currently."
+  "public.noListings": "This supplier has no active product listings currently.",
+  "algo.badge": "موصى به لك",
+  "algo.reason.viewed": "بناءً على المنتجات التي شاهدتها",
+  "algo.reason.interest": "يطابق اهتماماتك",
+  "algo.reason.search": "بناءً على عمليات البحث الأخيرة",
+  "algo.reason.nearby": "شائع في منطقتك",
+  "algo.reason.trending": "شائع بين المشترين",
+  "algo.dismiss": "إظهار عناصر أقل مثل هذا",
+  "algo.dismissed": "تم إخفاء التوصية",
+  "algo.similar": "منتجات مماثلة قد تعجبك"
 }

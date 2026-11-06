@@ -209,7 +209,7 @@ export async function createQuestion(input: CreateQuestionInput): Promise<Create
       categoryId: input.categoryId || null,
       title,
       body,
-      lang: input.lang || "bn",
+      lang: input.lang || "en",
       status: selling.isSelling ? QuestionStatus.PENDING_REVIEW : QuestionStatus.OPEN,
     },
     select: { id: true, status: true },
@@ -240,7 +240,7 @@ export async function createAnswer(input: { userId: string; businessId: string |
 
   const answer = await prisma.$transaction(async (tx) => {
     const created = await tx.answer.create({
-      data: { questionId: question.id, authorUserId: input.userId, authorBusinessId: input.businessId, body, lang: input.lang || "bn" },
+      data: { questionId: question.id, authorUserId: input.userId, authorBusinessId: input.businessId, body, lang: input.lang || "en" },
     });
     await tx.question.update({
       where: { id: question.id },

@@ -2,18 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, ReceiptText, Package, MessageSquare, FileText } from "lucide-react";
+import { Bell, CheckCheck } from "lucide-react";
 import { T, useLang, useT } from "@/components/ui/T";
 import { EmptyState, ListSkeleton, PageHeader } from "@/components/ui/ListStates";
 import { formatDate } from "@/lib/dates";
+import { notificationIcon, notificationTone, useNotificationText } from "@/components/notifications/useNotificationText";
 
-function iconFor(type: string) {
-  if (type.startsWith("QUOTE")) return ReceiptText;
-  if (type.startsWith("ORDER")) return Package;
-  if (type.startsWith("MESSAGE")) return MessageSquare;
-  if (type.startsWith("REQUEST")) return FileText;
-  return Bell;
-}
 
 /** In-app notifications (§7 /notifications): newest first; opening one marks it read. */
 export default function NotificationsPage() {
@@ -39,14 +33,7 @@ export default function NotificationsPage() {
     });
   };
 
-  const text = (n: any) => {
-    const p = n.params || {};
-    const code = p.requestCode || p.orderCode || "";
-    const status = p.status ? t(`order.status.${p.status}`) : "";
-    const key = `notif.${n.type}`;
-    const message = t(key, undefined, { code, status });
-    return message === key ? t("notif.generic") : message;
-  };
+  const text = useNotificationText();
 
   return (
     <div className="page space-y-5">
@@ -73,7 +60,7 @@ export default function NotificationsPage() {
       ) : (
         <div id="notification-list" className="card divide-y divide-gray-100 overflow-hidden">
           {items.map((n) => {
-            const Icon = iconFor(n.type);
+            const Icon = notificationIcon(n.type);
             return (
               <Link
                 key={n.id}
@@ -85,8 +72,8 @@ export default function NotificationsPage() {
                 }}
                 className={`relative flex items-start gap-3.5 px-4 py-3.5 transition hover:bg-gray-50 ${n.readAt ? "" : "bg-primary-50/50"}`}
               >
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${n.readAt ? "bg-gray-100 text-gray-500" : "bg-primary-100 text-primary-700"}`}>
-                  <Icon className="h-4 w-4" />
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${notificationTone(n.type)}`}>
+                  <Icon size={20} weight="duotone" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className={`text-sm ${n.readAt ? "text-gray-600" : "font-semibold text-gray-900"}`}>{text(n)}</p>

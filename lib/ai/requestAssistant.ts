@@ -79,7 +79,7 @@ export async function checkProhibitedItems(text: string): Promise<boolean> {
 export async function processRequestWithAi(
   params: RequestAssistantParams
 ): Promise<RequestAssistantResponse> {
-  const uiLanguage = params.uiLanguage || "bn";
+  const uiLanguage = params.uiLanguage || "en";
 
   // 1. Check prohibited items (§8.4, A8)
   const isProhibited = await checkProhibitedItems(params.userText);

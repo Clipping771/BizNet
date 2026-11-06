@@ -24,6 +24,8 @@ export default defineConfig({
   // running server on APP_URL is reused.
   webServer: {
     command: `pnpm start --port ${port}`,
+    // The e2e server never sends real email
+    env: { EMAIL_PROVIDER: "console" },
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

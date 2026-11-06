@@ -32,11 +32,11 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
 
 export function EmptyState({ k, icon: Icon = Inbox, children }: { k: string; icon?: LucideIcon; children?: React.ReactNode }) {
   return (
-    <div className="card flex flex-col items-center gap-4 px-6 py-12 text-center">
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-700">
-        <Icon className="h-7 w-7" strokeWidth={1.6} />
+    <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+        <Icon className="h-6 w-6" strokeWidth={1.7} />
       </span>
-      <p className="max-w-sm text-[15px] text-gray-600">
+      <p className="max-w-sm text-sm text-slate-600">
         <T k={k} />
       </p>
       {children}
@@ -44,19 +44,19 @@ export function EmptyState({ k, icon: Icon = Inbox, children }: { k: string; ico
   );
 }
 
-// Google-style tonal status colours
 const TONES: Record<Tone, string> = {
-  gray: "bg-gray-100 text-gray-700",
-  green: "bg-[#E6F4EA] text-[#137333]",
-  amber: "bg-[#FEF7E0] text-[#B06000]",
-  red: "bg-[#FCE8E6] text-[#C5221F]",
-  blue: "bg-[#E8F0FE] text-[#1967D2]",
-  violet: "bg-[#F3E8FD] text-[#8430CE]",
+  gray: "text-slate-600 [--dot:theme(colors.slate.400)]",
+  green: "text-emerald-700 [--dot:theme(colors.emerald.500)]",
+  amber: "text-amber-700 [--dot:theme(colors.amber.500)]",
+  red: "text-rose-700 [--dot:theme(colors.rose.500)]",
+  blue: "text-primary-700 [--dot:theme(colors.primary.500)]",
+  violet: "text-violet-700 [--dot:theme(colors.violet.500)]",
 };
 
 export function StatusChip({ k, tone = "gray" }: { k: string; tone?: Tone }) {
   return (
-    <span className={`inline-flex h-6 shrink-0 items-center rounded-md px-2 text-xs font-medium ${TONES[tone]}`}>
+    <span className={`inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium ${TONES[tone]}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-[var(--dot)]" aria-hidden="true" />
       <T k={k} />
     </span>
   );

@@ -231,6 +231,7 @@ Return code-based analysis only.
         quantity: q.quantity.toString(),
         deliveryCharge: q.deliveryCharge.toString(),
         totalPrice: q.totalPrice.toString(),
+        currency: q.currency,
         deliveryDays: q.deliveryDays,
         estimatedArrival: sq.estimatedArrival,
         isLate: sq.isLate,

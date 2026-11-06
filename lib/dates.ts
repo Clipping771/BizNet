@@ -20,7 +20,7 @@ export function getDhakaDateString(date: Date = new Date()): string {
  */
 export function formatDate(
   date: Date | string | null | undefined,
-  locale: string = "bn",
+  locale: string = "en",
   options?: Intl.DateTimeFormatOptions
 ): string {
   if (!date) return "";

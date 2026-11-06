@@ -10,8 +10,14 @@ export function toBanglaDigits(num: number | string): string {
 }
 
 /**
- * Formats a monetary amount with currency symbol and localized digits.
+ * Formats a monetary amount with its currency symbol and the viewer's digits.
+ * The currency belongs to the record (quotes, listings and orders store one); the viewer's
+ * language never changes it. Records without a currency were priced in the database
+ * default, BDT.
  */
+/** Currency of amounts saved without one (the `currency` column default in the schema). */
+export const STORED_DEFAULT_CURRENCY = "USD";
+
 export function formatMoney(
   amount: number | string | Prisma.Decimal,
   locale: string = "en",
@@ -21,39 +27,25 @@ export function formatMoney(
     ? (amount as Prisma.Decimal).toNumber()
     : Number(amount);
 
-  const formatted = num.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  if (!Number.isFinite(num)) return "0.00";
 
-  const effectiveCurrency = currency || (locale === "bn" ? "BDT" : "USD");
-  let symbol = "$";
-  if (effectiveCurrency === "BDT") {
-    symbol = "৳";
-  } else if (effectiveCurrency === "USD") {
-    symbol = "$";
-  } else if (effectiveCurrency === "EUR") {
-    symbol = "€";
-  } else if (effectiveCurrency === "GBP") {
-    symbol = "£";
-  } else if (effectiveCurrency === "INR") {
-    symbol = "₹";
-  } else if (effectiveCurrency === "AED") {
-    symbol = "AED ";
-  } else if (effectiveCurrency === "CAD") {
-    symbol = "CA$";
-  } else if (effectiveCurrency === "AUD") {
-    symbol = "A$";
-  } else if (effectiveCurrency === "SGD") {
-    symbol = "S$";
-  } else {
-    symbol = `${effectiveCurrency} `;
-  }
+  const effectiveCurrency = (currency || STORED_DEFAULT_CURRENCY).toUpperCase();
 
-  if (locale === "bn") {
-    return `${symbol}${toBanglaDigits(formatted)}`;
+  try {
+    const intlLocale = locale === "bn" ? "bn-BD" : locale === "ar" ? "ar-SA" : locale || "en-US";
+    return new Intl.NumberFormat(intlLocale, {
+      style: "currency",
+      currency: effectiveCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(num);
+  } catch {
+    const formatted = num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${effectiveCurrency} ${formatted}`;
   }
-  return `${symbol}${formatted}`;
 }
 
 /**
@@ -73,7 +65,7 @@ export function calculateQuoteTotal(
 }
 
 /** Plain number (quantity, count, days) with Bangla digits for bn (§11: ৳১,২৫০ style). */
-export function formatNumber(value: number | string | Prisma.Decimal, locale: string = "bn"): string {
+export function formatNumber(value: number | string | Prisma.Decimal, locale: string = "en"): string {
   const num = typeof value === "object" && "toNumber" in value ? (value as Prisma.Decimal).toNumber() : Number(value);
   if (!Number.isFinite(num)) return String(value);
   const formatted = num.toLocaleString("en-US", { maximumFractionDigits: 3 });

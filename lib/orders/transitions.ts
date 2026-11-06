@@ -37,11 +37,15 @@ export interface TransitionContext {
   disputeResolution?: DisputeResolution | null;
   disputeNote?: string | null;
   now?: Date;
+  buyerConfirmedAt?: Date | null;
+  supplierConfirmedAt?: Date | null;
 }
 
 export interface TransitionResult {
   updatedFields: {
     status: OrderStatus;
+    buyerConfirmedAt?: Date | null;
+    supplierConfirmedAt?: Date | null;
     dispatchedAt?: Date | null;
     deliveredAt?: Date | null;
     completedAt?: Date | null;
@@ -84,6 +88,93 @@ export function validateOrderTransition(ctx: TransitionContext): TransitionResul
   // Same status transition is a no-op / illegal
   if (fromStatus === toStatus) {
     throw new OrderTransitionError(`Order is already in status ${fromStatus}`);
+  }
+
+  // 0. PENDING_CONFIRMATION -> CONFIRMED (Mutual Confirmation Rule)
+  // An order can only enter CONFIRMED once BOTH buyer and supplier have confirmed.
+  if (fromStatus === OrderStatus.PENDING_CONFIRMATION && toStatus === OrderStatus.CONFIRMED) {
+    if (actorSide !== "BUYER" && actorSide !== "SUPPLIER" && actorSide !== "ADMIN") {
+      throw new OrderTransitionError("Only buyer, supplier or admin can confirm an order");
+    }
+
+    if (actorSide === "SUPPLIER") {
+      if (!ctx.buyerConfirmedAt) {
+        throw new OrderTransitionError("Cannot confirm order: buyer confirmation is required before entering CONFIRMED");
+      }
+      return {
+        updatedFields: {
+          status: OrderStatus.CONFIRMED,
+          buyerConfirmedAt: ctx.buyerConfirmedAt,
+          supplierConfirmedAt: now,
+        },
+        statusChangeRecord: {
+          fromStatus,
+          toStatus,
+          actorUserId,
+          actorSide,
+          reason: reason || "Supplier confirmed order",
+        },
+      };
+    }
+
+    if (actorSide === "BUYER") {
+      if (!ctx.supplierConfirmedAt) {
+        throw new OrderTransitionError("Cannot confirm order: supplier confirmation is required before entering CONFIRMED");
+      }
+      return {
+        updatedFields: {
+          status: OrderStatus.CONFIRMED,
+          buyerConfirmedAt: now,
+          supplierConfirmedAt: ctx.supplierConfirmedAt,
+        },
+        statusChangeRecord: {
+          fromStatus,
+          toStatus,
+          actorUserId,
+          actorSide,
+          reason: reason || "Buyer confirmed order",
+        },
+      };
+    }
+
+    if (actorSide === "ADMIN") {
+      return {
+        updatedFields: {
+          status: OrderStatus.CONFIRMED,
+          buyerConfirmedAt: ctx.buyerConfirmedAt || now,
+          supplierConfirmedAt: ctx.supplierConfirmedAt || now,
+        },
+        statusChangeRecord: {
+          fromStatus,
+          toStatus,
+          actorUserId,
+          actorSide,
+          reason: reason || "Admin confirmed order",
+        },
+      };
+    }
+  }
+
+  // 0b. PENDING_CONFIRMATION -> CANCELLED
+  if (fromStatus === OrderStatus.PENDING_CONFIRMATION && toStatus === OrderStatus.CANCELLED) {
+    if (actorSide !== "BUYER" && actorSide !== "SUPPLIER" && actorSide !== "ADMIN") {
+      throw new OrderTransitionError("Only buyer, supplier or admin can cancel an order pending confirmation");
+    }
+    return {
+      updatedFields: {
+        status: OrderStatus.CANCELLED,
+        cancelledAt: now,
+        cancelledBySide: actorSide,
+        cancelReason: reason?.trim() || "Cancelled during confirmation phase",
+      },
+      statusChangeRecord: {
+        fromStatus,
+        toStatus,
+        actorUserId,
+        actorSide,
+        reason: reason?.trim() || null,
+      },
+    };
   }
 
   // 1. CONFIRMED -> DISPATCHED

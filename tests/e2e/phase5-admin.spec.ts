@@ -20,7 +20,7 @@ async function login(browser: Browser, phone: string, lang: "bn" | "en" = "bn"):
   const page = await context.newPage();
   await prisma.rateLimitBucket.deleteMany({ where: { key: { startsWith: "otp:" } } });
   await page.goto("/login");
-  await page.locator("input[type='tel']").fill(phone.replace("+880", ""));
+  await page.locator("input[type='tel']").fill(phone);
   await page.locator("button[type='submit']").click();
   const otp = page.getByTestId("otp-input");
   await expect(otp).toBeVisible({ timeout: 10000 });

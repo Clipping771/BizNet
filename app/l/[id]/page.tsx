@@ -1,11 +1,15 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Package, Building2, MapPin, Clock, Layers, ArrowLeft } from "lucide-react";
+import { Package, Building2, MapPin, Clock, Layers, ArrowLeft, Sparkles } from "lucide-react";
 import { getPublicListingById } from "@/lib/repo/listing";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
 import { T } from "@/components/ui/T";
+import { MoneyRange } from "@/components/ui/Num";
 import { AttributeSchema } from "@/lib/attributes";
+import { getSession } from "@/lib/session";
+import { logEvent } from "@/lib/events";
+import { getPersonalizedRecommendations } from "@/lib/algo/recommendations";
 
 export default async function PublicListingPage({
   params,
@@ -19,6 +23,24 @@ export default async function PublicListingPage({
   if (!listing) {
     notFound();
   }
+
+  const session = await getSession();
+  if (session.userId || session.activeBusinessId) {
+    await logEvent({
+      name: "listing_view",
+      userId: session.userId ?? null,
+      businessId: session.activeBusinessId ?? null,
+      props: { listingId: listing.id, categorySlug: listing.category.slug },
+    }).catch(() => {});
+  }
+
+  const similarListings = await getPersonalizedRecommendations({
+    userId: session.userId,
+    businessId: session.activeBusinessId,
+    categorySlug: listing.category.slug,
+    excludeListingIds: [listing.id],
+    take: 3,
+  }).catch(() => []);
 
   const attributes = (listing.attributes as Record<string, any>) || {};
   const schema = (listing.category.attributeSchema as unknown as AttributeSchema) || { fields: [] };
@@ -208,6 +230,59 @@ export default async function PublicListingPage({
           </Link>
         </div>
       </div>
+
+      {/* Similar Recommended Products Section (§Algo Retargeting) */}
+      {similarListings.length > 0 && (
+        <section className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-teal-700" />
+              <T k="algo.similar" />
+            </h3>
+            <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-100">
+              <T k="algo.badge" />
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {similarListings.map((sim) => (
+              <Link
+                key={sim.id}
+                href={`/l/${sim.id}`}
+                className="group flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition-all hover:border-teal-300 hover:shadow-md hover:shadow-teal-700/5"
+              >
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md inline-block">
+                    <T k={`category.${sim.category.slug}`} />
+                  </span>
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-teal-700 line-clamp-2 transition-colors">
+                    {sim.title}
+                  </h4>
+                  {sim.priceMin != null && (
+                    <div className="text-[11px] font-semibold text-teal-800">
+                      <MoneyRange
+                        min={Number(sim.priceMin)}
+                        max={sim.priceMax != null ? Number(sim.priceMax) : null}
+                        currency={sim.currency}
+                      />
+                      {sim.unit ? ` / ${sim.unit}` : ""}
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2 mt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span className="truncate max-w-[110px] font-medium text-slate-700">
+                    {sim.business.name}
+                  </span>
+                  <span className="text-slate-400 truncate text-[10px]">
+                    {sim.business.city}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

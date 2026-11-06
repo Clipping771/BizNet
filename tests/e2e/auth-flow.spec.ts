@@ -34,7 +34,13 @@ test.describe("Phase 1 Mobile First 360x740 E2E Authentication Flow", () => {
     const fullPhone = `+880${phoneInputVal}`;
     const phoneInput = page.locator("input[type='tel']");
     await expect(phoneInput).toBeVisible();
+    // International app: no country is preselected until the user picks one or types +<code>
+    await expect(page.locator("button:has-text('+880'), button:has-text('+1 ')")).toHaveCount(0);
     await phoneInput.fill(phoneInputVal);
+    await expect(page.locator("#phone-input-hint")).toBeVisible();
+    await phoneInput.fill(fullPhone);
+    await expect(page.locator("button:has-text('+880')")).toBeVisible();
+    await expect(page.locator("#phone-input-hint")).toHaveCount(0);
 
     // 5. Submit Phone Form
     const sendOtpBtn = page.locator("button[type='submit']");

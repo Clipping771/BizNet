@@ -111,7 +111,7 @@ describe("Phase 5 hardening", () => {
       await revealContactRecord(buyer.id, supplier.id, buyerUser.id);
       expect(await prisma.auditLog.count({ where: { action: "CONTACT_REVEALED", actorBusinessId: buyer.id } })).toBe(1);
 
-      for (const to of ["DISPATCHED", "DELIVERED"] as const) {
+      for (const to of ["CONFIRMED", "DISPATCHED", "DELIVERED"] as const) {
         await updateOrderStatusRecord({ orderId: order.id, toStatus: to, actorSide: "SUPPLIER", actorUserId: supplierUser.id });
       }
       await updateOrderStatusRecord({ orderId: order.id, toStatus: "COMPLETED", actorSide: "BUYER", actorUserId: buyerUser.id });

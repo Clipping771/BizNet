@@ -173,7 +173,7 @@ export async function sendMessageRecord(input: SendMessageInput): Promise<SendMe
         senderBusinessId: input.senderBusinessId,
         body,
         attachmentKeys,
-        lang: input.lang || "bn",
+        lang: input.lang || "en",
       },
       include: {
         sender: { select: { id: true, name: true } },

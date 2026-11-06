@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // Dark styles exist on a few screens only; nothing sets the class, so they stay off until every page supports them
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -13,56 +15,60 @@ const config: Config = {
         sans: ["var(--font-inter)", "var(--font-bn)", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
       },
       colors: {
-        // Workspace-style neutral greys; 500 and up pass WCAG AA as text on white
-        gray: {
-          50: "#F8F9FA",
-          100: "#F1F3F4",
-          200: "#E3E5E8",
-          300: "#C7CBD1",
-          400: "#9AA0A6",
-          500: "#5F6368",
-          600: "#4D5156",
-          700: "#3C4043",
-          800: "#2D2F31",
-          900: "#1F1F1F",
-          950: "#121212",
+        // Stripe / Linear slate neutrals
+        slate: {
+          850: "#131B2E",
+          950: "#080C14",
         },
+        // Deep Ocean Teal theme: Deep Teal (#0F766E) for primary actions, soft Mint Teal (#F0FDFA) for active states
         primary: {
-          DEFAULT: "#0A66C2", // Global Professional B2B Blue (LinkedIn standard)
-          hover: "#004182",
-          light: "#E8F0FE",
-          50: "#F0F7FF",
-          100: "#E0EFFF",
-          200: "#B9DCFE",
-          300: "#7CB9FC",
-          400: "#3892F7",
-          500: "#0A66C2",
-          600: "#0252A2",
-          700: "#004182",
-          800: "#003264",
-          900: "#002347",
+          DEFAULT: "#0F766E",
+          hover: "#115E59",
+          active: "#134E4A",
+          light: "#F0FDFA",
+          50: "#F0FDFA",
+          100: "#CCFBF1",
+          200: "#99F6E4",
+          300: "#5EEAD4",
+          400: "#2DD4BF",
+          500: "#14B8A6",
+          600: "#0D9488",
+          700: "#0F766E",
+          800: "#115E59",
+          900: "#134E4A",
+          950: "#042F2E",
         },
         secondary: {
-          DEFAULT: "#D97706",
-          hover: "#B45309",
-          light: "#FEF3C7",
+          DEFAULT: "#475569",
+          hover: "#334155",
+          light: "#F1F5F9",
         },
         surface: {
           DEFAULT: "#FFFFFF",
           muted: "#F8FAFC",
           border: "#E2E8F0",
-          canvas: "#F3F4F6", // LinkedIn standard clean light-gray canvas
+          canvas: "#F8FAFC",
+          card: "#FFFFFF",
+          dark: {
+            DEFAULT: "#0F172A",
+            canvas: "#0B0F19",
+            card: "#111827",
+            subtle: "#1F2937",
+            border: "#1E293B",
+          },
         },
       },
       boxShadow: {
-        card: "0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)",
-        raised: "0 0 0 1px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.08)",
-        pop: "0 10px 28px -4px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04)",
-        fab: "0 6px 16px rgba(10, 102, 194, 0.35)",
-        nav: "0 1px 3px rgba(0, 0, 0, 0.08)",
+        card: "0 0 0 1px rgba(0, 0, 0, 0.08)",
+        raised: "0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 12px 0 rgba(0, 0, 0, 0.08)",
+        pop: "0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.06)",
+        fab: "0 8px 20px -4px rgba(15, 118, 110, 0.45)",
+        nav: "0 1px 2px 0 rgba(0, 0, 0, 0.03)",
       },
       borderRadius: {
-        "4xl": "2rem",
+        xl: "0.75rem",
+        "2xl": "1rem",
+        card: "0.5rem",
       },
       keyframes: {
         "fade-up": {
@@ -71,7 +77,7 @@ const config: Config = {
         },
       },
       animation: {
-        "fade-up": "fade-up 200ms cubic-bezier(0.2, 0, 0, 1) both",
+        "fade-up": "fade-up 180ms cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },
   },

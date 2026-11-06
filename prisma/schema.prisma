@@ -58,6 +58,7 @@ enum QuoteSource {
   CONCIERGE
 }
 enum OrderStatus {
+  PENDING_CONFIRMATION
   CONFIRMED
   DISPATCHED
   DELIVERED
@@ -138,8 +139,8 @@ model User {
   email            String?      @unique
   emailVerified    Boolean      @default(false)
   name             String
-  uiLanguage       String       @default("bn")
-  contentLanguages String[]     @default(["bn"])
+  uiLanguage       String       @default("en")
+  contentLanguages String[]     @default(["en"])
   autoTranslate    Boolean      @default(false)
   role             PlatformRole @default(USER)
   isBanned         Boolean      @default(false)
@@ -217,7 +218,7 @@ model Business {
   id                  String             @id @default(cuid())
   slug                String             @unique
   name                String
-  lang                String             @default("bn")
+  lang                String             @default("en")
   description         String?
   isBuyer             Boolean            @default(false)
   isSupplier          Boolean            @default(false)
@@ -388,13 +389,13 @@ model Listing {
   businessId   String
   categoryId   String
   title        String
-  lang         String    @default("bn")
+  lang         String    @default("en")
   description  String?
   attributes   Json
   unit         String
-  priceMin     Decimal?  @db.Decimal(14, 2)
-  priceMax     Decimal?  @db.Decimal(14, 2)
-  currency     String    @default("BDT")
+  priceMin     Decimal?  @db.Decimal(18, 4)
+  priceMax     Decimal?  @db.Decimal(18, 4)
+  currency     String    @default("USD")
   moq          Int?
   leadTimeDays Int?
   imageKeys    String[]
@@ -421,7 +422,7 @@ model Request {
   createdByUserId      String
   categoryId           String
   title                String
-  lang                 String         @default("bn")
+  lang                 String         @default("en")
   originalNeedText     String?
   description          String?
   attributes           Json
@@ -488,16 +489,22 @@ model Quote {
   requestId          String
   supplierBusinessId String
   createdByUserId    String
-  unitPrice          Decimal     @db.Decimal(14, 2)
+  unitPrice          Decimal     @db.Decimal(18, 4)
   quantity           Decimal     @db.Decimal(14, 3)
-  deliveryCharge     Decimal     @default(0) @db.Decimal(14, 2)
-  totalPrice         Decimal     @db.Decimal(14, 2)
-  currency           String      @default("BDT")
+  deliveryCharge     Decimal     @default(0) @db.Decimal(18, 4)
+  totalPrice         Decimal     @db.Decimal(18, 4)
+  currency           String      @default("USD")
+  displayedCurrency     String?
+  displayedTotalAmount  Decimal?    @db.Decimal(18, 4)
+  crossRateSnapshot     Decimal?    @db.Decimal(20, 10)
+  baseRateToUsd         Decimal?    @db.Decimal(20, 10)
+  displayedRateToUsd    Decimal?    @db.Decimal(20, 10)
+  exchangeRateTimestamp DateTime?
   deliveryDays       Int
   paymentTerm        PaymentTerm
   validUntil         DateTime
   specMatch          Json
-  lang               String      @default("bn")
+  lang               String      @default("en")
   notes              String?
   attachmentKeys     String[]
   status             QuoteStatus @default(SUBMITTED)
@@ -541,7 +548,10 @@ model Order {
   buyerBusinessId    String
   supplierBusinessId String
   snapshot           Json
-  status             OrderStatus        @default(CONFIRMED)
+  status             OrderStatus        @default(PENDING_CONFIRMATION)
+  buyerConfirmedAt   DateTime?
+  supplierConfirmedAt DateTime?
+  parityLocked       Boolean            @default(true)
   expectedDeliveryAt DateTime?
   dispatchedAt       DateTime?
   deliveredAt        DateTime?
@@ -627,7 +637,7 @@ model Message {
   senderUserId     String
   senderBusinessId String
   body             String
-  lang             String    @default("bn")
+  lang             String    @default("en")
   attachmentKeys   String[]
   contactFlagged   Boolean   @default(false)
   readAt           DateTime?
@@ -665,7 +675,7 @@ model Question {
   categoryId       String?
   title            String
   body             String
-  lang             String         @default("bn")
+  lang             String         @default("en")
   status           QuestionStatus @default(OPEN)
   acceptedAnswerId String?        @unique
   score            Int            @default(0)
@@ -695,7 +705,7 @@ model Answer {
   authorUserId     String
   authorBusinessId String?
   body             String
-  lang             String    @default("bn")
+  lang             String    @default("en")
   score            Int       @default(0)
   deletedAt        DateTime?
   createdAt        DateTime  @default(now())
@@ -989,3 +999,22 @@ model PaymentSubmission {
 
   @@index([businessId])
 }
+
+// ================= Global Trade (Currency & Compliance) =================
+model Currency {
+  code        String   @id // ISO 4217: "USD", "BDT", "CNY", "EUR", "AED"
+  name        String
+  symbol      String
+  rateToUsd   Decimal  @db.Decimal(20, 10) // High precision forex rate
+  isOfficial  Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+}
+
+model RestrictedJurisdiction {
+  countryCode String   @id // ISO-2 country code
+  reason      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

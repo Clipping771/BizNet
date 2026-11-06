@@ -186,251 +186,255 @@ export default function LoginPage() {
   };
 
   return (
-    <div>
-      <div>
-        <h1 className="text-[28px] font-normal leading-tight tracking-[-0.01em] text-gray-900">
+    <div className="w-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-[26px]">
           {step === "INPUT" ? (
             <T k="auth.loginTitle" />
           ) : (
             <T k="auth.otpTitle" />
           )}
         </h1>
-        <p className="mb-8 mt-2 text-[15px] text-gray-600">
+        <p className="mt-1.5 text-sm text-slate-500">
           {step === "INPUT" ? (
             <T k="auth.enterPhoneSubtitle" />
           ) : (
             <T k="auth.otpSubtitle" />
           )}
         </p>
+      </div>
 
-        {/* Multi-Method Tabs */}
-        {step === "INPUT" && (
-          <div className="mb-6 flex rounded-full border border-gray-300 p-1 text-[13px] font-medium">
-            <button
-              type="button"
-              data-testid="tab-phone"
-              onClick={() => switchMethod("PHONE")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 transition-all ${
-                method === "PHONE"
-                  ? "bg-primary-100 text-primary-900"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>
-                <T k="auth.methodPhone" />
-              </span>
-            </button>
-            <button
-              type="button"
-              data-testid="tab-email"
-              onClick={() => switchMethod("EMAIL")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 transition-all ${
-                method === "EMAIL"
-                  ? "bg-primary-100 text-primary-900"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>
-                <T k="auth.methodEmail" />
-              </span>
-            </button>
-            <button
-              type="button"
-              data-testid="tab-passkey"
-              onClick={() => switchMethod("PASSKEY")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 transition-all ${
-                method === "PASSKEY"
-                  ? "bg-primary-100 text-primary-900"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Fingerprint className="w-3.5 h-3.5" />
-              <span>
-                <T k="auth.methodPasskey" />
-              </span>
-            </button>
-          </div>
-        )}
-
-        {error && (
-          <div role="alert" className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-            {error}
-          </div>
-        )}
-
-        {/* STEP 1: INPUT MODES */}
-        {step === "INPUT" ? (
-          <>
-            {/* 1. PHONE INPUT MODE */}
-            {method === "PHONE" && (
-              <form onSubmit={handleSendPhoneOtp} className="space-y-4">
-                <div>
-                  <label className="label">
-                    <T k="auth.phone" />
-                  </label>
-                  <PhoneInput
-                    value={phone}
-                    onChange={setPhone}
-                    disabled={loading}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn btn-primary btn-lg w-full"
-                >
-                  {loading ? <T k="common.loading" /> : <T k="auth.sendOtp" />}
-                  <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-                </button>
-              </form>
-            )}
-
-            {/* 2. EMAIL INPUT MODE */}
-            {method === "EMAIL" && (
-              <form onSubmit={handleSendEmailOtp} className="space-y-4">
-                <div>
-                  <label className="label">
-                    <T k="auth.email" />
-                  </label>
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="email"
-                      required
-                      placeholder={t("auth.emailPlaceholder")}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="input ps-10"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn btn-primary btn-lg w-full"
-                >
-                  {loading ? <T k="common.loading" /> : <T k="auth.sendEmailOtp" />}
-                  <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-                </button>
-              </form>
-            )}
-
-            {/* 3. PASSKEY BIOMETRIC MODE */}
-            {method === "PASSKEY" && (
-              <div className="space-y-4 py-2 text-center">
-                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto text-primary">
-                  <Fingerprint className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900 mb-1">
-                    <T k="auth.passkeyTitle" />
-                  </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed px-2">
-                    <T k="auth.passkeySubtitle" />
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handlePasskeyLogin}
-                  disabled={loading}
-                  className="btn btn-primary btn-lg mt-2 w-full"
-                >
-                  <Fingerprint className="w-4 h-4" />
-                  {loading ? (
-                    <T k="common.loading" />
-                  ) : (
-                    <T k="auth.signInWithPasskey" />
-                  )}
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          /* STEP 2: VERIFICATION OTP CODE STEP (Shared for Phone & Email) */
-          <form
-            onSubmit={
-              method === "EMAIL" ? handleVerifyEmailOtp : handleVerifyPhoneOtp
-            }
-            className="space-y-4"
+      {/* Multi-Method Tabs */}
+      {step === "INPUT" && (
+        <div className="mb-6 flex rounded-2xl border border-slate-200/80 bg-slate-100/90 p-1 text-[13px] font-medium shadow-2xs">
+          <button
+            type="button"
+            data-testid="tab-phone"
+            onClick={() => switchMethod("PHONE")}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 transition-all ${
+              method === "PHONE"
+                ? "border border-slate-200/50 bg-white font-bold text-teal-800 shadow-xs"
+                : "text-slate-600 hover:bg-slate-200/40 hover:text-slate-900"
+            }`}
           >
-            {devCode && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] uppercase font-bold text-emerald-700 block tracking-wider">
-                    <T k="auth.devCodeLabel" />
-                  </span>
-                  <span className="text-lg font-mono font-extrabold tracking-widest text-emerald-900">
-                    {devCode}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOtp(devCode)}
-                  className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-                >
-                  <T k="auth.autoFill" />
-                </button>
-              </div>
-            )}
+            <Smartphone className="h-4 w-4 text-teal-700" />
+            <span>
+              <T k="auth.methodPhone" />
+            </span>
+          </button>
+          <button
+            type="button"
+            data-testid="tab-email"
+            onClick={() => switchMethod("EMAIL")}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 transition-all ${
+              method === "EMAIL"
+                ? "border border-slate-200/50 bg-white font-bold text-teal-800 shadow-xs"
+                : "text-slate-600 hover:bg-slate-200/40 hover:text-slate-900"
+            }`}
+          >
+            <Mail className="h-4 w-4 text-teal-700" />
+            <span>
+              <T k="auth.methodEmail" />
+            </span>
+          </button>
+          <button
+            type="button"
+            data-testid="tab-passkey"
+            onClick={() => switchMethod("PASSKEY")}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 transition-all ${
+              method === "PASSKEY"
+                ? "border border-slate-200/50 bg-white font-bold text-teal-800 shadow-xs"
+                : "text-slate-600 hover:bg-slate-200/40 hover:text-slate-900"
+            }`}
+          >
+            <Fingerprint className="h-4 w-4 text-teal-700" />
+            <span>
+              <T k="auth.methodPasskey" />
+            </span>
+          </button>
+        </div>
+      )}
 
-            <div>
-              <label className="label">
-                <T k="auth.enterOtp" />
-              </label>
-              <div className="relative">
-                <KeyRound className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
+      {error && (
+        <div role="alert" className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-medium text-rose-700">
+          {error}
+        </div>
+      )}
+
+      {/* STEP 1: INPUT MODES */}
+      {step === "INPUT" ? (
+        <>
+          {/* 1. PHONE INPUT MODE */}
+          {method === "PHONE" && (
+            <form onSubmit={handleSendPhoneOtp} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+                  <T k="auth.phone" />
+                </label>
+                <PhoneInput
+                  value={phone}
+                  onChange={setPhone}
+                  disabled={loading}
                   required
-                  data-testid="otp-input"
-                  maxLength={6}
-                  placeholder="123456"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  className="input h-12 ps-10 text-center font-mono text-lg font-bold tracking-[0.5em]"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">
-                <T k="auth.devOtpNote" />
-              </p>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 text-sm font-semibold text-white shadow-md shadow-teal-700/20 transition-all hover:from-teal-800 hover:to-emerald-700 hover:shadow-lg hover:shadow-teal-700/30 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
+              >
+                {loading ? <T k="common.loading" /> : <T k="auth.sendOtp" />}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 rtl:rotate-180" />
+              </button>
+            </form>
+          )}
+
+          {/* 2. EMAIL INPUT MODE */}
+          {method === "EMAIL" && (
+            <form onSubmit={handleSendEmailOtp} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+                  <T k="auth.email" />
+                </label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="email"
+                    required
+                    placeholder={t("auth.emailPlaceholder")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 w-full rounded-xl border border-slate-300 bg-white ps-10 pe-3 text-sm font-medium text-slate-900 shadow-2xs transition-all placeholder:text-slate-400 hover:border-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 text-sm font-semibold text-white shadow-md shadow-teal-700/20 transition-all hover:from-teal-800 hover:to-emerald-700 hover:shadow-lg hover:shadow-teal-700/30 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
+              >
+                {loading ? <T k="common.loading" /> : <T k="auth.sendEmailOtp" />}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 rtl:rotate-180" />
+              </button>
+            </form>
+          )}
+
+          {/* 3. PASSKEY BIOMETRIC MODE */}
+          {method === "PASSKEY" && (
+            <div className="space-y-4 py-2 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 shadow-inner">
+                <Fingerprint className="h-8 w-8" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 mb-1">
+                  <T k="auth.passkeyTitle" />
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed px-2">
+                  <T k="auth.passkeySubtitle" />
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePasskeyLogin}
+                disabled={loading}
+                className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 text-sm font-semibold text-white shadow-md shadow-teal-700/20 transition-all hover:from-teal-800 hover:to-emerald-700 hover:shadow-lg hover:shadow-teal-700/30 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
+              >
+                <Fingerprint className="h-4 w-4" />
+                {loading ? (
+                  <T k="common.loading" />
+                ) : (
+                  <T k="auth.signInWithPasskey" />
+                )}
+              </button>
             </div>
+          )}
+        </>
+      ) : (
+        /* STEP 2: VERIFICATION OTP CODE STEP (Shared for Phone & Email) */
+        <form
+          onSubmit={
+            method === "EMAIL" ? handleVerifyEmailOtp : handleVerifyPhoneOtp
+          }
+          className="space-y-4"
+        >
+          {devCode && (
+            <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 text-xs text-emerald-950">
+              <div>
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                  <T k="auth.devCodeLabel" />
+                </span>
+                <span className="font-mono text-lg font-extrabold tracking-widest text-emerald-900">
+                  {devCode}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOtp(devCode)}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700"
+              >
+                <T k="auth.autoFill" />
+              </button>
+            </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary btn-lg w-full"
-            >
-              {loading ? <T k="common.loading" /> : <T k="auth.verifyOtp" />}
-            </button>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+              <T k="auth.enterOtp" />
+            </label>
+            <div className="relative">
+              <KeyRound className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                required
+                data-testid="otp-input"
+                maxLength={6}
+                placeholder="123456"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                className="h-12 w-full rounded-xl border border-slate-300 bg-white ps-10 pe-3 text-center font-mono text-lg font-bold tracking-[0.5em] text-slate-900 shadow-2xs transition-all hover:border-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+              />
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              <T k="auth.devOtpNote" />
+            </p>
+          </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setStep("INPUT");
-                setDevCode(null);
-                setOtp("");
-              }}
-              className="btn btn-ghost btn-sm w-full text-gray-500"
-            >
-              <T k="auth.changePhone" />
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 text-sm font-semibold text-white shadow-md shadow-teal-700/20 transition-all hover:from-teal-800 hover:to-emerald-700 hover:shadow-lg hover:shadow-teal-700/30 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
+          >
+            {loading ? <T k="common.loading" /> : <T k="auth.verifyOtp" />}
+          </button>
 
-        <div className="mt-6 flex items-center justify-center gap-1.5 border-t border-gray-100 pt-5 text-xs text-gray-500">
-          <ShieldCheck className="w-4 h-4 text-primary" />
-          <span>
-            <T k="auth.securityBadge" />
-          </span>
-        </div>
+          <button
+            type="button"
+            onClick={() => {
+              setStep("INPUT");
+              setDevCode(null);
+              setOtp("");
+            }}
+            className="w-full text-center text-xs font-medium text-slate-500 hover:text-slate-800 py-1"
+          >
+            <T k="auth.changePhone" />
+          </button>
+        </form>
+      )}
+
+      <div className="mt-8 flex items-center justify-center gap-1.5 border-t border-slate-100 pt-5 text-xs text-slate-500">
+        <ShieldCheck className="h-4 w-4 shrink-0 text-teal-700" />
+        <span>
+          <T k="auth.securityBadge" />
+        </span>
+        <span className="text-slate-300">{"·"}</span>
+        <span className="text-slate-400">
+          <T k="landing.enterpriseSecurity" />
+        </span>
       </div>
     </div>
   );

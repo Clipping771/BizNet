@@ -67,19 +67,19 @@ describe("Phase 4", () => {
   describe("search (§8.13)", () => {
     it('"বক্স" returns the seeded food boxes', async () => {
       const titles = (await search({ q: "বক্স", verified: "0" })).map((r) => r.title);
-      expect(titles).toEqual(expect.arrayContaining(["১০০ পিস ক্রাফট পেপার বক্স", "বারবার্গার ক্রাফট বক্স"]));
+      expect(titles).toEqual(expect.arrayContaining(["100 pcs Kraft Paper Box", "Burger Kraft Box"]));
     });
 
-    it('"box" (English) finds the same Bangla listings', async () => {
+    it('"box" (English) finds the seeded food boxes', async () => {
       const results = await search({ q: "box", verified: "0" });
       const titles = results.map((r) => r.title);
-      expect(titles).toEqual(expect.arrayContaining(["১০০ পিস ক্রাফট পেপার বক্স", "৫০০ মিলি ফুড বক্স ৩ চেম্বার"]));
+      expect(titles).toEqual(expect.arrayContaining(["100 pcs Kraft Paper Box", "500ml 3-Chamber Food Box"]));
     });
 
     it('"কাপ ২৫০" returns the 250 ml cup first', async () => {
       const results = await search({ q: "কাপ ২৫০", verified: "0" });
-      expect(results[0]?.title).toBe("২৫০ মিলি পেপার কাপ");
-      expect(results.map((r) => r.title)).not.toContain("প্রিমিয়াম ব্ল্যাক পেপার কাপ");
+      expect(results[0]?.title).toBe("250ml Paper Cup");
+      expect(results.map((r) => r.title)).not.toContain("Premium Black Paper Cup 350ml");
     });
 
     it("applies the verified, category, price and attribute filters", async () => {

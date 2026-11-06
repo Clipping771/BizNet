@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { Header } from "./Header";
-import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { Fab } from "./Fab";
 import { isBareRoute } from "./nav";
@@ -17,15 +16,13 @@ interface AppShellProps {
 }
 
 /**
- * Signed-in app pages get the sidebar (desktop) or tab bar (phone); the landing page,
- * sign-in and onboarding render on their own.
+ * Signed-in app pages get the top bar (with navigation tabs on desktop) and the phone tab bar;
+ * the landing page, sign-in and onboarding render on their own.
  */
 export function AppShell({ activeBusinessName, userPhone, lang, isLoggedIn, isAdmin, children }: AppShellProps) {
   const pathname = usePathname();
   const bare = isBareRoute(pathname);
-  const effectiveLoggedIn = isLoggedIn || !bare;
-  const chrome = effectiveLoggedIn && !bare;
-  const isHomeFeed = pathname === "/home";
+  const chrome = isLoggedIn && !bare;
 
   if (bare) return <>{children}</>;
 
@@ -35,14 +32,11 @@ export function AppShell({ activeBusinessName, userPhone, lang, isLoggedIn, isAd
         activeBusinessName={activeBusinessName}
         userPhone={userPhone}
         lang={lang}
-        isLoggedIn={effectiveLoggedIn}
+        isLoggedIn={isLoggedIn}
         isAdmin={isAdmin}
         withSidebar={chrome}
       />
-      {chrome && !isHomeFeed && <Sidebar activeBusinessName={activeBusinessName} userPhone={userPhone} isAdmin={isAdmin} />}
-      <main className={`px-3 pt-3 sm:px-6 ${isHomeFeed ? "pb-24 lg:pb-12 max-w-7xl mx-auto" : chrome ? "pb-28 lg:ps-[17rem] lg:pe-8 lg:pb-12" : "pb-12 lg:px-8"}`}>
-        {children}
-      </main>
+      <main className={`mx-auto max-w-6xl px-4 pt-4 sm:px-8 lg:pt-6 ${chrome ? "pb-24 md:pb-12" : "pb-12"}`}>{children}</main>
       {chrome && pathname === "/requests" && <Fab />}
       {chrome && <BottomNav />}
     </div>

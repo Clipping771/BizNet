@@ -85,7 +85,7 @@ export async function POST(
       senderBusinessId: ctx.activeBusinessId,
       body: messageText,
       attachmentKeys,
-      lang: user.uiLanguage || "bn",
+      lang: user.uiLanguage || "en",
     });
 
     if (result.blocked) {

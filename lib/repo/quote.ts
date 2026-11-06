@@ -15,7 +15,7 @@ import {
   ContactRevealReason,
   Prisma,
 } from "@prisma/client";
-import { calculateQuoteTotal } from "@/lib/money";
+import { calculateQuoteTotal, formatMoney } from "@/lib/money";
 import { getSetting } from "@/lib/settings";
 import { logAudit } from "@/lib/audit";
 import { logEvent } from "@/lib/events";
@@ -23,6 +23,7 @@ import { getSmsProvider } from "@/lib/sms/provider";
 import { assertBusinessFileKeys } from "@/lib/storage";
 import { sanitizeText } from "@/lib/http/guard";
 import { grantFreeTrialIfEligible } from "@/lib/repo/credits";
+import { computeForexSnapshot } from "@/lib/forex";
 
 const MAX_QUOTE_ATTACHMENTS = 3;
 
@@ -33,6 +34,8 @@ export interface SubmitQuoteInput {
   unitPrice: number | string | Prisma.Decimal;
   quantity: number | string | Prisma.Decimal;
   deliveryCharge?: number | string | Prisma.Decimal;
+  currency?: string;
+  displayedCurrency?: string;
   deliveryDays: number;
   paymentTerm: PaymentTerm;
   validUntil: Date | string;
@@ -180,6 +183,16 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
   const deliveryCharge = input.deliveryCharge ?? 0;
   const totalPrice = calculateQuoteTotal(input.unitPrice, input.quantity, deliveryCharge);
 
+  // Mandatory Forex Snapshot Calculation (§1.2)
+  // Ensures every quote carries mathematical auditability across currencies
+  const baseCurrency = (input.currency || "USD").toUpperCase();
+  const displayedCurrency = (input.displayedCurrency || baseCurrency).toUpperCase();
+  const forex = await computeForexSnapshot({
+    baseCurrency,
+    displayedCurrency,
+    totalPrice,
+  });
+
   const validUntilDate =
     typeof input.validUntil === "string" ? new Date(input.validUntil) : input.validUntil;
 
@@ -210,6 +223,13 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
             quantity: existingQuote.quantity.toString(),
             deliveryCharge: existingQuote.deliveryCharge.toString(),
             totalPrice: existingQuote.totalPrice.toString(),
+            currency: existingQuote.currency,
+            displayedCurrency: existingQuote.displayedCurrency,
+            displayedTotalAmount: existingQuote.displayedTotalAmount?.toString() || null,
+            crossRateSnapshot: existingQuote.crossRateSnapshot?.toString() || null,
+            baseRateToUsd: existingQuote.baseRateToUsd?.toString() || null,
+            displayedRateToUsd: existingQuote.displayedRateToUsd?.toString() || null,
+            exchangeRateTimestamp: existingQuote.exchangeRateTimestamp?.toISOString() || null,
             deliveryDays: existingQuote.deliveryDays,
             paymentTerm: existingQuote.paymentTerm,
             validUntil: existingQuote.validUntil.toISOString(),
@@ -232,6 +252,13 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
           quantity: new Prisma.Decimal(input.quantity),
           deliveryCharge: new Prisma.Decimal(deliveryCharge),
           totalPrice,
+          currency: forex.baseCurrency,
+          displayedCurrency: forex.displayedCurrency,
+          displayedTotalAmount: forex.displayedTotalAmount,
+          crossRateSnapshot: forex.crossRateSnapshot,
+          baseRateToUsd: forex.baseRateToUsd,
+          displayedRateToUsd: forex.displayedRateToUsd,
+          exchangeRateTimestamp: forex.exchangeRateTimestamp,
           deliveryDays: input.deliveryDays,
           paymentTerm: input.paymentTerm,
           validUntil: validUntilDate,
@@ -263,6 +290,13 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
           quantity: new Prisma.Decimal(input.quantity),
           deliveryCharge: new Prisma.Decimal(deliveryCharge),
           totalPrice,
+          currency: forex.baseCurrency,
+          displayedCurrency: forex.displayedCurrency,
+          displayedTotalAmount: forex.displayedTotalAmount,
+          crossRateSnapshot: forex.crossRateSnapshot,
+          baseRateToUsd: forex.baseRateToUsd,
+          displayedRateToUsd: forex.displayedRateToUsd,
+          exchangeRateTimestamp: forex.exchangeRateTimestamp,
           deliveryDays: input.deliveryDays,
           paymentTerm: input.paymentTerm,
           validUntil: validUntilDate,
@@ -313,9 +347,14 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
     });
 
     if (!existingQuote && totalQuotesCount <= 3 && member.user.phone) {
+      const formattedTotal = formatMoney(
+        resultQuote.totalPrice,
+        member.user.uiLanguage || "bn",
+        resultQuote.currency
+      );
       await smsProvider.sendSms(
         member.user.phone,
-        `BizNet: আপনার অনুরোধ "${request.title}"-এর জন্য নতুন কোটেশন এসেছে (মোট ৳${resultQuote.totalPrice})। দেখতে অ্যাপে যান।`
+        `BizNet: আপনার অনুরোধ "${request.title}"-এর জন্য নতুন কোটেশন এসেছে (মোট ${formattedTotal})। দেখতে অ্যাপে যান।`
       );
     }
   }
@@ -535,7 +574,10 @@ export async function acceptQuoteAndCreateOrderRecord(
         buyerBusinessId,
         supplierBusinessId: quote.supplierBusinessId,
         snapshot,
-        status: OrderStatus.CONFIRMED,
+        status: OrderStatus.PENDING_CONFIRMATION,
+        buyerConfirmedAt: new Date(),
+        supplierConfirmedAt: null,
+        parityLocked: true,
         expectedDeliveryAt,
       },
     });

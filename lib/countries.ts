@@ -69,8 +69,6 @@ export const COUNTRIES: Country[] = [
   { code: "CO", name: "Colombia", dial: "+57", flag: "🇨🇴" },
 ];
 
-export const DEFAULT_COUNTRY = COUNTRIES[0]; // United States (+1)
-
 export function findCountryByDial(dial: string): Country | undefined {
   return COUNTRIES.find((c) => c.dial === dial);
 }

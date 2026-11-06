@@ -66,7 +66,7 @@ export default function QuotesPage() {
                   {t("quotes.forBuyer", undefined, { name: q.request.buyerBusiness.name, area: q.request.deliveryArea })}
                 </p>
                 <div className="flex items-center justify-between gap-2 pt-1">
-                  <span className="text-sm font-bold tabular-nums text-gray-900">{formatMoney(q.totalPrice, lang)}</span>
+                  <span className="text-sm font-bold tabular-nums text-gray-900">{formatMoney(q.totalPrice, lang, q.currency)}</span>
                   <span className="text-xs text-gray-400">{formatDate(q.updatedAt, lang)}</span>
                 </div>
               </div>
