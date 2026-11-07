@@ -25,5 +25,5 @@ RUN SESSION_SECRET=build-only-placeholder-secret-0123456789abcdef \
 ENV NODE_ENV=production
 EXPOSE 3000
 
-# Apply migrations and make sure both buckets exist, then serve
-CMD ["sh", "-c", "pnpm prisma migrate deploy && pnpm tsx scripts/ensure-buckets.ts && pnpm start --port 3000"]
+# Apply migrations and make sure both buckets exist, then serve on the host's PORT (Render sets one)
+CMD ["sh", "-c", "pnpm prisma migrate deploy && pnpm tsx scripts/ensure-buckets.ts && pnpm start --port ${PORT:-3000}"]
