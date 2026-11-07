@@ -2,31 +2,32 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, MagnifyingGlass } from "@phosphor-icons/react";
+import { Bell, MagnifyingGlass, Plus } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useT } from "@/components/ui/T";
 import { formatNumber } from "@/lib/money";
 import { Brand } from "./Brand";
 import { AccountMenu } from "./AccountMenu";
-import { TOP_NAV, isActivePath } from "./nav";
+import { isActivePath } from "./nav";
 
 interface HeaderProps {
   activeBusinessName?: string;
+  activeBusinessId?: string;
+  businesses?: { id: string; name: string }[];
   userPhone?: string;
   lang?: string;
   isLoggedIn?: boolean;
   isAdmin?: boolean;
-  /** Signed-in app pages: navigation tabs and search. */
+  /** Signed-in app pages: the sidebar carries navigation, so the brand shows on phones only. */
   withSidebar?: boolean;
 }
 
-/** Quiet top bar: brand, text tabs, search, alerts and the account menu. */
-export function Header({ activeBusinessName, userPhone, lang = "en", isLoggedIn = false, isAdmin = false, withSidebar = false }: HeaderProps) {
+/** Utility bar: search, new request, alerts and the account menu. */
+export function Header({ activeBusinessName, activeBusinessId, businesses = [], userPhone, lang = "en", isLoggedIn = false, isAdmin = false, withSidebar = false }: HeaderProps) {
   const t = useT();
   const pathname = usePathname();
   const router = useRouter();
   const [unread, setUnread] = useState(0);
-  const [scrolled, setScrolled] = useState(false);
 
   // Unread notification badge, refreshed every minute while the app is open
   useEffect(() => {
@@ -56,56 +57,37 @@ export function Header({ activeBusinessName, userPhone, lang = "en", isLoggedIn 
     return () => window.removeEventListener("keydown", onKey);
   }, [withSidebar, router]);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const iconBtn = "relative flex h-9 w-9 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
+  const iconBtn = "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
 
   return (
-    <header className={`sticky top-0 z-40 bg-white/80 backdrop-blur-xl transition-[border-color] ${scrolled ? "border-b border-slate-200" : "border-b border-transparent"}`}>
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-8">
-        <Brand href={isLoggedIn ? "/home" : "/"} />
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+      <div className={`flex h-14 items-center gap-3 px-4 sm:px-6 lg:px-8 ${withSidebar ? "" : "mx-auto max-w-6xl"}`}>
+        <div className={withSidebar ? "md:hidden" : ""}>
+          <Brand href={isLoggedIn ? "/home" : "/"} />
+        </div>
 
         {withSidebar && (
-          <nav aria-label={t("nav.main")} className="hidden items-center gap-1 md:flex">
-            {TOP_NAV.map(({ href, labelKey, icon: Icon }) => {
-              const active = isActivePath(pathname, href);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                    active ? "bg-teal-50 font-semibold text-teal-800" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                  }`}
-                >
-                  <Icon size={18} weight={active ? "fill" : "regular"} />
-                  {t(labelKey)}
-                </Link>
-              );
-            })}
-          </nav>
+          <Link
+            href="/search"
+            aria-label={t("nav.search")}
+            className="hidden h-9 w-full max-w-md items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 transition-colors hover:border-slate-300 md:flex"
+          >
+            <MagnifyingGlass size={16} />
+            <span className="flex-1 truncate">{t("nav.search")}</span>
+            <kbd className="rounded border border-slate-200 bg-white px-1.5 font-sans text-[11px] text-slate-500">/</kbd>
+          </Link>
         )}
 
         <div className="ms-auto flex items-center gap-1">
           {withSidebar && (
-            <Link
-              href="/search"
-              aria-label={t("nav.search")}
-              className="me-1 hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm text-slate-400 transition-colors hover:border-slate-300 hover:text-slate-500 lg:flex"
-            >
-              <MagnifyingGlass size={16} />
-              <span className="flex-1">{t("nav.search")}</span>
-              <kbd className="rounded border border-slate-200 px-1.5 font-sans text-[11px] text-slate-400">/</kbd>
+            <Link href="/search" aria-label={t("nav.search")} className={`${iconBtn} md:hidden`}>
+              <MagnifyingGlass size={20} />
             </Link>
           )}
           {withSidebar && (
-            <Link href="/search" aria-label={t("nav.search")} className={`${iconBtn} lg:hidden`}>
-              <MagnifyingGlass size={20} />
+            <Link href="/requests/new" className="btn btn-primary btn-sm me-1 hidden sm:inline-flex">
+              <Plus size={15} weight="bold" />
+              {t("home.newRequest")}
             </Link>
           )}
           {isLoggedIn && (
@@ -114,7 +96,7 @@ export function Header({ activeBusinessName, userPhone, lang = "en", isLoggedIn 
               {unread > 0 && (
                 <span
                   id="header-unread"
-                  className="absolute end-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white"
+                  className="absolute end-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-primary-950 ring-2 ring-white"
                 >
                   {unread > 99 ? `${formatNumber(99, lang)}+` : formatNumber(unread, lang)}
                 </span>
@@ -122,7 +104,14 @@ export function Header({ activeBusinessName, userPhone, lang = "en", isLoggedIn 
             </Link>
           )}
           {isLoggedIn ? (
-            <AccountMenu activeBusinessName={activeBusinessName} userPhone={userPhone} lang={lang} isAdmin={isAdmin} />
+            <AccountMenu
+              activeBusinessName={activeBusinessName}
+              activeBusinessId={activeBusinessId}
+              businesses={businesses}
+              userPhone={userPhone}
+              lang={lang}
+              isAdmin={isAdmin}
+            />
           ) : (
             <div className="flex items-center gap-2">
               <Link href="/login" className="btn btn-ghost">

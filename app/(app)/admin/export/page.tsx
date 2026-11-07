@@ -16,10 +16,10 @@ export default function AdminExportPage() {
   return (
     <div className="card p-4 space-y-3 text-xs">
       <label className="block space-y-1">
-        <span className="text-gray-500">
+        <span className="text-slate-500">
           <T k="admin.export.entity" />
         </span>
-        <select id="export-entity" value={entity} onChange={(e) => setEntity(e.target.value)} className="w-full p-2 rounded-lg border border-gray-200 bg-white">
+        <select id="export-entity" value={entity} onChange={(e) => setEntity(e.target.value)} className="input">
           {ENTITIES.map((e) => (
             <option key={e} value={e}>
               {t(`admin.export.${e}`)}
@@ -29,19 +29,19 @@ export default function AdminExportPage() {
       </label>
       <div className="grid grid-cols-2 gap-2">
         <label className="space-y-1">
-          <span className="block text-gray-500">
+          <span className="block text-slate-500">
             <T k="admin.from" />
           </span>
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full p-2 rounded-lg border border-gray-200" />
+          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="input" />
         </label>
         <label className="space-y-1">
-          <span className="block text-gray-500">
+          <span className="block text-slate-500">
             <T k="admin.to" />
           </span>
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full p-2 rounded-lg border border-gray-200" />
+          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input" />
         </label>
       </div>
-      <a id="export-download" href={`/api/admin/export?entity=${entity}&from=${from}&to=${to}`} className="inline-block px-4 py-2 rounded-lg bg-gray-900 text-white font-semibold">
+      <a id="export-download" href={`/api/admin/export?entity=${entity}&from=${from}&to=${to}`} className="inline-block px-4 py-2 rounded-lg bg-slate-900 text-white font-semibold">
         <T k="admin.downloadCsv" />
       </a>
     </div>

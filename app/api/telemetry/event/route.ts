@@ -7,6 +7,7 @@ const ALLOWED_CLIENT_EVENTS = new Set([
   "listing_click",
   "category_browse",
   "dismiss_recommendation",
+  "instant_cta",
 ]);
 
 export async function POST(req: NextRequest) {

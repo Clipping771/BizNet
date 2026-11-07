@@ -99,6 +99,8 @@ export async function listRequestsForAdmin(status?: string | null) {
       id: true,
       code: true,
       title: true,
+      quantity: true,
+      unit: true,
       status: true,
       outcome: true,
       deliveryArea: true,

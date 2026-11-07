@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
         status: o.status,
         createdAt: o.createdAt,
         total: (o.snapshot as any)?.total ?? null,
+        currency: (o.snapshot as any)?.currency ?? undefined,
         title: o.request.title,
         requestCode: o.request.code,
         side: o.buyerBusinessId === ctx.activeBusinessId ? "BUYER" : "SUPPLIER",

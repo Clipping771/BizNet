@@ -306,7 +306,7 @@ export async function runMatchRequestJob(
       if (member.user.phone) {
         await smsProvider.sendSms(
           member.user.phone,
-          `BizNet: নতুন কোটেশন অনুরোধ "${request.title}"। কোড: ${request.code}। দেখার জন্য অ্যাপে যান।`
+          `BizNet: নতুন কোটেশন অনুরোধ "${request.title}"। কোড: ${request.code}। কোট দিন: ${(process.env.APP_URL || "").replace(/\/$/, "")}/requests/${request.code}`
         );
       }
     }

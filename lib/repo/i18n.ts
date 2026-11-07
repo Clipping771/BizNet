@@ -1,6 +1,6 @@
 import { prisma } from "../prisma";
 
-export async function listApprovedUiTranslations(langCode: string): Promise<Record<string, string>> {
+export async function listApprovedUiTranslations(langCode: string, catalog: Record<string, string> = {}): Promise<Record<string, string>> {
   try {
     const translations = await prisma.uiTranslation.findMany({
       where: {
@@ -10,11 +10,14 @@ export async function listApprovedUiTranslations(langCode: string): Promise<Reco
       select: {
         key: true,
         text: true,
+        source: true,
       },
     });
 
     const result: Record<string, string> = {};
     for (const t of translations) {
+      // A seeded copy must not hide a later edit to the catalog file; reviewed text always wins
+      if (t.source === "BUILTIN" && catalog[t.key] !== undefined) continue;
       result[t.key] = t.text;
     }
     return result;

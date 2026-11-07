@@ -131,33 +131,33 @@ export default function AdminVerificationsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-1">
+    <div className="space-y-4">
+      <div className="card p-5 space-y-1">
         <h1 className="page-title flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-emerald-600" />
           <T k="admin.verifications.title" />
         </h1>
-        <p className="text-xs text-slate-500">
+        <p className="text-[13px] text-slate-500">
           <T k="admin.verifications.subtitle" />
         </p>
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[13px] text-rose-800 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[13px] text-emerald-800 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
       {verifications.length === 0 ? (
-        <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center text-sm text-slate-500">
+        <div className="card p-8 text-center text-sm text-slate-500">
           <T k="admin.verifications.empty" />
         </div>
       ) : (
@@ -173,14 +173,14 @@ export default function AdminVerificationsPage() {
               <div
                 key={item.id}
                 data-testid={`verification-card-${item.businessId}`}
-                className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4"
+                className="card p-5 space-y-4"
               >
                 {/* Business Info Header */}
                 <div className="flex items-start justify-between pb-3 border-b border-slate-100">
                   <div>
                     <h2 className="font-bold text-slate-900 text-base">{item.business.name}</h2>
-                    <p className="text-xs text-slate-500">{item.business.businessType}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-[13px] text-slate-500">{item.business.businessType}</p>
+                    <p className="text-[13px] text-slate-500">
                       <span>{item.business.area}</span>
                       <span>{" · "}</span>
                       <span>{item.business.city}</span>
@@ -190,25 +190,25 @@ export default function AdminVerificationsPage() {
                 </div>
 
                 {/* Submitter & References */}
-                <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl">
+                <div className="grid grid-cols-2 gap-3 text-[13px] bg-slate-50 p-3 rounded-xl">
                   <div>
                     <span className="font-semibold text-slate-700 block">
                       <T k="business.members" />
                     </span>
                     <span className="text-slate-600 block">{item.submittedBy.name}</span>
-                    <span className="text-slate-400 block">{item.submittedBy.phone || item.submittedBy.email}</span>
+                    <span className="text-slate-500 block">{item.submittedBy.phone || item.submittedBy.email}</span>
                   </div>
                   <div>
                     <span className="font-semibold text-slate-700 block">
                       <T k="verification.referenceName" />
                     </span>
                     <span className="text-slate-600 block">{item.referenceName || "N/A"}</span>
-                    <span className="text-slate-400 block">{item.referencePhone || "N/A"}</span>
+                    <span className="text-slate-500 block">{item.referencePhone || "N/A"}</span>
                   </div>
                 </div>
 
                 {item.tradeLicenseNo && (
-                  <div className="text-xs">
+                  <div className="text-[13px]">
                     <span className="font-semibold text-slate-700 mr-2">
                       <T k="verification.tradeLicense" />
                     </span>
@@ -219,7 +219,7 @@ export default function AdminVerificationsPage() {
                 {/* Uploaded Documents */}
                 {item.documentKeys.length > 0 && (
                   <div className="space-y-1.5 pt-1">
-                    <span className="text-xs font-semibold text-slate-700 block">
+                    <span className="text-[13px] font-semibold text-slate-700 block">
                       <T k="verification.documentPhotos" />
                     </span>
                     <div className="flex flex-wrap gap-2">
@@ -228,7 +228,7 @@ export default function AdminVerificationsPage() {
                           key={docKey}
                           type="button"
                           onClick={() => handleOpenDocument(docKey)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition"
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span>{t("admin.verifications.viewDocument")}</span>
@@ -241,10 +241,10 @@ export default function AdminVerificationsPage() {
 
                 {/* Checklist (§8.3, B3) */}
                 <div className="pt-2 border-t border-slate-100 space-y-2">
-                  <span className="text-xs font-bold text-slate-800 block">
+                  <span className="text-[13px] font-bold text-slate-800 block">
                     <T k="admin.verifications.checklist" />
                   </span>
-                  <div className="space-y-1.5 text-xs text-slate-700">
+                  <div className="space-y-1.5 text-[13px] text-slate-700">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -294,7 +294,7 @@ export default function AdminVerificationsPage() {
 
                 {/* Minutes Spent (MANDATORY §17, B3) */}
                 <div className="space-y-1.5 pt-1">
-                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                  <label className="text-[13px] font-bold text-slate-800 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{t("admin.verifications.minutesSpent")}</span>
                     <span className="text-rose-500">·</span>
@@ -310,13 +310,13 @@ export default function AdminVerificationsPage() {
                         [item.id]: Number(e.target.value),
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="input"
                   />
                 </div>
 
                 {/* Review Note */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
+                  <label className="label">
                     <T k="admin.verifications.reviewNote" />
                   </label>
                   <textarea
@@ -328,7 +328,7 @@ export default function AdminVerificationsPage() {
                         [item.id]: e.target.value,
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm placeholder:text-slate-400 hover:border-slate-400"
                   />
                 </div>
 
@@ -338,7 +338,7 @@ export default function AdminVerificationsPage() {
                     type="button"
                     disabled={processingId === item.id}
                     onClick={() => handleReviewAction(item.id, VerificationStatus.BASIC)}
-                    className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition disabled:opacity-50"
+                    className="btn btn-primary btn-sm"
                   >
                     {t("admin.verifications.approveBasic")}
                   </button>
@@ -347,7 +347,7 @@ export default function AdminVerificationsPage() {
                     type="button"
                     disabled={processingId === item.id}
                     onClick={() => handleReviewAction(item.id, VerificationStatus.VERIFIED)}
-                    className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
+                    className="px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
                   >
                     {t("admin.verifications.approveVerified")}
                   </button>
@@ -356,7 +356,7 @@ export default function AdminVerificationsPage() {
                     type="button"
                     disabled={processingId === item.id}
                     onClick={() => handleReviewAction(item.id, VerificationStatus.REJECTED)}
-                    className="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition disabled:opacity-50"
+                    className="btn btn-soft btn-sm"
                   >
                     {t("admin.verifications.reject")}
                   </button>
@@ -365,7 +365,7 @@ export default function AdminVerificationsPage() {
                     type="button"
                     disabled={processingId === item.id}
                     onClick={() => handleReviewAction(item.id, VerificationStatus.SUSPENDED)}
-                    className="px-3.5 py-2 rounded-xl text-xs font-medium bg-rose-50 text-rose-700 hover:bg-rose-100 transition disabled:opacity-50"
+                    className="px-3.5 py-2 rounded-xl text-[13px] font-medium bg-rose-50 text-rose-700 hover:bg-rose-100 transition disabled:opacity-50"
                   >
                     {t("admin.verifications.suspend")}
                   </button>

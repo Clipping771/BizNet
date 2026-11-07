@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { CaretDown, SquaresFour, SignOut, Translate } from "@phosphor-icons/react";
+import { CaretDown, Check, SquaresFour, SignOut, Translate } from "@phosphor-icons/react";
 import { useT } from "@/components/ui/T";
 import { BUSINESS_NAV, TRADE_NAV } from "./nav";
 
@@ -32,16 +32,33 @@ export function Avatar({ name, size = "h-9 w-9 text-sm" }: { name: string; size?
 
 interface AccountMenuProps {
   activeBusinessName?: string;
+  activeBusinessId?: string;
+  businesses?: { id: string; name: string }[];
   userPhone?: string;
   lang: string;
   isAdmin: boolean;
 }
 
-/** "Me" tab with the account / business dropdown. */
-export function AccountMenu({ activeBusinessName, userPhone, lang, isAdmin }: AccountMenuProps) {
+/** Account dropdown: business switcher, language, account and logout (§7). */
+export function AccountMenu({ activeBusinessName, activeBusinessId, businesses = [], userPhone, lang, isAdmin }: AccountMenuProps) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const switchBusiness = async (businessId: string) => {
+    setSwitching(true);
+    const res = await fetch("/api/business/switch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId }),
+    }).catch(() => null);
+    if (res?.ok) {
+      window.location.assign("/home");
+      return;
+    }
+    setSwitching(false);
+  };
   // Logged-in users without a business (e.g. admins, new sign-ups) still get the account menu
   const label = activeBusinessName || userPhone || t("nav.account");
 
@@ -95,8 +112,32 @@ export function AccountMenu({ activeBusinessName, userPhone, lang, isAdmin }: Ac
             </Link>
           </div>
 
-          <div className="border-t border-slate-200 py-1">
-            {TRADE_NAV.filter((n) => n.href === "/quotes" || n.href === "/prices").map(({ href, labelKey, icon: Icon }) => (
+          {businesses.length > 1 && (
+            <div className="border-t border-slate-200 py-1">
+              <p className="eyebrow px-4 pb-1 pt-2">{t("nav.switchBusiness")}</p>
+              {businesses.map((b) => {
+                const current = b.id === activeBusinessId;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    role="menuitem"
+                    disabled={current || switching}
+                    onClick={() => switchBusiness(b.id)}
+                    className={`${item} w-full text-start disabled:cursor-default`}
+                  >
+                    <Avatar name={b.name} size="h-6 w-6 text-[10px]" />
+                    <span className="flex-1 truncate">{b.name}</span>
+                    {current && <Check size={16} weight="bold" className="text-primary-700" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* The sidebar carries these from md up; phones reach them here */}
+          <div className="border-t border-slate-200 py-1 md:hidden">
+            {TRADE_NAV.filter((n) => n.href !== "/notifications").map(({ href, labelKey, icon: Icon }) => (
               <Link key={href} href={href} role="menuitem" className={item} onClick={() => setOpen(false)}>
                 <Icon size={18} className="text-slate-500" />
                 {t(labelKey)}
@@ -105,7 +146,7 @@ export function AccountMenu({ activeBusinessName, userPhone, lang, isAdmin }: Ac
           </div>
 
           {activeBusinessName && (
-            <div className="border-t border-slate-200 py-1">
+            <div className="border-t border-slate-200 py-1 md:hidden">
               <p className="px-4 pb-1 pt-2 text-sm font-semibold text-slate-900">{t("nav.section.business")}</p>
               {BUSINESS_NAV.filter((n) => n.href !== "/account/language").map(({ href, labelKey, icon: Icon }) => (
                 <Link key={href} href={href} role="menuitem" className={item} onClick={() => setOpen(false)}>

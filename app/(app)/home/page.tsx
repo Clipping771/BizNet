@@ -1,300 +1,324 @@
 import Link from "next/link";
-import { ChartLineUp, ChatsCircle, FileText, MagnifyingGlass, Question } from "@phosphor-icons/react/dist/ssr";
+import { redirect } from "next/navigation";
+import { ChatCircleDots, CheckCircle, ClipboardText, FileText, Package, Scales, SealCheck, Warning } from "@phosphor-icons/react/dist/ssr";
+import type { Icon } from "@phosphor-icons/react";
 import { T } from "@/components/ui/T";
-import { Num, MoneyRange, DaysText } from "@/components/ui/Num";
+import { Num, Money, TNum } from "@/components/ui/Num";
 import { DateText } from "@/components/ui/TimeAgo";
-import { StatusChip, REQUEST_STATUS_TONE } from "@/components/ui/ListStates";
-import { Avatar } from "@/components/layout/AccountMenu";
-import { FeedCard } from "@/components/home/FeedCard";
-import { HomeRail } from "@/components/home/HomeRail";
+import { StatusChip } from "@/components/ui/ListStates";
+import { ORDER_STATUS_TONE, REQUEST_STATUS_TONE } from "@/lib/status-tones";
+import { Recommended } from "@/components/home/Recommended";
+import { OrderAgain } from "@/components/home/OrderAgain";
+import { InstantAnswer } from "@/components/instant/InstantAnswer";
 import { getSession } from "@/lib/session";
 import { findBusinessById } from "@/lib/repo/business";
-import { getTopVerifiedSuppliers, listMyRecentRequests, listRecentPublicListings, priceTrends } from "@/lib/repo/home";
+import { deskData, listMyRecentRequests, listOrderAgain, priceTrends } from "@/lib/repo/home";
 import { listInboxRequestsForSupplier } from "@/lib/repo/request";
-import { listQuestions } from "@/lib/repo/discussion";
 import { getPersonalizedRecommendations } from "@/lib/algo/recommendations";
 
-type FeedItem = { at: Date; node: React.ReactNode };
-
-/** Newest first within each kind, then one of each kind in turn so no single kind fills the feed. */
-function interleave(groups: FeedItem[][]): FeedItem[] {
-  const queues = groups.map((g) => [...g].sort((a, b) => b.at.getTime() - a.at.getTime()));
-  const out: FeedItem[] = [];
-  while (queues.some((q) => q.length > 0)) for (const q of queues) if (q.length) out.push(q.shift()!);
-  return out;
+interface Task {
+  key: string;
+  icon: Icon;
+  urgent?: boolean;
+  labelKey: string;
+  n?: number;
+  title?: string;
+  href: string;
+  actKey: string;
 }
 
-const COMPOSER_ACTIONS = [
-  { href: "/requests/new", icon: FileText, k: "home.composer.request", tone: "text-teal-700" },
-  { href: "/q/new", icon: Question, k: "home.composer.ask", tone: "text-amber-600" },
-  { href: "/search", icon: MagnifyingGlass, k: "home.composer.suppliers", tone: "text-slate-600" },
-  { href: "/prices", icon: ChartLineUp, k: "home.composer.prices", tone: "text-emerald-600" },
-];
+const ACTIVE_ORDER_TASK: Record<string, { supplier?: { k: string; urgent?: boolean }; buyer?: { k: string; urgent?: boolean } }> = {
+  CONFIRMED: { supplier: { k: "desk.task.dispatch" } },
+  DISPATCHED: { supplier: { k: "desk.task.markDelivered" } },
+  DELIVERED: { buyer: { k: "desk.task.receive" } },
+  DISPUTED: { supplier: { k: "desk.task.dispute", urgent: true }, buyer: { k: "desk.task.dispute", urgent: true } },
+};
 
-/** Home feed: real trade requests, new products and community questions, with the rail on the right. */
+function Stat({ id, labelKey, value, href }: { id?: string; labelKey: string; value: number; href: string }) {
+  return (
+    <Link id={id} href={href} className="card card-link block px-4 py-3">
+      <p className="truncate text-xs text-slate-500">
+        <T k={labelKey} />
+      </p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+        <Num n={value} />
+      </p>
+    </Link>
+  );
+}
+
+/** The desk: what waits on this business first, then its requests and orders, with market context alongside. */
 export default async function HomePage() {
   const session = await getSession();
+  if (!session.isLoggedIn) redirect("/login");
   const business = session.activeBusinessId ? await findBusinessById(session.activeBusinessId).catch(() => null) : null;
-  const viewer = { userId: session.userId ?? null, isAdmin: session.role === "ADMIN" };
 
-  const [opportunities, myRequests, listings, questions, trends, suppliers, recommendations] = await Promise.all([
-    business?.isSupplier ? listInboxRequestsForSupplier(business.id).catch(() => []) : [],
-    business && business.isBuyer !== false ? listMyRecentRequests(business.id).catch(() => []) : [],
-    listRecentPublicListings(6).catch(() => []),
-    listQuestions({ viewer }).catch(() => []),
+  if (!business) {
+    return (
+      <div className="page">
+        <div className="card flex flex-col items-start gap-3 p-6">
+          <p className="text-[15px] text-slate-700">
+            <T k="desk.noBusiness" />
+          </p>
+          <Link href="/onboarding" className="btn btn-primary">
+            <T k="desk.noBusiness.cta" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const canSell = business.verificationStatus === "BASIC" || business.verificationStatus === "VERIFIED";
+  const [desk, requests, opportunities, trends, recommendations, orderAgain] = await Promise.all([
+    deskData(business.id),
+    business.isBuyer !== false ? listMyRecentRequests(business.id).catch(() => []) : [],
+    business.isSupplier ? listInboxRequestsForSupplier(business.id).catch(() => []) : [],
     priceTrends(4).catch(() => []),
-    getTopVerifiedSuppliers(3).catch(() => []),
     getPersonalizedRecommendations({
       userId: session.userId,
-      businessId: business?.id,
-      buyerArea: business?.area,
-      buyerCity: business?.city,
-      take: 4,
+      businessId: business.id,
+      buyerArea: business.area,
+      buyerCity: business.city,
+      take: 3,
     }).catch(() => []),
+    business.isBuyer !== false ? listOrderAgain(business.id).catch(() => []) : [],
   ]);
 
-  const recommendedItems: FeedItem[] = [];
-  const requestItems: FeedItem[] = [];
-  const mineItems: FeedItem[] = [];
-  const listingItems: FeedItem[] = [];
-  const questionItems: FeedItem[] = [];
-
-  for (const r of opportunities.slice(0, 5)) {
-    const mine = r.quotes[0];
-    requestItems.push({
-      at: r.createdAt,
-      node: (
-        <FeedCard
-          key={`req-${r.id}`}
-          id={`feed-request-${r.code}`}
-          lead={<Avatar name={r.buyerBusiness.name} size="h-12 w-12 text-base" />}
-          name={r.buyerBusiness.name}
-          verified={r.buyerBusiness.verificationStatus === "VERIFIED" || r.buyerBusiness.verificationStatus === "BASIC"}
-          kindKey="home.feed.request"
-          kindTone="bg-teal-50 text-teal-800 border border-teal-200/80"
-          meta={[r.buyerBusiness.businessType, r.deliveryArea].filter(Boolean).join(" · ")}
-          at={r.createdAt.toISOString()}
-          title={r.title}
-          titleHref={`/requests/${r.code}`}
-          stats={[
-            { labelKey: "home.stat.quantity", value: <><Num n={Number(r.quantity)} /> {r.unit}</> },
-            { labelKey: "home.stat.neededBy", value: r.neededBy ? <DateText iso={r.neededBy.toISOString()} /> : null },
-            { labelKey: "home.stat.category", value: <T k={`category.${r.category.slug}`} /> },
-          ]}
-          actions={
-            mine
-              ? [{ href: `/requests/${r.code}`, labelKey: "home.act.youQuoted" }]
-              : [
-                  { href: `/requests/${r.code}`, labelKey: "home.act.sendQuote", primary: true },
-                  { href: `/requests/${r.code}`, labelKey: "home.act.viewDetails" },
-                ]
-          }
-        />
-      ),
-    });
+  const tasks: Task[] = [];
+  if (business.isSupplier && !canSell) {
+    tasks.push({ key: "verify", icon: SealCheck, urgent: true, labelKey: "desk.task.verify", href: "/business/verification", actKey: "desk.act.verify" });
   }
-
-  for (const r of myRequests) {
-    mineItems.push({
-      at: r.createdAt,
-      node: (
-        <FeedCard
-          key={`mine-${r.code}`}
-          lead={
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-              <FileText size={24} weight="duotone" />
-            </span>
-          }
-          name={business?.name ?? ""}
-          kindKey="home.feed.myRequest"
-          kindTone="bg-slate-100 text-slate-700"
-          at={r.createdAt.toISOString()}
-          title={r.title}
-          titleHref={`/requests/${r.code}`}
-          stats={[
-            { labelKey: "home.stat.quotes", value: <Num n={r._count.quotes} /> },
-            { labelKey: "home.stat.quantity", value: <><Num n={Number(r.quantity)} /> {r.unit}</> },
-            { labelKey: "home.stat.status", value: <StatusChip k={`reqStatus.${r.status}`} tone={REQUEST_STATUS_TONE[r.status] ?? "gray"} /> },
-          ]}
-          actions={[
-            ...(r._count.quotes > 0 ? [{ href: `/requests/${r.code}`, labelKey: "home.act.compareQuotes", primary: true }] : []),
-            { href: `/requests/${r.code}`, labelKey: "home.act.viewDetails" },
-          ]}
-        />
-      ),
-    });
+  for (const o of desk.orders) {
+    const isBuyer = o.buyerBusinessId === business.id;
+    const needsMyConfirmation = o.status === "PENDING_CONFIRMATION" && (isBuyer ? !o.buyerConfirmedAt : !o.supplierConfirmedAt);
+    const task = needsMyConfirmation ? { k: "desk.task.confirmOrder", urgent: true } : ACTIVE_ORDER_TASK[o.status]?.[isBuyer ? "buyer" : "supplier"];
+    if (task) {
+      tasks.push({ key: `order-${o.code}`, icon: task.urgent ? Warning : Package, urgent: task.urgent, labelKey: task.k, title: o.request.title, href: `/orders/${o.code}`, actKey: "desk.act.open" });
+    }
   }
-
-  for (const l of listings) {
-    const image = Array.isArray(l.imageKeys) && l.imageKeys.length > 0 ? l.imageKeys[0] : null;
-    listingItems.push({
-      at: l.createdAt,
-      node: (
-        <FeedCard
-          key={`listing-${l.id}`}
-          lead={<Avatar name={l.business.name} size="h-12 w-12 text-base" />}
-          name={l.business.name}
-          nameHref={`/b/${l.business.slug}`}
-          verified={l.business.verificationStatus === "VERIFIED" || l.business.verificationStatus === "BASIC"}
-          kindKey="home.feed.product"
-          kindTone="bg-emerald-50 text-emerald-700 border border-emerald-200/80"
-          meta={[l.business.businessType, l.business.area].filter(Boolean).join(" · ")}
-          at={l.createdAt.toISOString()}
-          title={l.title}
-          titleHref={`/l/${l.id}`}
-          media={
-            image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/api/files/download?key=${encodeURIComponent(image)}`} alt="" className="aspect-[16/7] w-full rounded-xl object-cover" loading="lazy" />
-            ) : undefined
-          }
-          stats={[
-            {
-              labelKey: "home.stat.price",
-              value: l.priceMin ? <MoneyRange min={Number(l.priceMin)} max={l.priceMax ? Number(l.priceMax) : null} currency={l.currency} /> : null,
-            },
-            { labelKey: "home.stat.moq", value: l.moq ? <><Num n={l.moq} /> {l.unit}</> : null },
-            { labelKey: "home.stat.leadTime", value: l.leadTimeDays ? <DaysText n={l.leadTimeDays} /> : null },
-          ]}
-          actions={[
-            { href: `/requests/new?category=${l.category.slug}&supplier=${l.business.id}`, labelKey: "home.act.requestQuote", primary: true },
-            { href: `/l/${l.id}`, labelKey: "home.act.viewProduct" },
-            { href: `/b/${l.business.slug}`, labelKey: "home.act.visitProfile" },
-          ]}
-        />
-      ),
-    });
+  for (const r of desk.quotesToCompare) {
+    tasks.push({ key: `cmp-${r.code}`, icon: Scales, labelKey: "desk.task.compare", n: r._count.quotes, title: r.title, href: `/requests/${r.code}`, actKey: "desk.act.compare" });
   }
-
-  for (const q of questions.slice(0, 5)) {
-    const author = q.authorBusiness?.name ?? q.authorName;
-    questionItems.push({
-      at: q.createdAt,
-      node: (
-        <FeedCard
-          key={`q-${q.id}`}
-          lead={
-            author ? (
-              <Avatar name={author} size="h-12 w-12 text-base" />
-            ) : (
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
-                <ChatsCircle size={24} weight="duotone" />
-              </span>
-            )
-          }
-          name={author ?? <T k="home.feed.anonymous" />}
-          nameHref={q.authorBusiness ? `/b/${q.authorBusiness.slug}` : undefined}
-          kindKey="home.feed.question"
-          kindTone="bg-amber-50 text-amber-800 border border-amber-200/80"
-          meta={q.categorySlug ? <T k={`category.${q.categorySlug}`} /> : undefined}
-          at={q.createdAt.toISOString()}
-          title={q.title}
-          titleHref={`/q/${q.id}`}
-          stats={[
-            { labelKey: "home.stat.answers", value: <Num n={q.answerCount} /> },
-            { labelKey: "home.stat.votes", value: <Num n={q.score} /> },
-          ]}
-          actions={[
-            { href: `/q/${q.id}`, labelKey: "home.act.answer", primary: q.answerCount === 0 },
-            { href: `/q/${q.id}`, labelKey: "home.act.viewDiscussion" },
-          ]}
-        />
-      ),
-    });
+  for (const r of opportunities.filter((x) => !x.quotes[0]).slice(0, 5)) {
+    tasks.push({ key: `quote-${r.code}`, icon: ClipboardText, labelKey: "desk.task.quote", title: r.title, href: `/requests/${r.code}`, actKey: "desk.act.quote" });
   }
-
-  for (const l of recommendations) {
-    const image = Array.isArray(l.imageKeys) && l.imageKeys.length > 0 ? l.imageKeys[0] : null;
-    recommendedItems.push({
-      at: l.createdAt,
-      node: (
-        <FeedCard
-          key={`rec-${l.id}`}
-          id={`feed-rec-${l.id}`}
-          lead={<Avatar name={l.business.name} size="h-12 w-12 text-base" />}
-          name={l.business.name}
-          nameHref={`/b/${l.business.slug}`}
-          verified={l.business.verificationStatus === "VERIFIED" || l.business.verificationStatus === "BASIC"}
-          kindKey="home.feed.product"
-          kindTone="bg-emerald-50 text-emerald-700 border border-emerald-200/80"
-          meta={[l.business.businessType, l.business.area].filter(Boolean).join(" · ")}
-          at={l.createdAt.toISOString()}
-          title={l.title}
-          titleHref={`/l/${l.id}`}
-          listingId={l.id}
-          categorySlug={l.category.slug}
-          isRecommended={true}
-          recommendationReasonKey={l.reasonKey}
-          recommendationReasonParam={l.reasonParam}
-          media={
-            image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/api/files/download?key=${encodeURIComponent(image)}`} alt="" className="aspect-[16/7] w-full rounded-xl object-cover" loading="lazy" />
-            ) : undefined
-          }
-          stats={[
-            {
-              labelKey: "home.stat.price",
-              value: l.priceMin ? <MoneyRange min={Number(l.priceMin)} max={l.priceMax ? Number(l.priceMax) : null} currency={l.currency} /> : null,
-            },
-            { labelKey: "home.stat.moq", value: l.moq ? <><Num n={l.moq} /> {l.unit}</> : null },
-            { labelKey: "home.stat.leadTime", value: l.leadTimeDays ? <DaysText n={l.leadTimeDays} /> : null },
-          ]}
-          actions={[
-            { href: `/requests/new?category=${l.category.slug}&supplier=${l.business.id}`, labelKey: "home.act.requestQuote", primary: true },
-            { href: `/l/${l.id}`, labelKey: "home.act.viewProduct" },
-            { href: `/b/${l.business.slug}`, labelKey: "home.act.visitProfile" },
-          ]}
-        />
-      ),
-    });
+  if (desk.unreadMessages > 0) {
+    tasks.push({ key: "unread", icon: ChatCircleDots, labelKey: "desk.task.unread", n: desk.unreadMessages, href: "/inbox", actKey: "desk.act.reply" });
   }
+  tasks.sort((a, b) => Number(!!b.urgent) - Number(!!a.urgent));
 
-  const items = interleave([recommendedItems, requestItems, mineItems, listingItems, questionItems]);
-  const unanswered = questions.filter((q) => q.answerCount === 0).slice(0, 3);
+  const activeOrders = desk.orders.slice(0, 5);
 
   return (
-    <div className="mx-auto grid max-w-[1080px] grid-cols-1 items-start gap-6 pt-2 lg:grid-cols-[minmax(0,1fr)_320px] lg:pt-4">
-      <div className="min-w-0 space-y-4">
-        <section className="rounded-2xl border border-slate-200 bg-white">
-          <div className="flex items-center gap-3 px-4 pt-4">
-            <Avatar name={business?.name || "B"} size="h-12 w-12 text-base" />
-            <Link
-              href="/requests/new"
-              id="feed-create-rfq-trigger"
-              className="flex h-12 min-w-0 flex-1 items-center rounded-full border border-slate-300 px-5 text-[15px] text-slate-500 transition-colors hover:border-slate-400 hover:bg-slate-50"
-            >
-              <span className="truncate">
-                <T k="home.composer.start" />
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="min-w-0 space-y-5">
+        <div>
+          <h1 className="page-title">{business.name}</h1>
+          <div className="mt-3">
+            <InstantAnswer />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat id="home-open-requests" labelKey="desk.stat.openRequests" value={desk.openRequests} href="/requests" />
+          <Stat labelKey="desk.stat.quotes" value={desk.quotesReceived} href="/requests" />
+          <Stat labelKey="desk.stat.orders" value={desk.orders.length} href="/orders" />
+          <Stat labelKey="desk.stat.unread" value={desk.unreadMessages} href="/inbox" />
+        </div>
+
+        <section className="card" id="desk-tasks">
+          <div className="card-header">
+            <h2 className="section-title">
+              <T k="desk.needsYou" />
+            </h2>
+            {tasks.length > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold tabular-nums text-primary-950">
+                <Num n={tasks.length} />
               </span>
-            </Link>
+            )}
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-1 border-t border-slate-100 p-2 sm:grid-cols-4">
-            {COMPOSER_ACTIONS.map(({ href, icon: Icon, k, tone }) => (
-              <Link key={k} href={href} className="flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
-                <Icon size={20} weight="duotone" className={tone} />
-                <T k={k} />
-              </Link>
-            ))}
-          </div>
+          {tasks.length === 0 ? (
+            <p className="flex items-center gap-2 px-4 py-6 text-sm text-slate-500">
+              <CheckCircle size={18} weight="fill" className="text-emerald-600" />
+              <T k="desk.allClear" />
+            </p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {tasks.slice(0, 8).map(({ key, icon: TaskIcon, urgent, labelKey, n, title, href, actKey }) => (
+                <li key={key} className="flex items-center gap-3 px-4 py-3">
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${urgent ? "bg-amber-100 text-amber-700" : "bg-primary-50 text-primary-700"}`}>
+                    <TaskIcon size={18} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-slate-900">
+                      {n !== undefined ? <TNum k={labelKey} n={n} /> : <T k={labelKey} />}
+                    </span>
+                    {title && <span className="block truncate text-xs text-slate-500">{title}</span>}
+                  </span>
+                  <Link href={href} className="btn btn-secondary btn-sm shrink-0">
+                    <T k={actKey} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
-        {items.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-[15px] text-slate-500">
-            <T k="home.feed.empty" />
-          </p>
-        ) : (
-          items.slice(0, 12).map((i) => i.node)
+        {orderAgain.length > 0 && <OrderAgain items={orderAgain} />}
+
+        {business.isBuyer !== false && (
+          <section className="card overflow-hidden">
+            <div className="card-header">
+              <h2 className="section-title">
+                <T k="desk.requests.title" />
+              </h2>
+              <Link href="/requests" className="link text-[13px]">
+                <T k="common.viewAll" />
+              </Link>
+            </div>
+            {requests.length === 0 ? (
+              <div className="flex flex-col items-start gap-3 px-4 py-6">
+                <p className="flex items-center gap-2 text-sm text-slate-500">
+                  <FileText size={18} />
+                  <T k="desk.requests.empty" />
+                </p>
+                <Link href="/requests/new" className="btn btn-primary btn-sm">
+                  <T k="home.newRequest" />
+                </Link>
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th><T k="desk.col.request" /></th>
+                      <th className="hidden sm:table-cell"><T k="desk.col.quantity" /></th>
+                      <th><T k="desk.col.quotes" /></th>
+                      <th><T k="desk.col.status" /></th>
+                      <th className="hidden md:table-cell"><T k="desk.col.date" /></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {requests.map((r) => (
+                      <tr key={r.code}>
+                        <td className="max-w-[16rem]">
+                          <Link href={`/requests/${r.code}`} className="block truncate font-medium text-slate-900 hover:text-primary-700">
+                            {r.title}
+                          </Link>
+                        </td>
+                        <td className="hidden whitespace-nowrap sm:table-cell">
+                          <Num n={Number(r.quantity)} /> {r.unit}
+                        </td>
+                        <td><Num n={r._count.quotes} /></td>
+                        <td><StatusChip k={`reqStatus.${r.status}`} tone={REQUEST_STATUS_TONE[r.status] ?? "gray"} /></td>
+                        <td className="hidden whitespace-nowrap text-slate-500 md:table-cell"><DateText iso={r.createdAt.toISOString()} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         )}
+
+        <section className="card overflow-hidden">
+          <div className="card-header">
+            <h2 className="section-title">
+              <T k="desk.orders.title" />
+            </h2>
+            <Link href="/orders" className="link text-[13px]">
+              <T k="common.viewAll" />
+            </Link>
+          </div>
+          {activeOrders.length === 0 ? (
+            <p className="flex items-center gap-2 px-4 py-6 text-sm text-slate-500">
+              <Package size={18} />
+              <T k="desk.orders.empty" />
+            </p>
+          ) : (
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th><T k="desk.col.order" /></th>
+                    <th className="hidden sm:table-cell"><T k="desk.col.party" /></th>
+                    <th><T k="desk.col.status" /></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeOrders.map((o) => (
+                    <tr key={o.code}>
+                      <td className="max-w-[18rem]">
+                        <Link href={`/orders/${o.code}`} className="block truncate font-medium text-slate-900 hover:text-primary-700">
+                          {o.request.title}
+                        </Link>
+                        <span className="text-xs text-slate-500">{o.code}</span>
+                      </td>
+                      <td className="hidden sm:table-cell">{o.buyerBusinessId === business.id ? o.supplierBusiness.name : o.buyerBusiness.name}</td>
+                      <td><StatusChip k={`order.status.${o.status}`} tone={ORDER_STATUS_TONE[o.status] ?? "gray"} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
 
-      <div className="lg:sticky lg:top-20">
-        <HomeRail
-          trends={trends}
-          suppliers={suppliers}
-          questions={unanswered.map((q) => ({ id: q.id, title: q.title, categorySlug: q.categorySlug }))}
+      <aside className="space-y-5 lg:sticky lg:top-20">
+        <section className="card">
+          <div className="card-header">
+            <h2 className="section-title">
+              <T k="home.prices.title" />
+            </h2>
+            <Link href="/prices" className="link text-[13px]">
+              <T k="common.viewAll" />
+            </Link>
+          </div>
+          {trends.length === 0 ? (
+            <p className="px-4 py-4 text-sm text-slate-500">
+              <T k="home.prices.empty" />
+            </p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {trends.map((p) => (
+                <li key={p.id} className="flex items-baseline justify-between gap-3 px-4 py-2.5">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm text-slate-800">
+                      <T k={`category.${p.categorySlug}`} />
+                    </span>
+                    <span className="block truncate text-xs text-slate-500">
+                      <TNum k="home.quoteCount" n={p.sampleQuotes} />
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-end">
+                    <span className="block text-sm font-semibold tabular-nums text-slate-900">
+                      <Money n={p.median} currency={p.currency} />
+                    </span>
+                    <span className="block text-xs text-slate-500">
+                      <T k="home.prices.perUnit" params={{ unit: p.unit }} />
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <Recommended
+          items={recommendations.map((l) => ({
+            id: l.id,
+            title: l.title,
+            supplier: l.business.name,
+            categorySlug: l.category.slug,
+            priceMin: l.priceMin ? Number(l.priceMin) : null,
+            priceMax: l.priceMax ? Number(l.priceMax) : null,
+            currency: l.currency,
+            reasonKey: l.reasonKey,
+            reasonParam: l.reasonParam,
+          }))}
         />
-      </div>
+      </aside>
     </div>
   );
 }

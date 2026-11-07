@@ -12,7 +12,7 @@ describe("UI renders approved DB translations", () => {
     await prisma.uiString.upsert({ where: { key }, update: {}, create: { key, defaultText: "Switch Business" } });
     await prisma.uiTranslation.upsert({
       where: { key_langCode: { key, langCode: "bn" } },
-      update: { text: dbText, isApproved: true },
+      update: { text: dbText, isApproved: true, source: "HUMAN" },
       create: { key, langCode: "bn", text: dbText, source: "HUMAN", isApproved: true },
     });
 

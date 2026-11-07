@@ -1,395 +1,349 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { T, useT } from "@/components/ui/T";
+import { useCallback, useEffect, useState } from "react";
+import { T, useLang, useT } from "@/components/ui/T";
+import { formatDate } from "@/lib/dates";
+import { CurrencySelect } from "@/components/ui/CurrencySelect";
+import { adminFetch } from "@/components/admin/AdminNav";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
 interface QueueItem {
   id: string;
   targetId: string;
-  reason: string;
-  details?: string | null;
-  status: string;
   createdAt: string;
+  request: { code: string; title: string; buyerBusiness: { name: string } } | null;
+}
+interface BusinessOption {
+  id: string;
+  name: string;
+  area: string;
+  isBuyer: boolean;
+  isSupplier: boolean;
+}
+interface RequestOption {
+  id: string;
+  code: string;
+  title: string;
+  quantity: string;
+  unit: string;
+  buyerBusiness: { name: string };
 }
 
+const PAYMENT_TERMS = ["CASH_ON_DELIVERY", "ADVANCE", "CREDIT_7", "CREDIT_15", "CREDIT_30", "OTHER"];
+
+type Notice = { ok: boolean; text: string } | null;
+
+function NoticeLine({ notice }: { notice: Notice }) {
+  if (!notice) return null;
+  return (
+    <p role="status" className={`rounded-lg p-2.5 text-[13px] ${notice.ok ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800"}`}>
+      {notice.text}
+    </p>
+  );
+}
+
+/** Enter requests and quotes taken by phone; both are flagged as concierge and log ops minutes (§7, §8.7). */
 export default function AdminConciergePage() {
   const t = useT();
-  const [queue, setQueue] = useState<QueueItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const lang = useLang();
+  const [queue, setQueue] = useState<QueueItem[] | null>(null);
+  const [queueError, setQueueError] = useState<string | null>(null);
+  const [businesses, setBusinesses] = useState<BusinessOption[]>([]);
+  const [categories, setCategories] = useState<{ id: string; slug: string }[]>([]);
+  const [openRequests, setOpenRequests] = useState<RequestOption[]>([]);
 
-  // Concierge Request Form state
   const [buyerBusinessId, setBuyerBusinessId] = useState("");
-  const [reqCategoryId, setReqCategoryId] = useState("");
-  const [reqTitle, setReqTitle] = useState("");
-  const [reqQuantity, setReqQuantity] = useState(100);
-  const [reqUnit, setReqUnit] = useState("pieces");
-  const [reqDeliveryArea, setReqDeliveryArea] = useState("Dhanmondi, Dhaka");
-  const [reqNeededDays, setReqNeededDays] = useState(7);
-  const [reqOpsMinutes, setReqOpsMinutes] = useState(15);
-  const [isSubmittingReq, setIsSubmittingReq] = useState(false);
+  const [categoryId, setCategoryId] = useState("");
+  const [title, setTitle] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("pcs");
+  const [deliveryArea, setDeliveryArea] = useState("");
+  const [requestMinutes, setRequestMinutes] = useState("15");
+  const [requestNotice, setRequestNotice] = useState<Notice>(null);
+  const [savingRequest, setSavingRequest] = useState(false);
 
-  // Concierge Quote Form state
-  const [quoteRequestId, setQuoteRequestId] = useState("");
-  const [quoteSupplierBusinessId, setQuoteSupplierBusinessId] = useState("");
-  const [quoteUnitPrice, setQuoteUnitPrice] = useState("10.00");
-  const [quoteDeliveryCharge, setQuoteDeliveryCharge] = useState("150.00");
-  const [quoteDeliveryDays, setQuoteDeliveryDays] = useState(3);
-  const [quotePaymentTerm, setQuotePaymentTerm] = useState("CASH_ON_DELIVERY");
-  const [quoteOpsMinutes, setQuoteOpsMinutes] = useState(10);
-  const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+  const [requestId, setRequestId] = useState("");
+  const [supplierBusinessId, setSupplierBusinessId] = useState("");
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
+  const [unitPrice, setUnitPrice] = useState("");
+  const [deliveryCharge, setDeliveryCharge] = useState("0");
+  const [deliveryDays, setDeliveryDays] = useState("3");
+  const [paymentTerm, setPaymentTerm] = useState("CASH_ON_DELIVERY");
+  const [quoteMinutes, setQuoteMinutes] = useState("10");
+  const [quoteNotice, setQuoteNotice] = useState<Notice>(null);
+  const [savingQuote, setSavingQuote] = useState(false);
+
+  const loadQueue = useCallback(async () => {
+    setQueue(null);
+    setQueueError(null);
+    const res = await adminFetch("/api/admin/concierge/queue");
+    if (res.ok) setQueue(res.data);
+    else {
+      setQueue([]);
+      setQueueError(res.error);
+    }
+  }, []);
+
+  const loadOpenRequests = useCallback(async () => {
+    const res = await adminFetch("/api/admin/requests?status=OPEN");
+    if (res.ok) setOpenRequests(res.data.requests);
+  }, []);
 
   useEffect(() => {
     loadQueue();
-  }, []);
+    loadOpenRequests();
+    adminFetch("/api/admin/businesses").then((res) => res.ok && setBusinesses(res.data.businesses));
+    adminFetch("/api/categories").then((res) => res.ok && Array.isArray(res.data) && setCategories(res.data));
+  }, [loadQueue, loadOpenRequests]);
 
-  async function loadQueue() {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/concierge/queue");
-      if (!res.ok) {
-        throw new Error("Failed to load concierge queue");
-      }
-      const data = await res.json();
-      setQueue(data);
-    } catch (e: any) {
-      setError(e.message || "Failed to load queue");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleCreateConciergeRequest(e: React.FormEvent) {
+  const createRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setIsSubmittingReq(true);
-      const neededBy = new Date();
-      neededBy.setDate(neededBy.getDate() + reqNeededDays);
+    setSavingRequest(true);
+    setRequestNotice(null);
+    const res = await adminFetch("/api/admin/concierge/requests", {
+      method: "POST",
+      body: JSON.stringify({ buyerBusinessId, categoryId, title, quantity: Number(quantity), unit, deliveryArea, opsMinutesSpent: Number(requestMinutes) }),
+    });
+    setSavingRequest(false);
+    if (!res.ok) return setRequestNotice({ ok: false, text: res.error });
+    setRequestNotice({ ok: true, text: t("admin.concierge.requestSaved") });
+    setTitle("");
+    setQuantity("");
+    loadQueue();
+    loadOpenRequests();
+  };
 
-      const res = await fetch("/api/admin/concierge/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          buyerBusinessId,
-          categoryId: reqCategoryId,
-          title: reqTitle,
-          quantity: reqQuantity,
-          unit: reqUnit,
-          neededBy: neededBy.toISOString(),
-          deliveryArea: reqDeliveryArea,
-          opsTimeMinutes: reqOpsMinutes,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        alert(err.error || "Failed to create concierge request");
-        return;
-      }
-
-      alert("Concierge request created successfully!");
-      setReqTitle("");
-      loadQueue();
-    } catch (e: any) {
-      alert(e.message || "Error creating request");
-    } finally {
-      setIsSubmittingReq(false);
-    }
-  }
-
-  async function handleCreateConciergeQuote(e: React.FormEvent) {
+  const createQuote = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setIsSubmittingQuote(true);
-      const validUntil = new Date();
-      validUntil.setDate(validUntil.getDate() + 7);
-
-      const res = await fetch("/api/admin/concierge/quotes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requestId: quoteRequestId,
-          supplierBusinessId: quoteSupplierBusinessId,
-          unitPrice: quoteUnitPrice,
-          deliveryCharge: quoteDeliveryCharge,
-          deliveryDays: quoteDeliveryDays,
-          paymentTerm: quotePaymentTerm,
-          validUntil: validUntil.toISOString(),
-          opsTimeMinutes: quoteOpsMinutes,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        alert(err.error || "Failed to submit concierge quote");
-        return;
-      }
-
-      alert("Concierge quote submitted successfully!");
-      loadQueue();
-    } catch (e: any) {
-      alert(e.message || "Error submitting quote");
-    } finally {
-      setIsSubmittingQuote(false);
-    }
-  }
+    const request = openRequests.find((r) => r.id === requestId);
+    setSavingQuote(true);
+    setQuoteNotice(null);
+    const res = await adminFetch("/api/admin/concierge/quotes", {
+      method: "POST",
+      body: JSON.stringify({
+        requestId,
+        supplierBusinessId,
+        currency,
+        unitPrice,
+        quantity: request?.quantity,
+        deliveryCharge,
+        deliveryDays: Number(deliveryDays),
+        paymentTerm,
+        opsMinutesSpent: Number(quoteMinutes),
+      }),
+    });
+    setSavingQuote(false);
+    if (!res.ok) return setQuoteNotice({ ok: false, text: res.error });
+    setQuoteNotice({ ok: true, text: t("admin.concierge.quoteSaved") });
+    setUnitPrice("");
+    loadQueue();
+  };
 
   return (
-    <div className="mx-auto max-w-4xl p-4 space-y-8">
+    <div className="space-y-4">
       <div>
-        <h1 className="page-title"><T k="admin.concierge.title" /></h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="page-title">
+          <T k="admin.concierge.title" />
+        </h1>
+        <p className="page-subtitle">
           <T k="admin.concierge.subtitle" />
         </p>
       </div>
 
-      {/* 0-Match Requests Queue */}
-      <div className="rounded-xl border bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-gray-900">
-            <T k="admin.concierge.queueTitle" /> ({queue.length})
+      <section className="card">
+        <div className="card-header">
+          <h2 className="section-title">
+            <T k="admin.concierge.queueTitle" />
           </h2>
-          <button
-            onClick={loadQueue}
-            className="text-xs text-emerald-700 hover:underline"
-          >
+          <button type="button" onClick={loadQueue} className="btn btn-ghost btn-sm">
             <T k="admin.concierge.refresh" />
           </button>
         </div>
-
-        {loading ? (
-          <p className="text-sm text-gray-500"><T k="admin.concierge.loading" /></p>
-        ) : error ? (
-          <p className="text-sm text-rose-600">{error}</p>
+        {queue === null ? (
+          <p className="px-4 py-4 text-sm text-slate-500">
+            <T k="common.loading" />
+          </p>
+        ) : queueError ? (
+          <p className="px-4 py-4 text-sm text-rose-700">{queueError}</p>
         ) : queue.length === 0 ? (
-          <p className="text-sm text-gray-500"><T k="admin.concierge.noPending" /></p>
+          <p className="px-4 py-4 text-sm text-slate-500">
+            <T k="admin.concierge.noPending" />
+          </p>
         ) : (
-          <div className="divide-y text-sm">
+          <ul className="divide-y divide-slate-100">
             {queue.map((item) => (
-              <div key={item.id} className="py-3 flex items-center justify-between">
-                <div>
-                  <span className="font-medium text-gray-900"><T k="admin.concierge.requestId" />: {item.targetId}</span>
-                  <p className="text-xs text-gray-500">{item.reason}</p>
-                  <p className="text-xs text-gray-400">
-                    <T k="admin.concierge.flagged" />: {new Date(item.createdAt).toLocaleString()}
+              <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-900">{item.request?.title ?? item.targetId}</p>
+                  <p className="text-xs text-slate-500">
+                    {item.request && `${item.request.code} · ${item.request.buyerBusiness.name} · `}
+                    {formatDate(item.createdAt, lang)}
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setQuoteRequestId(item.targetId);
-                    }}
-                    className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
-                  >
-                    <T k="admin.concierge.provideQuote" />
-                  </button>
-                </div>
-              </div>
+                <button type="button" onClick={() => setRequestId(item.targetId)} className="btn btn-secondary btn-sm">
+                  <T k="admin.concierge.provideQuote" />
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Create Concierge Request on Behalf of Buyer */}
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-2">
-            <T k="admin.concierge.createRequest" />
-          </h2>
-          <p className="text-xs text-gray-500 mb-4">
-            <T k="admin.concierge.createRequestDesc" />
-          </p>
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+        <form onSubmit={createRequest} className="card space-y-3 p-4">
+          <div>
+            <h2 className="section-title">
+              <T k="admin.concierge.createRequest" />
+            </h2>
+            <p className="mt-0.5 text-[13px] text-slate-500">
+              <T k="admin.concierge.createRequestDesc" />
+            </p>
+          </div>
+          <div>
+            <label htmlFor="concierge-buyer" className="label">
+              <T k="admin.concierge.buyer" />
+            </label>
+            <select id="concierge-buyer" required value={buyerBusinessId} onChange={(e) => setBuyerBusinessId(e.target.value)} className="input">
+              <option value="">{t("common.select")}</option>
+              {businesses.filter((b) => b.isBuyer).map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} ({b.area})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="concierge-category" className="label">
+              <T k="listing.category" />
+            </label>
+            <select id="concierge-category" required value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="input">
+              <option value="">{t("common.select")}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {t(`category.${c.slug}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="concierge-title" className="label">
+              <T k="admin.concierge.titleField" />
+            </label>
+            <input id="concierge-title" required value={title} onChange={(e) => setTitle(e.target.value)} className="input" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="concierge-quantity" className="label">
+                <T k="admin.concierge.quantity" />
+              </label>
+              <input id="concierge-quantity" type="number" min="1" required value={quantity} onChange={(e) => setQuantity(e.target.value)} className="input" />
+            </div>
+            <div>
+              <label htmlFor="concierge-unit" className="label">
+                <T k="admin.concierge.unit" />
+              </label>
+              <input id="concierge-unit" required value={unit} onChange={(e) => setUnit(e.target.value)} className="input" />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="concierge-area" className="label">
+              <T k="admin.concierge.deliveryArea" />
+            </label>
+            <input id="concierge-area" required value={deliveryArea} onChange={(e) => setDeliveryArea(e.target.value)} className="input" />
+          </div>
+          <div>
+            <label htmlFor="concierge-request-minutes" className="label">
+              <T k="admin.concierge.opsTime" />
+            </label>
+            <input id="concierge-request-minutes" type="number" min="1" required value={requestMinutes} onChange={(e) => setRequestMinutes(e.target.value)} className="input" />
+          </div>
+          <NoticeLine notice={requestNotice} />
+          <button type="submit" disabled={savingRequest} className="btn btn-primary w-full">
+            {savingRequest ? t("common.loading") : t("admin.concierge.submitRequest")}
+          </button>
+        </form>
 
-          <form onSubmit={handleCreateConciergeRequest} className="space-y-3">
+        <form onSubmit={createQuote} className="card space-y-3 p-4">
+          <div>
+            <h2 className="section-title">
+              <T k="admin.concierge.submitQuote" />
+            </h2>
+            <p className="mt-0.5 text-[13px] text-slate-500">
+              <T k="admin.concierge.submitQuoteDesc" />
+            </p>
+          </div>
+          <div>
+            <label htmlFor="concierge-request" className="label">
+              <T k="desk.col.request" />
+            </label>
+            <select id="concierge-request" required value={requestId} onChange={(e) => setRequestId(e.target.value)} className="input">
+              <option value="">{t("common.select")}</option>
+              {openRequests.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.code}: {r.title} ({r.buyerBusiness.name})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="concierge-supplier" className="label">
+              <T k="admin.concierge.supplier" />
+            </label>
+            <select id="concierge-supplier" required value={supplierBusinessId} onChange={(e) => setSupplierBusinessId(e.target.value)} className="input">
+              <option value="">{t("common.select")}</option>
+              {businesses.filter((b) => b.isSupplier).map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} ({b.area})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <CurrencySelect id="concierge-currency" value={currency} onChange={setCurrency} />
             <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.buyerBusinessId" /></label>
-              <input
-                type="text"
-                required
-                value={buyerBusinessId}
-                onChange={(e) => setBuyerBusinessId(e.target.value)}
-                placeholder="cuid..."
-                className="w-full rounded border p-2 text-xs"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.categoryId" /></label>
-              <input
-                type="text"
-                required
-                value={reqCategoryId}
-                onChange={(e) => setReqCategoryId(e.target.value)}
-                placeholder="containers / food_boxes / cups..."
-                className="w-full rounded border p-2 text-xs"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.titleField" /></label>
-              <input
-                type="text"
-                required
-                value={reqTitle}
-                onChange={(e) => setReqTitle(e.target.value)}
-                placeholder="500ml Round PP Food Containers"
-                className="w-full rounded border p-2 text-xs"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-600 block"><T k="admin.concierge.quantity" /></label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={reqQuantity}
-                  onChange={(e) => setReqQuantity(Number(e.target.value))}
-                  className="w-full rounded border p-2 text-xs"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-600 block"><T k="admin.concierge.unit" /></label>
-                <input
-                  type="text"
-                  required
-                  value={reqUnit}
-                  onChange={(e) => setReqUnit(e.target.value)}
-                  className="w-full rounded border p-2 text-xs"
-                />
-              </div>
+              <label htmlFor="concierge-unit-price" className="label">
+                <T k="quote.unitPrice" />
+              </label>
+              <input id="concierge-unit-price" type="number" step="0.01" min="0.01" required value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className="input" />
             </div>
             <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.deliveryArea" /></label>
-              <input
-                type="text"
-                required
-                value={reqDeliveryArea}
-                onChange={(e) => setReqDeliveryArea(e.target.value)}
-                className="w-full rounded border p-2 text-xs"
-              />
+              <label htmlFor="concierge-delivery-charge" className="label">
+                <T k="quote.deliveryCharge" />
+              </label>
+              <input id="concierge-delivery-charge" type="number" step="0.01" min="0" required value={deliveryCharge} onChange={(e) => setDeliveryCharge(e.target.value)} className="input" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="concierge-days" className="label">
+                <T k="admin.concierge.deliveryDays" />
+              </label>
+              <input id="concierge-days" type="number" min="0" required value={deliveryDays} onChange={(e) => setDeliveryDays(e.target.value)} className="input" />
             </div>
             <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.opsTime" /></label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={reqOpsMinutes}
-                onChange={(e) => setReqOpsMinutes(Number(e.target.value))}
-                className="w-full rounded border p-2 text-xs"
-              />
+              <label htmlFor="concierge-term" className="label">
+                <T k="admin.concierge.paymentTerm" />
+              </label>
+              <select id="concierge-term" value={paymentTerm} onChange={(e) => setPaymentTerm(e.target.value)} className="input">
+                {PAYMENT_TERMS.map((pt) => (
+                  <option key={pt} value={pt}>
+                    {t(`payterm.${pt}`)}
+                  </option>
+                ))}
+              </select>
             </div>
-            <button
-              type="submit"
-              disabled={isSubmittingReq}
-              className="w-full rounded-lg bg-emerald-600 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {isSubmittingReq ? t("common.loading") : t("admin.concierge.submitRequest")}
-            </button>
-          </form>
-        </div>
-
-        {/* Create Concierge Quote on Behalf of Supplier */}
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-2">
-            <T k="admin.concierge.submitQuote" />
-          </h2>
-          <p className="text-xs text-gray-500 mb-4">
-            <T k="admin.concierge.submitQuoteDesc" />
-          </p>
-
-          <form onSubmit={handleCreateConciergeQuote} className="space-y-3">
-            <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.requestId" /></label>
-              <input
-                type="text"
-                required
-                value={quoteRequestId}
-                onChange={(e) => setQuoteRequestId(e.target.value)}
-                placeholder="cuid..."
-                className="w-full rounded border p-2 text-xs"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.supplierBusinessId" /></label>
-              <input
-                type="text"
-                required
-                value={quoteSupplierBusinessId}
-                onChange={(e) => setQuoteSupplierBusinessId(e.target.value)}
-                placeholder="cuid..."
-                className="w-full rounded border p-2 text-xs"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-600 block"><T k="admin.concierge.unitPrice" /></label>
-                <input
-                  type="text"
-                  required
-                  value={quoteUnitPrice}
-                  onChange={(e) => setQuoteUnitPrice(e.target.value)}
-                  className="w-full rounded border p-2 text-xs"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-600 block"><T k="admin.concierge.deliveryCharge" /></label>
-                <input
-                  type="text"
-                  required
-                  value={quoteDeliveryCharge}
-                  onChange={(e) => setQuoteDeliveryCharge(e.target.value)}
-                  className="w-full rounded border p-2 text-xs"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-600 block"><T k="admin.concierge.deliveryDays" /></label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={quoteDeliveryDays}
-                  onChange={(e) => setQuoteDeliveryDays(Number(e.target.value))}
-                  className="w-full rounded border p-2 text-xs"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-600 block"><T k="admin.concierge.paymentTerm" /></label>
-                <select
-                  value={quotePaymentTerm}
-                  onChange={(e) => setQuotePaymentTerm(e.target.value)}
-                  className="w-full rounded border p-2 text-xs"
-                >
-                  {["CASH_ON_DELIVERY", "ADVANCE", "CREDIT_7", "CREDIT_15", "CREDIT_30", "OTHER"].map((pt) => (
-                    <option key={pt} value={pt}>
-                      {t(`payterm.${pt}`)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 block"><T k="admin.concierge.opsTime" /></label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={quoteOpsMinutes}
-                onChange={(e) => setQuoteOpsMinutes(Number(e.target.value))}
-                className="w-full rounded border p-2 text-xs"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmittingQuote}
-              className="w-full rounded-lg bg-emerald-600 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {isSubmittingQuote ? t("common.loading") : t("admin.concierge.submitQuote")}
-            </button>
-          </form>
-        </div>
+          </div>
+          <div>
+            <label htmlFor="concierge-quote-minutes" className="label">
+              <T k="admin.concierge.opsTime" />
+            </label>
+            <input id="concierge-quote-minutes" type="number" min="1" required value={quoteMinutes} onChange={(e) => setQuoteMinutes(e.target.value)} className="input" />
+          </div>
+          <NoticeLine notice={quoteNotice} />
+          <button type="submit" disabled={savingQuote} className="btn btn-primary w-full">
+            {savingQuote ? t("common.loading") : t("admin.concierge.submitQuote")}
+          </button>
+        </form>
       </div>
     </div>
   );

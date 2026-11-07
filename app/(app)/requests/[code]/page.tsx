@@ -17,10 +17,14 @@ import {
 import { T, useT, useLang } from "@/components/ui/T";
 import { AiChip } from "@/components/ai/AiChip";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
+import { REQUEST_STATUS_TONE, StatusChip } from "@/components/ui/ListStates";
 import { formatMoney, formatNumber, calculateQuoteTotal } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
 import { TranslatableText } from "@/components/ui/TranslatableText";
 import { ChatPanel, type ChatState } from "@/components/chat/ChatPanel";
+import { AiDraftButton } from "@/components/ai/AiDraftButton";
+import { CurrencySelect } from "@/components/ui/CurrencySelect";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
 const PRIORITIES = ["BALANCED", "PRICE", "SPEED", "PAYMENT_TERMS"];
 const PAYMENT_TERMS = ["CASH_ON_DELIVERY", "ADVANCE", "CREDIT_7", "CREDIT_15", "CREDIT_30", "OTHER"];
@@ -227,7 +231,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center p-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-700 border-t-transparent" />
       </div>
     );
   }
@@ -235,7 +239,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
   if (notFound || !request) {
     return (
       <div className="page p-6 text-center space-y-3">
-        <p id="request-not-found" className="text-sm text-gray-600">
+        <p id="request-not-found" className="text-sm text-slate-600">
           <T k="rfq.notFound" />
         </p>
         <Link href="/requests" className="text-primary text-sm font-bold underline">
@@ -249,25 +253,22 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
   const rowById = (id: string | null | undefined) => rows.find((r) => r.quoteId === id) || null;
 
   return (
-    <div className="page space-y-4">
+    <div className="page-wide space-y-4">
       {/* Request summary */}
-      <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono font-bold text-gray-400">{request.code}</span>
-          <span
-            id="request-status-badge"
-            data-status={request.status}
-            className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"
-          >
-            <T k={`reqStatus.${request.status}`} />
-          </span>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-slate-500">{request.code}</p>
+          <h1 id="request-title-heading" className="page-title mt-0.5">
+            {request.title}
+          </h1>
         </div>
+        <span id="request-status-badge" data-status={request.status}>
+          <StatusChip k={`reqStatus.${request.status}`} tone={REQUEST_STATUS_TONE[request.status] ?? "gray"} />
+        </span>
+      </div>
 
-        <h1 id="request-title-heading" className="text-base font-bold text-gray-900">
-          {request.title}
-        </h1>
-
-        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-3 rounded-2xl">
+      <div className="card space-y-3 p-4">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-3 lg:grid-cols-6">
           <Info label={t("rfq.quantity")} value={`${formatNumber(request.quantity, lang)} ${request.unit}`} />
           <Info label={t("rfq.deliveryArea")} value={request.deliveryArea} />
           <Info
@@ -288,23 +289,20 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
         </div>
 
         {Object.keys(attributes).length > 0 && (
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-gray-500">
+          <div className="border-t border-slate-100 pt-3">
+            <p className="eyebrow">
               <T k="rfq.specification" />
             </p>
-            <ul className="text-xs text-gray-700 space-y-0.5">
+            <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-3 lg:grid-cols-6">
               {Object.entries(attributes).map(([key, value]) => (
-                <li key={key} className="flex justify-between gap-2">
-                  <span className="text-gray-500">{fieldLabel(key)}</span>
-                  <span className="font-semibold">{valueLabel(key, value)}</span>
-                </li>
+                <Info key={key} label={fieldLabel(key)} value={valueLabel(key, value)} />
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
         {request.budgetNote && (
-          <p className="text-xs text-gray-600">
+          <p className="text-[13px] text-slate-600">
             <span className="font-bold">
               <T k="rfq.budgetNote" />
               {": "}
@@ -315,7 +313,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
 
         {Array.isArray(request.imageKeys) && request.imageKeys.length > 0 && (
           <div className="space-y-1.5 pt-1">
-            <p className="text-xs font-bold text-gray-500">
+            <p className="text-[13px] font-bold text-slate-500">
               <T k="rfq.photos" />
             </p>
             <div className="flex flex-wrap gap-2">
@@ -325,7 +323,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                   href={`/api/files/download?key=${encodeURIComponent(k)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 block hover:opacity-90 transition"
+                  className="w-16 h-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 block hover:opacity-90 transition"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -339,13 +337,13 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-1 text-xs">
+        <div className="flex items-center justify-between pt-1 text-[13px]">
           {role === "BUYER" && request.status === "OPEN" && (
             <button
               type="button"
               id="cancel-request-btn"
               onClick={() => setShowCancel(true)}
-              className="text-red-500 font-semibold hover:underline"
+              className="text-rose-700 font-semibold hover:underline"
             >
               <T k="rfq.cancelRequest" />
             </button>
@@ -366,7 +364,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
       </div>
 
       {actionError && (
-        <div id="action-error" className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-2xl p-3">
+        <div id="action-error" className="text-[13px] text-red-700 bg-red-50 border border-red-200 rounded-2xl p-3">
           {actionError}
         </div>
       )}
@@ -384,17 +382,17 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
         />
       )}
       {role === "PUBLIC" && (
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-center space-y-3">
-          <h2 className="text-sm font-bold text-gray-900">
+        <div className="card p-6 text-center space-y-3">
+          <h2 className="text-sm font-bold text-slate-900">
             {t("rfq.supplierCtaTitle") || "Are you a packaging supplier?"}
           </h2>
-          <p className="text-xs text-gray-500 max-w-sm mx-auto">
+          <p className="text-[13px] text-slate-500 max-w-sm mx-auto">
             {t("rfq.supplierCtaSubtitle") || "Log in or sign up to submit competitive quotes and connect directly with the buyer."}
           </p>
           <div className="pt-2">
             <Link
               href={`/login?redirect=/requests/${encodeURIComponent(code)}`}
-              className="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-xs font-bold rounded-2xl hover:bg-primary-hover shadow-sm transition"
+              className="btn btn-primary"
             >
               <span>{t("nav.login") || "Log in to Submit Quote"}</span>
             </Link>
@@ -403,13 +401,13 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
       )}
 
       {isBuyerSide && (
-        <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-4">
-          <div className="flex items-center justify-between gap-2">
+        <div className="card space-y-4 p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="space-y-0.5">
-              <h2 className="text-sm font-bold text-gray-900">
+              <h2 className="section-title">
                 <T k="quote.comparisonTitle" />
               </h2>
-              <p className="text-xs text-gray-400">
+              <p className="text-[13px] text-slate-500">
                 <T k="quote.comparisonSubtitle" />
               </p>
             </div>
@@ -419,24 +417,23 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                 id="compare-with-ai-btn"
                 onClick={handleCompareWithAi}
                 disabled={loadingAi}
-                className="shrink-0 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 flex items-center gap-1.5 disabled:opacity-50"
+                className="btn btn-secondary btn-sm shrink-0"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                 {loadingAi ? t("common.loading") : t("quote.compareWithAi")}
               </button>
             )}
           </div>
 
-          <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 text-[13px]">
             {PRIORITIES.map((p) => (
               <button
                 key={p}
                 type="button"
                 id={`comp-priority-${p}`}
                 onClick={() => onPriority(p)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border ${
-                  priority === p ? "bg-primary text-white border-primary" : "bg-gray-50 text-gray-600 border-gray-200"
-                }`}
+                aria-pressed={priority === p}
+                className={`btn btn-sm shrink-0 ${priority === p ? "bg-primary-700 text-white" : "btn-secondary"}`}
               >
                 <T k={`priority.${p}`} />
               </button>
@@ -444,7 +441,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
           </div>
 
           {aiUnavailable && (
-            <p id="ai-unavailable" className="text-xs text-gray-500 bg-gray-50 rounded-xl p-2.5">
+            <p id="ai-unavailable" className="text-[13px] text-slate-500 bg-slate-50 rounded-xl p-2.5">
               <T k="cmp.aiUnavailable" />
             </p>
           )}
@@ -453,18 +450,18 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
             <div id="ai-panel" className="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-3">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-xs font-bold text-primary">
+                <span className="text-[13px] font-bold text-primary">
                   <T k="quote.aiEvaluation" />
                 </span>
                 <AiChip showFeedback={true} />
               </div>
-              <p id="ai-label" className="text-xs font-semibold text-gray-600">
+              <p id="ai-label" className="text-[13px] font-semibold text-slate-600">
                 <T k="cmp.aiLabel" />
               </p>
               {aiAnalysis.summaryText && (
                 <p
                   id="ai-summary-text"
-                  className="text-xs text-gray-700 italic bg-white/60 p-2.5 rounded-xl border border-primary/10"
+                  className="text-[13px] text-slate-700 italic bg-white/60 p-2.5 rounded-xl border border-primary/10"
                 >
                   {aiAnalysis.summaryText}
                 </p>
@@ -472,7 +469,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
               {aiAnalysis.bestFitForPriority?.quoteId && rowById(aiAnalysis.bestFitForPriority.quoteId) && (
                 <div
                   id="ai-best-fit"
-                  className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl"
+                  className="flex items-center gap-1.5 text-[13px] font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl"
                 >
                   <CheckCircle className="w-3.5 h-3.5" />
                   <span>
@@ -486,8 +483,8 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                 const row = rowById(pq.quoteId);
                 if (!row || (pq.strengths.length === 0 && pq.concerns.length === 0)) return null;
                 return (
-                  <div key={pq.quoteId} className="text-xs space-y-1">
-                    <p className="font-bold text-gray-800">{row.supplier.name}</p>
+                  <div key={pq.quoteId} className="text-[13px] space-y-1">
+                    <p className="font-bold text-slate-800">{row.supplier.name}</p>
                     {pq.strengths.map((s: any, i: number) => (
                       <p key={`s${i}`} className="text-emerald-700 flex gap-1">
                         <CheckCircle className="w-3 h-3 mt-0.5 shrink-0" />
@@ -525,7 +522,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                         onClick={() =>
                           openChat(row.supplier.id, t("msg.withSupplier", undefined, { name: row.supplier.name }), question)
                         }
-                        className="text-xs px-2.5 py-1 rounded-full bg-white border border-primary/30 text-primary"
+                        className="text-[13px] px-2.5 py-1 rounded-full bg-white border border-primary/30 text-primary"
                       >
                         {row.supplier.name}
                         {" · "}
@@ -538,7 +535,21 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
             </div>
           )}
 
-          <div className="space-y-3">
+          {rows.length > 0 && (
+            <CompareTable
+              rows={rows}
+              request={request}
+              lang={lang}
+              fieldLabel={fieldLabel}
+              valueLabel={valueLabel}
+              canChoose={(row) => role === "BUYER" && request.status === "OPEN" && LIVE_QUOTE_STATUSES.includes(row.status)}
+              onChoose={setOrderRow}
+              onMessage={(row) => openChat(row.supplier.id, t("msg.withSupplier", undefined, { name: row.supplier.name }))}
+            />
+          )}
+
+          {/* Phones compare quote by quote; from md up the table above shows them side by side */}
+          <div className="space-y-3 md:hidden">
             {rows.map((row) => (
               <QuoteCard
                 key={row.quoteId}
@@ -555,12 +566,12 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                 openFile={openFile}
               />
             ))}
-            {rows.length === 0 && (
-              <div id="no-quotes" className="text-center py-6 text-xs text-gray-400">
-                <T k="quote.noQuotes" />
-              </div>
-            )}
           </div>
+          {rows.length === 0 && (
+            <div id="no-quotes" className="py-6 text-center text-[13px] text-slate-500">
+              <T k="quote.noQuotes" />
+            </div>
+          )}
         </div>
       )}
 
@@ -568,11 +579,11 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
       {orderRow && (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-sm font-bold text-gray-900">
+            <h3 className="text-sm font-bold text-slate-900">
               <T k="quote.confirmOrderSheet" />
             </h3>
-            <p className="text-xs font-semibold text-gray-700">{orderRow.supplier.name}</p>
-            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
+            <p className="text-[13px] font-semibold text-slate-700">{orderRow.supplier.name}</p>
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 text-[13px]">
               <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(orderRow.unitPrice, lang, orderRow.currency)} />
               <SheetLine label={t("rfq.quantity")} value={`${formatNumber(orderRow.quantity, lang)} ${request.unit}`} />
               <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(orderRow.deliveryCharge, lang, orderRow.currency)} />
@@ -595,7 +606,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
             </div>
             <p
               id="order-terms-final-notice"
-              className="text-xs text-gray-500 italic bg-amber-50 p-3 rounded-xl border border-amber-200"
+              className="text-[13px] text-slate-500 italic bg-amber-50 p-3 rounded-xl border border-amber-200"
             >
               <T k="quote.termsFinalNotice" />
             </p>
@@ -603,7 +614,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
               <button
                 type="button"
                 onClick={() => setOrderRow(null)}
-                className="py-3 px-4 rounded-xl border border-gray-200 text-xs font-bold text-gray-600"
+                className="btn btn-secondary"
               >
                 <T k="common.cancel" />
               </button>
@@ -612,7 +623,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                 id="confirm-order-action-btn"
                 onClick={handleConfirmOrder}
                 disabled={confirmingOrder}
-                className="flex-1 py-3 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-50"
+                className="btn btn-primary flex-1"
               >
                 {confirmingOrder ? t("common.loading") : t("quote.confirmOrder")}
               </button>
@@ -624,10 +635,10 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
       {showCancel && (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-xl">
-            <h3 className="text-sm font-bold text-gray-900">
+            <h3 className="text-sm font-bold text-slate-900">
               <T k="rfq.cancelRequest" />
             </h3>
-            <label className="text-xs font-bold text-gray-700 block">
+            <label className="label">
               <T k="rfq.cancelReason" />
             </label>
             <textarea
@@ -636,13 +647,13 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder={t("rfq.cancelPlaceholder")}
-              className="w-full text-xs p-3 rounded-xl border border-gray-200 outline-none"
+              className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm placeholder:text-slate-400 hover:border-slate-400"
             />
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowCancel(false)}
-                className="py-2.5 px-4 rounded-xl border border-gray-200 text-xs font-bold text-gray-600"
+                className="btn btn-secondary"
               >
                 <T k="common.cancel" />
               </button>
@@ -651,7 +662,7 @@ export default function RequestDetailPage({ params }: RequestDetailProps) {
                 id="submit-cancel-request-btn"
                 onClick={handleCancelRequest}
                 disabled={!cancelReason.trim()}
-                className="flex-1 py-2.5 bg-red-600 text-white text-xs font-bold rounded-xl disabled:opacity-50"
+                className="btn bg-rose-600 text-white hover:bg-rose-700 flex-1"
               >
                 <T k="common.confirm" />
               </button>
@@ -683,8 +694,8 @@ function daysText(t: (key: string, lang?: string, params?: Record<string, string
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <span className="text-gray-400 block">{label}</span>
-      <span className="font-semibold text-gray-900">{value}</span>
+      <span className="text-slate-500 block">{label}</span>
+      <span className="font-semibold text-slate-900">{value}</span>
     </div>
   );
 }
@@ -692,8 +703,177 @@ function Info({ label, value }: { label: string; value: string }) {
 function SheetLine({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <div className="flex justify-between gap-3">
-      <span className="text-gray-500">{label}</span>
-      <span className={strong ? "font-bold text-primary" : "font-bold text-gray-900"}>{value}</span>
+      <span className="text-slate-500">{label}</span>
+      <span className={strong ? "font-bold text-primary" : "font-bold text-slate-900"}>{value}</span>
+    </div>
+  );
+}
+
+/**
+ * Side-by-side comparison: one column per quote, one row per term, cheapest and best fit marked.
+ * Ids stay on the phone cards, so this desktop view never duplicates them.
+ */
+function CompareTable({
+  rows,
+  request,
+  lang,
+  fieldLabel,
+  valueLabel,
+  canChoose,
+  onChoose,
+  onMessage,
+}: {
+  rows: CompareRow[];
+  request: any;
+  lang: string;
+  fieldLabel: (key: string) => string;
+  valueLabel: (key: string, value: unknown) => string;
+  canChoose: (row: CompareRow) => boolean;
+  onChoose: (row: CompareRow) => void;
+  onMessage: (row: CompareRow) => void;
+}) {
+  const t = useT();
+  // Only amounts in one currency can be ranked against each other
+  const sameCurrency = new Set(rows.map((r) => r.currency ?? "")).size === 1;
+  const cheapest = sameCurrency ? Math.min(...rows.map((r) => Number(r.totalPrice))) : null;
+  const specFields = Array.from(new Set(rows.flatMap((r) => r.specMatch.map((s) => s.field))));
+  const cell = (row: CompareRow) => (row.isBestFit ? "bg-amber-50/70" : "");
+
+  return (
+    <div className="table-wrap hidden rounded-lg border border-slate-200 md:block">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th className="w-44"><span className="sr-only">{t("quote.comparisonTitle")}</span></th>
+            {rows.map((row) => (
+              <th key={row.quoteId} className={`min-w-44 !normal-case !tracking-normal ${row.isBestFit ? "!bg-amber-100/70" : ""}`}>
+                <span className="block text-sm font-semibold text-slate-900">{row.supplier.name}</span>
+                <span className="mt-1 flex flex-wrap items-center gap-1.5 font-normal">
+                  <VerificationBadge status={row.supplier.verificationStatus as any} />
+                  {row.isBestFit && (
+                    <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[11px] font-semibold text-primary-950">
+                      <T k="quote.bestFit" />
+                    </span>
+                  )}
+                </span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="font-medium text-slate-900"><T k="quote.totalPrice" /></td>
+            {rows.map((row) => (
+              <td key={row.quoteId} className={cell(row)}>
+                <span className="text-base font-semibold text-slate-900">{formatMoney(row.totalPrice, lang, row.currency)}</span>
+                {cheapest !== null && rows.length > 1 && Number(row.totalPrice) === cheapest && (
+                  <span className="ms-2 text-xs font-medium text-emerald-700"><T k="cmp.lowest" /></span>
+                )}
+              </td>
+            ))}
+          </tr>
+          <tr>
+            <td className="text-slate-500"><T k="quote.unitPriceShort" /></td>
+            {rows.map((row) => <td key={row.quoteId} className={cell(row)}>{formatMoney(row.unitPrice, lang, row.currency)}</td>)}
+          </tr>
+          <tr>
+            <td className="text-slate-500">{t("quote.deliveryCharge")}</td>
+            {rows.map((row) => <td key={row.quoteId} className={cell(row)}>{formatMoney(row.deliveryCharge, lang, row.currency)}</td>)}
+          </tr>
+          <tr>
+            <td className="text-slate-500"><T k="quote.delivery" /></td>
+            {rows.map((row) => (
+              <td key={row.quoteId} className={cell(row)}>
+                <span className={row.isLate ? "font-medium text-rose-700" : ""}>{formatDate(row.estimatedArrival, lang)}</span>
+                <span className="block text-xs text-slate-500">{daysText(t, row.deliveryDays, lang)}</span>
+                {row.isLate && (
+                  <span className="mt-0.5 flex items-center gap-1 text-xs text-rose-700">
+                    <AlertTriangle className="h-3 w-3" />
+                    <T k="quote.arrivesLate" />
+                  </span>
+                )}
+              </td>
+            ))}
+          </tr>
+          <tr>
+            <td className="text-slate-500"><T k="quote.paymentTerm" /></td>
+            {rows.map((row) => (
+              <td key={row.quoteId} className={cell(row)}>
+                {t(`payterm.${row.paymentTerm}`)}
+                {request.preferredPaymentTerm && (
+                  <span className={`block text-xs ${row.paymentTermMatches ? "text-emerald-700" : "text-amber-700"}`}>
+                    {row.paymentTermMatches ? t("cmp.termMatches") : t("cmp.termDiffers")}
+                  </span>
+                )}
+              </td>
+            ))}
+          </tr>
+          {specFields.map((field) => (
+            <tr key={field}>
+              <td className="text-slate-500">{fieldLabel(field)}</td>
+              {rows.map((row) => {
+                const s = row.specMatch.find((x) => x.field === field);
+                return (
+                  <td key={row.quoteId} className={cell(row)}>
+                    {!s || s.status === "NOT_STATED" ? (
+                      <span className="text-slate-500">{t("quote.notStated")}</span>
+                    ) : s.status === "MATCH" ? (
+                      <span className="flex items-center gap-1 text-emerald-700">
+                        <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                        {valueLabel(field, s.requested)}
+                      </span>
+                    ) : (
+                      <span className="font-medium text-amber-700">{s.offered ?? ""}</span>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+          <tr>
+            <td className="text-slate-500"><T k="cmp.reliability" /></td>
+            {rows.map((row) => (
+              <td key={row.quoteId} className={cell(row)}>
+                {row.reliability
+                  ? t("quote.onTimeCount", undefined, { count: row.reliability.onTimeCount, total: row.reliability.onTimeAnswered })
+                  : <span className="text-slate-500">{t("quote.notEnoughHistory")}</span>}
+              </td>
+            ))}
+          </tr>
+          <tr>
+            <td className="text-slate-500"><T k="quote.validUntil" /></td>
+            {rows.map((row) => <td key={row.quoteId} className={cell(row)}>{formatDate(row.validUntil, lang)}</td>)}
+          </tr>
+          {rows.some((r) => r.notes) && (
+            <tr>
+              <td className="text-slate-500"><T k="quote.notes" /></td>
+              {rows.map((row) => (
+                <td key={row.quoteId} className={`whitespace-pre-wrap text-[13px] ${cell(row)}`}>
+                  {row.notes && <TranslatableText entityType="QUOTE" entityId={row.quoteId} field="notes" text={row.notes} sourceLang={row.lang} />}
+                </td>
+              ))}
+            </tr>
+          )}
+          <tr>
+            <td />
+            {rows.map((row) => (
+              <td key={row.quoteId} className={cell(row)}>
+                <div className="flex flex-col gap-1.5">
+                  {canChoose(row) && (
+                    <button type="button" data-choose-quote={row.quoteRef} onClick={() => onChoose(row)} className="btn btn-primary btn-sm w-full">
+                      <T k="quote.chooseThis" />
+                    </button>
+                  )}
+                  <button type="button" onClick={() => onMessage(row)} className="btn btn-secondary btn-sm w-full">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <T k="msg.open" />
+                  </button>
+                </div>
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -725,16 +905,16 @@ function QuoteCard({
       id={`quote-card-${row.quoteRef}`}
       data-supplier={row.supplier.name}
       className={`p-4 rounded-2xl border space-y-3 ${
-        row.isBestFit ? "border-emerald-300 bg-emerald-50/20 shadow-sm" : "border-gray-100 bg-white"
+        row.isBestFit ? "border-emerald-300 bg-emerald-50/20 shadow-sm" : "border-slate-100 bg-white"
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-0.5 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-xs text-gray-900 truncate">{row.supplier.name}</span>
+            <span className="font-bold text-[13px] text-slate-900 truncate">{row.supplier.name}</span>
             <VerificationBadge status={row.supplier.verificationStatus as any} />
           </div>
-          {row.supplier.area && <p className="text-xs text-gray-400">{row.supplier.area}</p>}
+          {row.supplier.area && <p className="text-[13px] text-slate-500">{row.supplier.area}</p>}
         </div>
         <div className="text-right shrink-0">
           <div className="text-sm font-bold text-primary">{formatMoney(row.totalPrice, lang, row.currency)}</div>
@@ -749,7 +929,7 @@ function QuoteCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+      <div className="grid grid-cols-2 gap-2 text-[13px] text-slate-600">
         <Info label={t("quote.unitPriceShort")} value={formatMoney(row.unitPrice, lang, row.currency)} />
         <Info label={t("quote.deliveryCharge")} value={formatMoney(row.deliveryCharge, lang, row.currency)} />
         <Info label={t("quote.delivery")} value={daysText(t, row.deliveryDays, lang)} />
@@ -759,7 +939,7 @@ function QuoteCard({
       {row.isLate ? (
         <div
           id={`quote-late-warning-${row.quoteRef}`}
-          className="flex items-start gap-1 text-xs font-semibold text-red-600 bg-red-50 p-2 rounded-xl"
+          className="flex items-start gap-1 text-[13px] font-semibold text-rose-700 bg-red-50 p-2 rounded-xl"
         >
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>
@@ -772,25 +952,25 @@ function QuoteCard({
           </span>
         </div>
       ) : (
-        <p className="text-xs text-gray-500">
+        <p className="text-[13px] text-slate-500">
           {t("cmp.arrivesOn", undefined, { date: formatDate(row.estimatedArrival, lang) })}
         </p>
       )}
 
-      <div className="text-xs">
-        <span className="font-semibold text-gray-800">{t(`payterm.${row.paymentTerm}`)}</span>
+      <div className="text-[13px]">
+        <span className="font-semibold text-slate-800">{t(`payterm.${row.paymentTerm}`)}</span>
         {request.preferredPaymentTerm && (
-          <span className={`ms-1.5 text-xs ${row.paymentTermMatches ? "text-emerald-700" : "text-amber-700"}`}>
+          <span className={`ms-1.5 text-[13px] ${row.paymentTermMatches ? "text-emerald-700" : "text-amber-700"}`}>
             {row.paymentTermMatches ? t("cmp.termMatches") : t("cmp.termDiffers")}
           </span>
         )}
       </div>
 
       {row.specMatch.length > 0 && (
-        <ul className="text-xs space-y-0.5" id={`spec-match-${row.quoteRef}`}>
+        <ul className="text-[13px] space-y-0.5" id={`spec-match-${row.quoteRef}`}>
           {row.specMatch.map((s) => (
             <li key={s.field} className="flex justify-between gap-2">
-              <span className="text-gray-500">{fieldLabel(s.field)}</span>
+              <span className="text-slate-500">{fieldLabel(s.field)}</span>
               <span
                 data-spec-status={s.status}
                 className={
@@ -798,7 +978,7 @@ function QuoteCard({
                     ? "text-emerald-700 font-semibold"
                     : s.status === "DIFFERENT"
                     ? "text-amber-700 font-semibold"
-                    : "text-gray-400"
+                    : "text-slate-500"
                 }
               >
                 {s.status === "MATCH"
@@ -812,7 +992,7 @@ function QuoteCard({
         </ul>
       )}
 
-      <p className="text-xs text-gray-500">
+      <p className="text-[13px] text-slate-500">
         <span className="font-semibold">
           {t("cmp.reliability")}
           {": "}
@@ -828,7 +1008,7 @@ function QuoteCard({
       {row.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {row.tags.map((tag) => (
-            <span key={tag} className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+            <span key={tag} className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
               <T k={`cmp.tag.${tag}`} />
             </span>
           ))}
@@ -842,7 +1022,7 @@ function QuoteCard({
           field="notes"
           text={row.notes}
           sourceLang={row.lang}
-          className="text-xs text-gray-600 whitespace-pre-wrap"
+          className="text-[13px] text-slate-600 whitespace-pre-wrap"
         />
       )}
 
@@ -853,7 +1033,7 @@ function QuoteCard({
               key={key}
               type="button"
               onClick={() => openFile(key)}
-              className="text-xs text-primary underline flex items-center gap-1"
+              className="text-[13px] text-primary underline flex items-center gap-1"
             >
               <Paperclip className="w-3 h-3" />
               {t("quote.viewFile", undefined, { n: i + 1 })}
@@ -867,7 +1047,7 @@ function QuoteCard({
           type="button"
           id={`message-supplier-btn-${row.quoteRef}`}
           onClick={onMessage}
-          className="py-2 px-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 flex items-center gap-1"
+          className="btn btn-secondary"
         >
           <MessageSquare className="w-3.5 h-3.5" />
           <T k="msg.open" />
@@ -877,7 +1057,7 @@ function QuoteCard({
             type="button"
             id={`choose-quote-btn-${row.quoteRef}`}
             onClick={onChoose}
-            className="flex-1 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover shadow-sm"
+            className="btn btn-primary flex-1"
           >
             <T k="quote.chooseThis" />
           </button>
@@ -916,6 +1096,7 @@ function SupplierPanel({
   const canEdit = isOpen && (!myQuote || !["ACCEPTED", "REJECTED"].includes(myQuote.status));
 
   const [showForm, setShowForm] = useState(false);
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [unitPrice, setUnitPrice] = useState("");
   const [quantity, setQuantity] = useState(String(Number(request.quantity)));
   const [deliveryCharge, setDeliveryCharge] = useState("0");
@@ -933,6 +1114,7 @@ function SupplierPanel({
   // Revising / re-submitting starts from the existing quote
   const openForm = () => {
     if (myQuote) {
+      setCurrency(myQuote.currency || DEFAULT_CURRENCY);
       setUnitPrice(String(Number(myQuote.unitPrice)));
       setQuantity(String(Number(myQuote.quantity)));
       setDeliveryCharge(String(Number(myQuote.deliveryCharge)));
@@ -1000,6 +1182,7 @@ function SupplierPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           unitPrice,
+          currency,
           quantity,
           deliveryCharge: deliveryCharge || "0",
           deliveryDays: Number(deliveryDays),
@@ -1044,20 +1227,20 @@ function SupplierPanel({
   return (
     <div className="space-y-4">
       {myQuote && (
-        <div id="my-quote-card" className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-2 text-xs">
+        <div id="my-quote-card" className="card p-5 space-y-2 text-[13px]">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-900">
+            <h2 className="text-sm font-bold text-slate-900">
               <T k="quote.yourQuote" />
             </h2>
             <span
               id="my-quote-status"
               data-status={myQuote.status}
-              className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700"
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"
             >
               <T k={`quoteStatus.${myQuote.status}`} />
             </span>
           </div>
-          <p className="text-gray-400">{t("quote.versionLabel", undefined, { v: myQuote.version })}</p>
+          <p className="text-slate-500">{t("quote.versionLabel", undefined, { v: myQuote.version })}</p>
           <SheetLine label={t("quote.unitPriceShort")} value={formatMoney(myQuote.unitPrice, lang, myQuote.currency)} />
           <SheetLine label={t("quote.deliveryCharge")} value={formatMoney(myQuote.deliveryCharge, lang, myQuote.currency)} />
           <SheetLine label={t("quote.totalPrice")} value={formatMoney(myQuote.totalPrice, lang, myQuote.currency)} strong />
@@ -1065,17 +1248,17 @@ function SupplierPanel({
           <SheetLine label={t("quote.paymentTerm")} value={t(`payterm.${myQuote.paymentTerm}`)} />
           <SheetLine label={t("quote.validUntil")} value={formatDate(myQuote.validUntil, lang)} />
           {(myQuote.attachmentKeys || []).map((key: string, i: number) => (
-            <button key={key} type="button" onClick={() => openFile(key)} className="text-xs text-primary underline me-2">
+            <button key={key} type="button" onClick={() => openFile(key)} className="text-[13px] text-primary underline me-2">
               {t("quote.viewFile", undefined, { n: i + 1 })}
             </button>
           ))}
           {!isOpen && (
-            <p className="text-gray-500 pt-1">
+            <p className="text-slate-500 pt-1">
               <T k="quote.readOnly" />
             </p>
           )}
           {isOpen && LIVE_QUOTE_STATUSES.includes(myQuote.status) && (
-            <button type="button" id="withdraw-quote-btn" onClick={withdraw} className="text-red-500 font-semibold hover:underline">
+            <button type="button" id="withdraw-quote-btn" onClick={withdraw} className="text-rose-700 font-semibold hover:underline">
               <T k="quote.withdraw" />
             </button>
           )}
@@ -1087,7 +1270,7 @@ function SupplierPanel({
           type="button"
           id="message-buyer-btn"
           onClick={() => onOpenChat(supplierId)}
-          className="w-full py-2.5 rounded-2xl border border-gray-200 bg-white text-xs font-bold text-gray-700 flex items-center justify-center gap-1.5"
+          className="btn btn-secondary w-full"
         >
           <MessageSquare className="w-3.5 h-3.5" />
           <T k="msg.withBuyer" />
@@ -1099,19 +1282,20 @@ function SupplierPanel({
           type="button"
           id="open-quote-form-btn"
           onClick={openForm}
-          className="w-full py-3 bg-emerald-600 text-white text-xs font-bold rounded-2xl hover:bg-emerald-700 shadow-sm"
+          className="btn btn-primary w-full"
         >
           {!myQuote ? t("quote.submit") : myQuote.status === "WITHDRAWN" ? t("quote.resubmit") : t("quote.revise")}
         </button>
       )}
 
       {canEdit && showForm && (
-        <form id="quote-form" onSubmit={submit} className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-4">
-          <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+        <form id="quote-form" onSubmit={submit} className="card p-5 space-y-4">
+          <h2 className="text-[13px] font-bold text-slate-700 uppercase tracking-wider">
             <T k="quote.submit" />
           </h2>
 
           <div className="grid grid-cols-2 gap-3">
+            <CurrencySelect id="quote-currency-input" value={currency} onChange={setCurrency} />
             <Field label={t("quote.unitPrice")}>
               <input
                 id="quote-unit-price-input"
@@ -1121,7 +1305,7 @@ function SupplierPanel({
                 required
                 value={unitPrice}
                 onChange={(e) => setUnitPrice(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-xl border border-gray-200"
+                className="input"
               />
             </Field>
             <Field label={t("rfq.quantity")}>
@@ -1133,7 +1317,7 @@ function SupplierPanel({
                 required
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-xl border border-gray-200"
+                className="input"
               />
             </Field>
             <Field label={t("quote.deliveryCharge")}>
@@ -1144,7 +1328,7 @@ function SupplierPanel({
                 min="0"
                 value={deliveryCharge}
                 onChange={(e) => setDeliveryCharge(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-xl border border-gray-200"
+                className="input"
               />
             </Field>
             <Field label={t("quote.deliveryDays")}>
@@ -1156,7 +1340,7 @@ function SupplierPanel({
                 required
                 value={deliveryDays}
                 onChange={(e) => setDeliveryDays(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-xl border border-gray-200"
+                className="input"
               />
             </Field>
             <Field label={t("quote.validForDays")}>
@@ -1168,13 +1352,13 @@ function SupplierPanel({
                 required
                 value={validDays}
                 onChange={(e) => setValidDays(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-xl border border-gray-200"
+                className="input"
               />
             </Field>
           </div>
 
           <div className="space-y-1.5">
-            <p className="text-xs font-bold text-gray-700">
+            <p className="text-[13px] font-bold text-slate-700">
               <T k="quote.paymentTerm" />
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -1184,8 +1368,8 @@ function SupplierPanel({
                   type="button"
                   id={`quote-payterm-${pt}`}
                   onClick={() => setPaymentTerm(pt)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                    paymentTerm === pt ? "bg-primary text-white border-primary" : "bg-gray-50 text-gray-600 border-gray-200"
+                  className={`px-2.5 py-1 rounded-full text-[13px] font-semibold border ${
+                    paymentTerm === pt ? "bg-primary text-white border-primary" : "bg-slate-50 text-slate-600 border-slate-200"
                   } ${request.preferredPaymentTerm === pt ? "ring-2 ring-amber-300" : ""}`}
                 >
                   <T k={`payterm.${pt}`} />
@@ -1203,12 +1387,12 @@ function SupplierPanel({
 
           {comparable.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-bold text-gray-700">
+              <p className="text-[13px] font-bold text-slate-700">
                 <T k="quote.specMatch" />
               </p>
               {comparable.map((f) => (
                 <div key={f.key} className="space-y-1">
-                  <p className="text-xs text-gray-600">
+                  <p className="text-[13px] text-slate-600">
                     {fieldLabel(f.key)}
                     {" · "}
                     {t("cmp.specRequested", undefined, { value: valueLabel(f.key, request.attributes?.[f.key]) })}
@@ -1220,10 +1404,10 @@ function SupplierPanel({
                         type="button"
                         id={`spec-${f.key}-${s}`}
                         onClick={() => setSpec((prev) => ({ ...prev, [f.key]: s }))}
-                        className={`px-2.5 py-1 rounded-full text-xs border ${
+                        className={`px-2.5 py-1 rounded-full text-[13px] border ${
                           (spec[f.key] || "NOT_STATED") === s
                             ? "bg-primary text-white border-primary"
-                            : "bg-gray-50 text-gray-600 border-gray-200"
+                            : "bg-slate-50 text-slate-600 border-slate-200"
                         }`}
                       >
                         {s === "MATCH" ? t("quote.match") : s === "DIFFERENT" ? t("quote.different") : t("quote.notStated")}
@@ -1238,7 +1422,7 @@ function SupplierPanel({
                       value={offered[f.key] || ""}
                       onChange={(e) => setOffered((prev) => ({ ...prev, [f.key]: e.target.value }))}
                       placeholder={t("quote.offeredValue")}
-                      className="w-full text-xs p-2 rounded-xl border border-gray-200"
+                      className="input"
                     />
                   )}
                 </div>
@@ -1247,22 +1431,29 @@ function SupplierPanel({
           )}
 
           <Field label={t("quote.notes")}>
+            <AiDraftButton
+              switchKey="aiQuoteAssistantEnabled"
+              id="quote-ai-draft"
+              disabled={!notes.trim()}
+              payload={() => ({ helper: "quote", text: notes, requestId: request.id })}
+              onDraft={(d) => setNotes(d.note)}
+            />
             <textarea
               id="quote-notes-input"
               rows={2}
               maxLength={2000}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full text-xs p-2.5 rounded-xl border border-gray-200"
+              className="input"
             />
           </Field>
 
           <div className="space-y-1">
-            <p className="text-xs font-bold text-gray-700">
+            <p className="text-[13px] font-bold text-slate-700">
               <T k="quote.attachments" />
             </p>
             {attachmentKeys.map((key, i) => (
-              <div key={key} className="flex items-center gap-2 text-xs">
+              <div key={key} className="flex items-center gap-2 text-[13px]">
                 <span>{t("quote.viewFile", undefined, { n: i + 1 })}</span>
                 <button
                   type="button"
@@ -1283,18 +1474,18 @@ function SupplierPanel({
                   if (file) uploadFile(file);
                   e.target.value = "";
                 }}
-                className="text-xs"
+                className="text-[13px]"
               />
             )}
             {uploading && (
-              <p className="text-xs text-gray-500">
+              <p className="text-[13px] text-slate-500">
                 <T k="quote.uploading" />
               </p>
             )}
           </div>
 
           {outOfCredits && (
-            <div id="out-of-credits" className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-center justify-between gap-2">
+            <div id="out-of-credits" className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[13px] text-amber-900 flex items-center justify-between gap-2">
               <span>
                 <T k="credits.outOfCredits" />
               </span>
@@ -1304,12 +1495,12 @@ function SupplierPanel({
             </div>
           )}
 
-          <div className="bg-gray-50 p-3 rounded-xl flex items-center justify-between text-xs gap-2">
-            <span className="font-bold text-gray-600">
+          <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between text-[13px] gap-2">
+            <span className="font-bold text-slate-600">
               <T k="quote.estimatedTotal" />
             </span>
             <span id="quote-live-total" className="text-sm font-bold text-primary">
-              {formatMoney(liveTotal, lang)}
+              {formatMoney(liveTotal, lang, currency)}
             </span>
           </div>
 
@@ -1317,7 +1508,7 @@ function SupplierPanel({
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="py-2.5 px-4 rounded-xl border border-gray-200 text-xs font-bold text-gray-600"
+              className="btn btn-secondary"
             >
               <T k="common.cancel" />
             </button>
@@ -1325,7 +1516,7 @@ function SupplierPanel({
               type="submit"
               id="submit-quote-btn"
               disabled={submitting || uploading}
-              className="flex-1 py-2.5 bg-primary text-white text-xs font-bold rounded-xl disabled:opacity-50"
+              className="btn btn-primary flex-1"
             >
               {submitting ? t("common.loading") : t("quote.submit")}
             </button>
@@ -1339,7 +1530,7 @@ function SupplierPanel({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label className="text-xs font-bold text-gray-700 block">{label}</label>
+      <label className="label">{label}</label>
       {children}
     </div>
   );

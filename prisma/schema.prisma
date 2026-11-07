@@ -114,6 +114,11 @@ enum AiFeature {
   QUOTE_COMPARISON
   TRANSLATION
   TRANSCRIPTION
+  LISTING_WRITER
+  QUOTE_ASSISTANT
+  DISCUSSION_ANSWER
+  MARKET_INSIGHT
+  SEMANTIC_SEARCH
 }
 enum AiOutcome {
   ACCEPTED_AS_IS
@@ -742,6 +747,7 @@ model MarketPriceSnapshot {
   specKey          String
   specLabel        Json
   unit             String
+  currency         String   @default("USD")
   quantityBand     String
   deliveryIncluded Boolean
   area             String?

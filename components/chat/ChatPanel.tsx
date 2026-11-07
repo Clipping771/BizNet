@@ -102,7 +102,7 @@ export function ChatPanel({
   const other = isBuyer ? contact?.supplierContact : contact?.buyerContact;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-gray-950/50 backdrop-blur-[2px] sm:items-center sm:p-6">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/50 backdrop-blur-[2px] sm:items-center sm:p-6">
       <div
         id="chat-panel"
         role="dialog"
@@ -110,15 +110,15 @@ export function ChatPanel({
         aria-label={chat.title}
         className="flex h-[85vh] w-full max-w-lg animate-fade-up flex-col gap-3 rounded-t-3xl bg-white p-4 shadow-pop sm:h-[min(720px,85vh)] sm:rounded-3xl sm:p-5"
       >
-        <div className="mx-auto -mt-1 h-1 w-10 rounded-full bg-gray-200 sm:hidden" aria-hidden="true" />
-        <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3">
-          <h3 className="truncate text-base font-semibold text-gray-900">{chat.title}</h3>
+        <div className="mx-auto -mt-1 h-1 w-10 rounded-full bg-slate-200 sm:hidden" aria-hidden="true" />
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <h3 className="truncate text-base font-semibold text-slate-900">{chat.title}</h3>
           <button
             type="button"
             id="close-chat-btn"
             onClick={onClose}
             aria-label={t("common.close")}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           >
             <X className="h-[18px] w-[18px]" />
           </button>
@@ -154,7 +154,7 @@ export function ChatPanel({
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+          <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
             <span>
               <T k="msg.contactNotice" />
             </span>
@@ -168,19 +168,19 @@ export function ChatPanel({
 
         <div ref={listRef} className="-mx-1 flex-1 space-y-2.5 overflow-y-auto px-1" id="chat-messages">
           {messages.length === 0 && (
-            <p className="py-10 text-center text-sm text-gray-400">
+            <p className="py-10 text-center text-sm text-slate-500">
               <T k="msg.noMessages" />
             </p>
           )}
           {messages.map((m) => (
-            <div key={m.id} className="group rounded-2xl rounded-ss-md bg-gray-100/80 px-3.5 py-2.5 text-sm">
+            <div key={m.id} className="group rounded-2xl rounded-ss-md bg-slate-100/80 px-3.5 py-2.5 text-sm">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-gray-700">{m.senderBusiness?.name}</span>
+                <span className="text-xs font-semibold text-slate-700">{m.senderBusiness?.name}</span>
                 <button
                   type="button"
                   onClick={() => report(m.id)}
                   disabled={reported[m.id]}
-                  className="flex items-center gap-0.5 text-[11px] text-gray-400 opacity-70 transition hover:text-rose-600 group-hover:opacity-100"
+                  className="flex items-center gap-0.5 text-[11px] text-slate-500 opacity-70 transition hover:text-rose-600 group-hover:opacity-100"
                 >
                   <Flag className="w-3 h-3" />
                   {reported[m.id] ? t("msg.reported") : t("msg.report")}
@@ -192,7 +192,7 @@ export function ChatPanel({
                 field="body"
                 text={m.body}
                 sourceLang={m.lang}
-                className="mt-0.5 whitespace-pre-wrap text-gray-800"
+                className="mt-0.5 whitespace-pre-wrap text-slate-800"
               />
             </div>
           ))}
@@ -205,7 +205,7 @@ export function ChatPanel({
         )}
         {error && <p role="alert" className="text-xs text-rose-700">{error}</p>}
 
-        <form onSubmit={send} className="flex items-center gap-2 border-t border-gray-100 pt-3">
+        <form onSubmit={send} className="flex items-center gap-2 border-t border-slate-100 pt-3">
           <input
             id="chat-input"
             value={text}

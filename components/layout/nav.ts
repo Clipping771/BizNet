@@ -13,6 +13,9 @@ import {
   Coins,
   Translate,
   SquaresFour,
+  Storefront,
+  SealCheck,
+  ClipboardText,
   type Icon as PhosphorIcon,
 } from "@phosphor-icons/react";
 
@@ -22,7 +25,12 @@ export interface NavItem {
   icon: PhosphorIcon;
 }
 
-/** The five destinations on the phone tab bar; the sidebar repeats them first. */
+export interface NavSection {
+  titleKey?: string;
+  items: NavItem[];
+}
+
+/** The five destinations on the phone tab bar (§7). */
 export const PRIMARY_NAV: NavItem[] = [
   { href: "/home", labelKey: "nav.home", icon: House },
   { href: "/requests", labelKey: "nav.requests", icon: FileText },
@@ -31,15 +39,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { href: "/inbox", labelKey: "nav.inbox", icon: Tray },
 ];
 
-/** Desktop top bar tabs (the bell is added separately so it can carry the unread badge). */
-export const TOP_NAV: NavItem[] = [
-  { href: "/home", labelKey: "nav.home", icon: House },
-  { href: "/requests", labelKey: "nav.requests", icon: FileText },
-  { href: "/orders", labelKey: "orders.title", icon: Package },
-  { href: "/q", labelKey: "nav.discuss", icon: ChatsCircle },
-  { href: "/inbox", labelKey: "nav.inbox", icon: Tray },
-];
-
+/** Pages the phone tab bar has no room for; the account menu lists them on phones. */
 export const TRADE_NAV: NavItem[] = [
   { href: "/orders", labelKey: "orders.title", icon: Package },
   { href: "/quotes", labelKey: "quotes.title", icon: Receipt },
@@ -56,11 +56,65 @@ export const BUSINESS_NAV: NavItem[] = [
 
 export const ADMIN_NAV: NavItem = { href: "/admin", labelKey: "admin.nav.dashboard", icon: SquaresFour };
 
+/** Desktop sidebar: what a user sees depends on what their active business does. */
+export function navSections(opts: { isSupplier: boolean; isAdmin: boolean; hasBusiness: boolean; creditsEnabled: boolean }): NavSection[] {
+  const sections: NavSection[] = [
+    {
+      items: [
+        { href: "/home", labelKey: "nav.home", icon: House },
+        { href: "/requests", labelKey: "nav.requests", icon: FileText },
+        { href: "/orders", labelKey: "orders.title", icon: Package },
+        { href: "/inbox", labelKey: "nav.inbox", icon: Tray },
+      ],
+    },
+    {
+      titleKey: "nav.section.market",
+      items: [
+        { href: "/search", labelKey: "nav.search", icon: MagnifyingGlass },
+        { href: "/prices", labelKey: "nav.prices", icon: ChartLineUp },
+        { href: "/q", labelKey: "nav.discuss", icon: ChatsCircle },
+      ],
+    },
+  ];
+  if (opts.isSupplier) {
+    sections.push({
+      titleKey: "nav.section.selling",
+      items: [
+        { href: "/requests/inbox", labelKey: "nav.requestsToQuote", icon: ClipboardText },
+        { href: "/quotes", labelKey: "quotes.title", icon: Receipt },
+        { href: "/business/listings", labelKey: "nav.listings", icon: Storefront },
+      ],
+    });
+  }
+  if (opts.hasBusiness) {
+    sections.push({
+      titleKey: "nav.section.business",
+      items: [
+        { href: "/business/settings", labelKey: "business.settingsTitle", icon: Buildings },
+        { href: "/business/members", labelKey: "business.membersTitle", icon: UsersThree },
+        ...(opts.isSupplier ? [{ href: "/business/verification", labelKey: "nav.verification", icon: SealCheck }] : []),
+        ...(opts.isSupplier && opts.creditsEnabled ? [{ href: "/business/credits", labelKey: "credits.title", icon: Coins }] : []),
+      ],
+    });
+  }
+  if (opts.isAdmin) {
+    sections.push({ titleKey: "nav.section.admin", items: [ADMIN_NAV] });
+  }
+  return sections;
+}
+
 export function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-/** Routes that render without the app chrome (landing, sign-in, onboarding). */
+/** Routes that render without the app chrome (landing, sign-in, onboarding, legal pages). */
 export function isBareRoute(pathname: string): boolean {
-  return pathname === "/" || pathname.startsWith("/login") || pathname.startsWith("/onboarding");
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/onboarding") ||
+    pathname === "/terms" ||
+    pathname === "/privacy" ||
+    pathname === "/community-rules"
+  );
 }

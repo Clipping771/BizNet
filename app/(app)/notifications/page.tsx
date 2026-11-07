@@ -58,7 +58,7 @@ export default function NotificationsPage() {
       ) : items.length === 0 ? (
         <EmptyState k="notifications.empty" icon={Bell} />
       ) : (
-        <div id="notification-list" className="card divide-y divide-gray-100 overflow-hidden">
+        <div id="notification-list" className="card divide-y divide-slate-100 overflow-hidden">
           {items.map((n) => {
             const Icon = notificationIcon(n.type);
             return (
@@ -70,14 +70,14 @@ export default function NotificationsPage() {
                 onClick={() => {
                   if (!n.readAt) markRead([n.id]);
                 }}
-                className={`relative flex items-start gap-3.5 px-4 py-3.5 transition hover:bg-gray-50 ${n.readAt ? "" : "bg-primary-50/50"}`}
+                className={`relative flex items-start gap-3.5 px-4 py-3.5 transition hover:bg-slate-50 ${n.readAt ? "" : "bg-primary-50/50"}`}
               >
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${notificationTone(n.type)}`}>
                   <Icon size={20} weight="duotone" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-sm ${n.readAt ? "text-gray-600" : "font-semibold text-gray-900"}`}>{text(n)}</p>
-                  <p className="mt-0.5 text-xs text-gray-400">{formatDate(n.createdAt, lang, { hour: "2-digit", minute: "2-digit" })}</p>
+                  <p className={`text-sm ${n.readAt ? "text-slate-600" : "font-semibold text-slate-900"}`}>{text(n)}</p>
+                  <p className="mt-0.5 text-[13px] text-slate-500">{formatDate(n.createdAt, lang, { hour: "2-digit", minute: "2-digit" })}</p>
                 </div>
                 {!n.readAt && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary-500" aria-hidden="true" />}
               </Link>

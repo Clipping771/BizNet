@@ -154,17 +154,17 @@ export function PhoneInput({
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      <div className="flex h-12 items-center overflow-visible rounded-xl border border-slate-300 bg-white shadow-2xs transition-all hover:border-slate-400 focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20">
+      <div className="flex h-12 items-center overflow-visible rounded-xl border border-slate-300 bg-white shadow-2xs transition-all hover:border-slate-400 focus-within:border-primary-600 focus-within:ring-2 focus-within:ring-primary-600/20">
         {/* Country Picker Trigger or Custom Dial Input */}
         {isCustomMode ? (
           <div className="flex items-center border-e border-slate-200 ps-2.5 pe-1 bg-slate-100/70 rounded-s-xl">
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="p-1 text-slate-500 hover:text-teal-700 transition-colors"
+              className="p-1 text-slate-500 hover:text-primary-700 transition-colors"
               title={t("auth.selectCountry")}
             >
-              <Globe className="w-4 h-4 text-teal-700" />
+              <Globe className="w-4 h-4 text-primary-700" />
             </button>
             <input
               type="text"
@@ -177,7 +177,7 @@ export function PhoneInput({
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="px-1 text-slate-400 hover:text-slate-600"
+              className="px-1 text-slate-500 hover:text-slate-600"
             >
               <ChevronDown className="w-3 h-3" />
             </button>
@@ -187,7 +187,7 @@ export function PhoneInput({
             type="button"
             disabled={disabled}
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-50/80 hover:bg-slate-100 border-e border-slate-200 rounded-s-xl text-xs font-semibold text-slate-800 transition-colors shrink-0"
+            className="flex shrink-0 items-center gap-2 self-stretch border-e border-slate-200 bg-slate-50 px-3 text-[13px] font-medium text-slate-700 transition-colors hover:bg-slate-100"
           >
             {selectedCountry ? (
               <>
@@ -200,7 +200,7 @@ export function PhoneInput({
                 <span className="text-slate-600">{t("auth.country")}</span>
               </>
             )}
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
           </button>
         )}
 
@@ -215,7 +215,7 @@ export function PhoneInput({
           placeholder={t("auth.phoneNumberPlaceholder")}
           aria-invalid={needsCountry || undefined}
           aria-describedby={needsCountry ? `${id}-hint` : undefined}
-          className="flex-1 w-full px-3 py-2.5 text-sm bg-transparent focus:outline-none text-gray-900 placeholder:text-gray-400 font-medium"
+          className="flex-1 w-full px-3 py-2.5 text-sm bg-transparent focus:outline-none text-slate-900 placeholder:text-slate-400 font-medium"
         />
       </div>
 
@@ -227,24 +227,24 @@ export function PhoneInput({
 
       {/* Dropdown Popover */}
       {isOpen && (
-        <div className="absolute start-0 top-full mt-1.5 w-72 max-w-[90vw] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute start-0 top-full mt-1.5 w-72 max-w-[90vw] bg-white rounded-xl shadow-2xl border border-slate-100 z-50 overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-100">
           {/* Search Box */}
-          <div className="p-2.5 border-b border-gray-100 bg-gray-50/70">
+          <div className="p-2.5 border-b border-slate-100 bg-slate-50/70">
             <div className="relative">
-              <Search className="absolute start-2.5 top-2.5 w-3.5 h-3.5 text-gray-400" />
+              <Search className="absolute start-2.5 top-2.5 w-3.5 h-3.5 text-slate-500" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("auth.searchCountry")}
-                className="w-full ps-8 pe-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                className="input"
               />
             </div>
           </div>
 
           {/* Custom Dial Code Option */}
-          <div className="p-1 border-b border-gray-100 bg-primary/5">
+          <div className="p-1 border-b border-slate-100 bg-primary/5">
             <button
               type="button"
               onClick={handleSelectCustomMode}
@@ -256,16 +256,16 @@ export function PhoneInput({
                   <T k="auth.customCountry" />
                 </span>
               </div>
-              <span className="font-mono text-xs text-gray-500">
+              <span className="font-mono text-xs text-slate-500">
                 <T k="auth.customDialCodePlaceholder" />
               </span>
             </button>
           </div>
 
           {/* Country List */}
-          <div className="max-h-56 overflow-y-auto divide-y divide-gray-50 p-1">
+          <div className="max-h-56 overflow-y-auto divide-y divide-slate-50 p-1">
             {filteredCountries.length === 0 ? (
-              <div className="py-6 text-center text-gray-400">
+              <div className="py-6 text-center text-slate-500">
                 <span>
                   <T k="common.error" />
                 </span>
@@ -279,8 +279,8 @@ export function PhoneInput({
                     key={c.code}
                     type="button"
                     onClick={() => handleSelectCountry(c)}
-                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-start hover:bg-gray-50 transition-colors ${
-                      isSelected ? "bg-primary/5 text-primary font-bold" : "text-gray-700"
+                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-start hover:bg-slate-50 transition-colors ${
+                      isSelected ? "bg-primary/5 text-primary font-bold" : "text-slate-700"
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate me-2">
@@ -290,7 +290,7 @@ export function PhoneInput({
                       <span className="truncate">{c.name}</span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="font-mono text-xs text-gray-500 font-medium">
+                      <span className="font-mono text-xs text-slate-500 font-medium">
                         {c.dial}
                       </span>
                       {isSelected && (

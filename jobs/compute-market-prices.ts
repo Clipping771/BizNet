@@ -28,6 +28,7 @@ interface Group {
   specKey: string;
   specLabel: Record<string, unknown>;
   unit: string;
+  currency: string;
   quantityBand: string;
   deliveryIncluded: boolean;
   area: string;
@@ -51,6 +52,7 @@ function groupFor(q: PricingQuote): Omit<Group, "samples"> | null {
   return {
     categoryId: q.request.category.id,
     specKey: spec.specKey,
+    currency: q.currency,
     specLabel: spec.specLabel,
     unit: q.request.unit,
     quantityBand: quantityBand(Number(q.quantity)),
@@ -71,7 +73,7 @@ export async function runComputeMarketPricesJob(now: Date = new Date()): Promise
     const g = groupFor(q);
     if (!g) continue;
     eligible++;
-    const key = [g.categoryId, g.specKey, g.unit, g.quantityBand, g.deliveryIncluded, g.area].join("§");
+    const key = [g.categoryId, g.specKey, g.unit, g.currency, g.quantityBand, g.deliveryIncluded, g.area].join("§");
     const group = groups.get(key) ?? { ...g, samples: [] };
     group.samples.push({ quoteId: q.id, supplierId: q.supplierBusinessId, value: Number(q.unitPrice) });
     groups.set(key, group);
@@ -88,6 +90,7 @@ export async function runComputeMarketPricesJob(now: Date = new Date()): Promise
       specKey: g.specKey,
       specLabel: g.specLabel as Prisma.InputJsonValue,
       unit: g.unit,
+      currency: g.currency,
       quantityBand: g.quantityBand,
       deliveryIncluded: g.deliveryIncluded,
       area: g.area,

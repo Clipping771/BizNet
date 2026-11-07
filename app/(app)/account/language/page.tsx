@@ -48,14 +48,14 @@ export default function LanguagePage() {
     <div className="page space-y-5">
       <div className="flex items-center gap-2 mb-2">
         <Globe className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-bold text-gray-900">
+        <h2 className="text-lg font-bold text-slate-900">
           <T k="common.language" />
         </h2>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-rose-700">{error}</p>}
 
-      <div className="card divide-y divide-gray-100">
+      <div className="card divide-y divide-slate-100">
         {languages.map((l) => (
           <button
             key={l.code}
@@ -63,13 +63,13 @@ export default function LanguagePage() {
             id={`language-${l.code}`}
             onClick={() => choose(l.code)}
             disabled={saving !== null}
-            className="w-full flex items-center justify-between p-4 text-start hover:bg-gray-50 transition-colors disabled:opacity-60"
+            className="w-full flex items-center justify-between p-4 text-start hover:bg-slate-50 transition-colors disabled:opacity-60"
           >
             <div>
-              <p className="font-semibold text-sm text-gray-900" dir={l.direction}>
+              <p className="font-semibold text-sm text-slate-900" dir={l.direction}>
                 {l.nameNative}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-[13px] text-slate-500">
                 <span>{l.nameEnglish}</span>
                 {l.status !== "ACTIVE" && (
                   <span className="ms-2 px-1.5 py-0.5 text-[11px] bg-amber-100 text-amber-800 rounded font-mono">

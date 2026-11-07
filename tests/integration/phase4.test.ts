@@ -188,7 +188,7 @@ describe("Phase 4", () => {
       const notPublishable = snapshots.find((s) => !s.isPublishable)!;
       expect(notPublishable.category.slug).toBe("cups");
 
-      const res = await (await pricesRoute()).json();
+      const res = await (await pricesRoute(new NextRequest(`${BASE}/api/prices`))).json();
       expect(res.groups).toHaveLength(1);
       expect(Number(res.groups[0].p25)).toBeLessThanOrEqual(Number(res.groups[0].median));
     });

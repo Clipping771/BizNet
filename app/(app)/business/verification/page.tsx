@@ -147,13 +147,13 @@ export default function BusinessVerificationPage() {
   return (
     <div className="page space-y-6">
       {/* Header */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+      <div className="card p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="page-title">
               <T k="verification.title" />
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-[13px] text-slate-500">
               <T k="verification.subtitle" />
             </p>
           </div>
@@ -161,30 +161,30 @@ export default function BusinessVerificationPage() {
         </div>
 
         {isPending && (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[13px] text-amber-900 flex items-start gap-2">
             <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <span>{t("verification.pendingAlert")}</span>
           </div>
         )}
 
         {isVerified && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-start gap-2">
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[13px] text-emerald-900 flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <span>{t("verification.verifiedAlert")}</span>
           </div>
         )}
       </div>
 
-      {/* Verification Form */}
-      <form onSubmit={handleSubmit} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+      {/* Fully verified businesses have nothing left to submit */}
+      {status !== VerificationStatus.VERIFIED && <form onSubmit={handleSubmit} className="card p-5 space-y-4">
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[13px] text-rose-800 flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
         {success && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-start gap-2">
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[13px] text-emerald-800 flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <span>{success}</span>
           </div>
@@ -192,7 +192,7 @@ export default function BusinessVerificationPage() {
 
         {/* Trade License (Optional) */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700">
+          <label className="label">
             <T k="verification.tradeLicense" />
           </label>
           <input
@@ -200,13 +200,13 @@ export default function BusinessVerificationPage() {
             value={tradeLicenseNo}
             disabled={isPending}
             onChange={(e) => setTradeLicenseNo(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50"
+            className="input"
           />
         </div>
 
         {/* Reference Name */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700">
+          <label className="label">
             <T k="verification.referenceName" />
           </label>
           <input
@@ -214,13 +214,13 @@ export default function BusinessVerificationPage() {
             value={referenceName}
             disabled={isPending}
             onChange={(e) => setReferenceName(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50"
+            className="input"
           />
         </div>
 
         {/* Reference Phone */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700">
+          <label className="label">
             <T k="verification.referencePhone" />
           </label>
           <input
@@ -228,17 +228,17 @@ export default function BusinessVerificationPage() {
             value={referencePhone}
             disabled={isPending}
             onChange={(e) => setReferencePhone(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50"
+            className="input"
           />
         </div>
 
         {/* Document Photos Upload */}
         <div className="space-y-2 pt-1">
-          <label className="text-xs font-semibold text-slate-700 block">
+          <label className="label">
             <T k="verification.documentPhotos" />
           </label>
           <div className="flex items-center gap-2">
-            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer text-slate-700">
+            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer text-slate-700">
               <Upload className="w-3.5 h-3.5 text-slate-500" />
               <span>{t("verification.uploadDocument")}</span>
               <input
@@ -254,7 +254,7 @@ export default function BusinessVerificationPage() {
               />
             </label>
             {uploadingDoc && (
-              <span className="text-xs text-slate-400">
+              <span className="text-[13px] text-slate-500">
                 <T k="common.loading" />
               </span>
             )}
@@ -262,12 +262,12 @@ export default function BusinessVerificationPage() {
 
           {documentKeys.length > 0 && (
             <div className="space-y-1.5 pt-1">
-              <span className="text-xs text-slate-500 block">
+              <span className="text-[13px] text-slate-500 block">
                 <T k="verification.uploadedFiles" />
               </span>
               {documentKeys.map((k) => (
-                <div key={k} className="p-2 bg-slate-50 rounded-lg text-xs text-slate-600 flex items-center gap-2">
-                  <FileText className="w-3.5 h-3.5 text-slate-400" />
+                <div key={k} className="p-2 bg-slate-50 rounded-lg text-[13px] text-slate-600 flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5 text-slate-500" />
                   <span className="truncate">{k}</span>
                 </div>
               ))}
@@ -277,11 +277,11 @@ export default function BusinessVerificationPage() {
 
         {/* Shop / Factory Photo */}
         <div className="space-y-2 pt-1">
-          <label className="text-xs font-semibold text-slate-700 block">
+          <label className="label">
             <T k="verification.shopPhoto" />
           </label>
           <div className="flex items-center gap-2">
-            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer text-slate-700">
+            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer text-slate-700">
               <Upload className="w-3.5 h-3.5 text-slate-500" />
               <span>{t("verification.uploadShop")}</span>
               <input
@@ -297,7 +297,7 @@ export default function BusinessVerificationPage() {
               />
             </label>
             {shopPhotoKey && (
-              <span className="text-xs text-emerald-600 flex items-center gap-1">
+              <span className="text-[13px] text-emerald-600 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>{shopPhotoKey}</span>
               </span>
@@ -310,12 +310,12 @@ export default function BusinessVerificationPage() {
           <button
             type="submit"
             disabled={isPending || submitting}
-            className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn btn-primary w-full"
           >
             {submitting ? t("verification.submitting") : t("verification.submit")}
           </button>
         </div>
-      </form>
+      </form>}
     </div>
   );
 }

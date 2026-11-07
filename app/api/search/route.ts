@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthzContext } from "@/lib/auth-user";
 import { parseSearchQuery } from "@/lib/search/query";
 import { searchBusinesses, searchListings, getCategoryForSearch, type SearchFilters } from "@/lib/repo/search";
+import { expandSearchQuery } from "@/lib/ai/helpers";
+import { listActiveCategories } from "@/lib/repo/category";
 import { logEvent } from "@/lib/events";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { getClientIp } from "@/lib/ip";
@@ -55,6 +57,24 @@ export async function GET(req: NextRequest) {
     const results = tab === "businesses" ? await searchBusinesses(q, filters) : await searchListings(q, filters);
 
     const { user } = await getAuthzContext(req);
+
+    // Loosely worded searches: when the catalog words found little, retry with AI-suggested words
+    if (tab === "products" && user && q.text && !filters.offset && results.length < 3) {
+      const categories = await listActiveCategories();
+      const expansion = await expandSearchQuery({ userId: user.id, query: q.text, categories: categories.map((c) => c.slug) }).catch(() => null);
+      if (expansion?.ok) {
+        const seen = new Set(results.map((r: any) => r.id));
+        for (const term of expansion.data.terms) {
+          for (const hit of await searchListings(parseSearchQuery(term), filters)) {
+            if (!seen.has(hit.id)) {
+              seen.add(hit.id);
+              (results as any[]).push(hit);
+            }
+          }
+        }
+      }
+    }
+
     await logEvent({
       name: "search",
       userId: user?.id ?? null,

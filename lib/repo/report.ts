@@ -28,12 +28,19 @@ export async function createReportRecord(input: CreateReportInput) {
   });
 }
 
+/** Zero-match reports with the request they are about, so an admin sees what is needed rather than an id. */
 export async function listConciergeZeroMatchQueue() {
-  return prisma.report.findMany({
+  const reports = await prisma.report.findMany({
     where: {
       targetType: "REQUEST_ZERO_MATCH",
       status: ReportStatus.OPEN,
     },
     orderBy: { createdAt: "desc" },
   });
+  const requests = await prisma.request.findMany({
+    where: { id: { in: reports.map((r) => r.targetId) } },
+    select: { id: true, code: true, title: true, buyerBusiness: { select: { name: true } } },
+  });
+  const byId = new Map(requests.map((r) => [r.id, r]));
+  return reports.map((r) => ({ ...r, request: byId.get(r.targetId) ?? null }));
 }

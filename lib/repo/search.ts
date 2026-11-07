@@ -29,6 +29,7 @@ export interface ListingHit {
   id: string;
   title: string;
   unit: string;
+  currency: string;
   priceMin: string | null;
   priceMax: string | null;
   moq: number | null;
@@ -102,7 +103,7 @@ export async function searchListings(q: ParsedQuery, f: SearchFilters): Promise<
   }
 
   const rows = await prisma.$queryRaw<any[]>`
-    SELECT l.id, l.title, l.unit, l."priceMin"::text AS "priceMin", l."priceMax"::text AS "priceMax", l.moq,
+    SELECT l.id, l.title, l.unit, l.currency, l."priceMin"::text AS "priceMin", l."priceMax"::text AS "priceMax", l.moq,
            l."imageKeys"[1] AS "imageKey", l."categoryId", c.slug AS "categorySlug",
            b.id AS "businessId", b.slug AS "businessSlug", b.name AS "businessName", b.area AS "businessArea",
            b."verificationStatus"::text AS "verificationStatus",

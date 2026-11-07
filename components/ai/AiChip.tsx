@@ -53,11 +53,11 @@ export function AiChip({ interactionId, showFeedback = false }: AiChipProps) {
       </span>
 
       {showFeedback && (
-        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1 text-xs text-slate-500">
           <button
             type="button"
             onClick={() => handleRate(1)}
-            className={`p-1 rounded hover:bg-gray-100 ${rated === 1 ? "text-primary font-bold" : ""}`}
+            className={`p-1 rounded hover:bg-slate-100 ${rated === 1 ? "text-primary font-bold" : ""}`}
             title="Good AI suggestion"
             aria-label="Good AI suggestion"
           >
@@ -66,7 +66,7 @@ export function AiChip({ interactionId, showFeedback = false }: AiChipProps) {
           <button
             type="button"
             onClick={() => handleRate(-1)}
-            className={`p-1 rounded hover:bg-gray-100 ${rated === -1 ? "text-red-500 font-bold" : ""}`}
+            className={`p-1 rounded hover:bg-slate-100 ${rated === -1 ? "text-rose-700 font-bold" : ""}`}
             title="Poor AI suggestion"
             aria-label="Poor AI suggestion"
           >
@@ -76,7 +76,7 @@ export function AiChip({ interactionId, showFeedback = false }: AiChipProps) {
             type="button"
             onClick={handleReport}
             disabled={reported}
-            className="text-[11px] text-gray-400 hover:text-red-500 underline ml-1"
+            className="text-[11px] text-slate-500 hover:text-rose-700 underline ml-1"
           >
             {reported ? (
               <span className="text-green-600"><T k="quote.reported" /></span>

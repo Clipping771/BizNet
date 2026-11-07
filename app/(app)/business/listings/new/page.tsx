@@ -1,5 +1,8 @@
 "use client";
 
+import { AiDraftButton } from "@/components/ai/AiDraftButton";
+import { CurrencySelect } from "@/components/ui/CurrencySelect";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -29,6 +32,7 @@ export default function NewListingPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [unit, setUnit] = useState("pcs");
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [priceMin, setPriceMin] = useState<string>("");
   const [priceMax, setPriceMax] = useState<string>("");
   const [moq, setMoq] = useState<string>("");
@@ -132,6 +136,7 @@ export default function NewListingPage() {
           unit,
           priceMin: priceMin !== "" ? Number(priceMin) : null,
           priceMax: priceMax !== "" ? Number(priceMax) : null,
+          currency,
           moq: moq !== "" ? Number(moq) : null,
           leadTimeDays: leadTimeDays !== "" ? Number(leadTimeDays) : null,
           imageKeys,
@@ -168,13 +173,13 @@ export default function NewListingPage() {
   if (!isSupplier || !isVerified) {
     return (
       <div className="page space-y-4">
-        <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 space-y-3">
+        <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-[13px] text-amber-900 space-y-3">
           <p className="font-bold text-sm">
             <T k="listing.verificationRequired" />
           </p>
           <Link
             href="/business/verification"
-            className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-xl font-semibold text-xs"
+            className="btn btn-primary btn-sm"
           >
             <T k="listing.goToVerification" />
           </Link>
@@ -196,15 +201,15 @@ export default function NewListingPage() {
           <h1 className="page-title">
             <T k="listing.new" />
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-[13px] text-slate-500">
             <T k="listing.subtitle" />
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+      <form onSubmit={handleSubmit} className="card p-5 space-y-4">
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[13px] text-rose-800 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
@@ -212,13 +217,13 @@ export default function NewListingPage() {
 
         {/* Category Picker */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700">
+          <label className="label">
             <T k="listing.category" />
           </label>
           <select
             value={selectedCategory?.id || ""}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
           >
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
@@ -230,7 +235,7 @@ export default function NewListingPage() {
 
         {/* Title */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700">
+          <label className="label">
             <T k="listing.itemTitle" />
           </label>
           <input
@@ -239,14 +244,14 @@ export default function NewListingPage() {
             placeholder={t("listing.titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
           />
         </div>
 
         {/* Dynamic Category Attributes (§6, A1) */}
         {selectedCategory && (
           <div className="pt-2 border-t border-slate-100 space-y-2">
-            <span className="text-xs font-bold text-slate-800 block">
+            <span className="text-[13px] font-bold text-slate-800 block">
               <T k="listing.attributes" />
             </span>
             <AttributeFields
@@ -261,23 +266,33 @@ export default function NewListingPage() {
 
         {/* Description */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700">
+          <label className="label">
             <T k="listing.description" />
             {selectedCategory?.slug === "other" && <span className="text-rose-500">·</span>}
           </label>
+          <AiDraftButton
+              switchKey="aiListingWriterEnabled"
+              id="listing-ai-draft"
+              disabled={!description.trim() && !title.trim()}
+              payload={() => ({ helper: "listing", text: `${title}\n${description}`.trim(), category: selectedCategory?.slug })}
+              onDraft={(d) => {
+                setTitle(d.title);
+                setDescription(d.description);
+              }}
+            />
           <textarea
             rows={3}
             required={selectedCategory?.slug === "other"}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm placeholder:text-slate-400 hover:border-slate-400"
           />
         </div>
 
         {/* Unit & Prices */}
         <div className="grid grid-cols-3 gap-2">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="listing.unit" />
             </label>
             <input
@@ -285,12 +300,14 @@ export default function NewListingPage() {
               required
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
 
+          <CurrencySelect id="listing-currency" value={currency} onChange={setCurrency} />
+
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="listing.priceMin" />
             </label>
             <input
@@ -298,12 +315,12 @@ export default function NewListingPage() {
               step="0.01"
               value={priceMin}
               onChange={(e) => setPriceMin(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="listing.priceMax" />
             </label>
             <input
@@ -311,7 +328,7 @@ export default function NewListingPage() {
               step="0.01"
               value={priceMax}
               onChange={(e) => setPriceMax(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
         </div>
@@ -319,37 +336,37 @@ export default function NewListingPage() {
         {/* MOQ & Lead Time */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="listing.moq" />
             </label>
             <input
               type="number"
               value={moq}
               onChange={(e) => setMoq(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="listing.leadTime" />
             </label>
             <input
               type="number"
               value={leadTimeDays}
               onChange={(e) => setLeadTimeDays(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
         </div>
 
         {/* Images Upload */}
         <div className="space-y-2 pt-1">
-          <label className="text-xs font-semibold text-slate-700 block">
+          <label className="label">
             <T k="listing.images" />
           </label>
           <div className="flex items-center gap-2">
-            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer text-slate-700">
+            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer text-slate-700">
               <Upload className="w-3.5 h-3.5 text-slate-500" />
               <span>{t("listing.uploadImage")}</span>
               <input
@@ -364,7 +381,7 @@ export default function NewListingPage() {
               />
             </label>
             {imageKeys.length > 0 && (
-              <span className="text-xs text-emerald-600 flex items-center gap-1">
+              <span className="text-[13px] text-emerald-600 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>{imageKeys.length}</span>
               </span>
@@ -375,7 +392,7 @@ export default function NewListingPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm transition shadow-sm disabled:opacity-50"
+          className="btn btn-primary w-full"
         >
           {submitting ? t("listing.saving") : t("listing.save")}
         </button>

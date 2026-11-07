@@ -1,6 +1,7 @@
 import { executeAtomicBudgetReservation, executeBudgetRefund } from "../repo/budget";
 import { updateSetting, getSetting } from "../settings";
 import { logAudit } from "../audit";
+import { aiPricesPerToken } from "./pricing";
 
 export interface ReserveBudgetOptions {
   userId?: string;
@@ -20,8 +21,6 @@ export interface BudgetReservation {
   reason?: string;
 }
 
-const DEFAULT_IN_PRICE = 0.00000015; // $0.15 per 1M tokens
-const DEFAULT_OUT_PRICE = 0.0000006;  // $0.60 per 1M tokens
 
 /**
  * Calculates the exact maximum possible cost of an AI invocation before sending.
@@ -29,8 +28,8 @@ const DEFAULT_OUT_PRICE = 0.0000006;  // $0.60 per 1M tokens
 export function calculateMaxCost(
   maxOutputTokens: number,
   inputTokensUpperBound: number = 2000,
-  inPrice: number = DEFAULT_IN_PRICE,
-  outPrice: number = DEFAULT_OUT_PRICE
+  inPrice: number = aiPricesPerToken().in,
+  outPrice: number = aiPricesPerToken().out
 ): number {
   return Number((inputTokensUpperBound * inPrice + maxOutputTokens * outPrice).toFixed(6));
 }
@@ -42,8 +41,8 @@ export async function reserveAiBudget(options: ReserveBudgetOptions): Promise<Bu
   const maxOutputTokens = options.maxOutputTokens;
   const inputTokensUpperBound =
     options.inputTokensUpperBound !== undefined ? options.inputTokensUpperBound : 2000;
-  const inPrice = options.inPricePerToken || DEFAULT_IN_PRICE;
-  const outPrice = options.outPricePerToken || DEFAULT_OUT_PRICE;
+  const inPrice = options.inPricePerToken || aiPricesPerToken().in;
+  const outPrice = options.outPricePerToken || aiPricesPerToken().out;
   const maxCost = calculateMaxCost(maxOutputTokens, inputTokensUpperBound, inPrice, outPrice);
 
   const globalCap = options.globalDailyCap ?? 10.0;

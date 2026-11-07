@@ -27,6 +27,7 @@ export async function loadPricingQuotes(since: Date, until: Date) {
       id: true,
       supplierBusinessId: true,
       unitPrice: true,
+      currency: true,
       quantity: true,
       deliveryCharge: true,
       specMatch: true,

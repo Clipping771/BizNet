@@ -8,6 +8,7 @@
  *   CSV export with formula neutralisation; eval report token + admin alert; admin-only access.
  */
 
+import { getDhakaDateString } from "@/lib/dates";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { NextRequest } from "next/server";
 import { sealData } from "iron-session";
@@ -178,7 +179,7 @@ describe("Phase 5 admin", () => {
       await prisma.request.create({
         data: { code: `REQ-X-${word()}`, buyerBusinessId: biz.id, createdByUserId: user.id, categoryId: cat.id, title: "=HYPERLINK(evil)", attributes: {}, quantity: 1, unit: "pcs", deliveryArea: "Mirpur", status: "OPEN" },
       });
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getDhakaDateString();
       const res = await exportRoute(req("GET", `/api/admin/export?entity=requests&from=${today}&to=${today}`, adminCookie));
       expect(res.status).toBe(200);
       const text = await res.text();

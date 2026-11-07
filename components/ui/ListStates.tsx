@@ -3,15 +3,10 @@
 import { Inbox, type LucideIcon } from "lucide-react";
 import { T } from "@/components/ui/T";
 
-export type Tone = "gray" | "green" | "amber" | "red" | "blue" | "violet";
+import type { Tone } from "@/lib/status-tones";
 
-export const REQUEST_STATUS_TONE: Record<string, Tone> = {
-  OPEN: "green",
-  AWARDED: "blue",
-  CLOSED: "gray",
-  EXPIRED: "gray",
-  CANCELLED: "red",
-};
+export type { Tone };
+export { REQUEST_STATUS_TONE, ORDER_STATUS_TONE } from "@/lib/status-tones";
 
 /** Shared loading skeleton and empty state for list screens. */
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
@@ -19,10 +14,10 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
     <div className="space-y-2.5" aria-busy="true" aria-label="loading">
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="card flex items-center gap-3 p-4">
-          <div className="h-10 w-10 animate-pulse rounded-full bg-gray-100" />
+          <div className="h-10 w-10 animate-pulse rounded-full bg-slate-100" />
           <div className="flex-1 space-y-2">
-            <div className="h-3.5 w-2/3 animate-pulse rounded bg-gray-100" />
-            <div className="h-3 w-1/3 animate-pulse rounded bg-gray-100" />
+            <div className="h-3.5 w-2/3 animate-pulse rounded bg-slate-100" />
+            <div className="h-3 w-1/3 animate-pulse rounded bg-slate-100" />
           </div>
         </div>
       ))}
@@ -33,7 +28,7 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
 export function EmptyState({ k, icon: Icon = Inbox, children }: { k: string; icon?: LucideIcon; children?: React.ReactNode }) {
   return (
     <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
         <Icon className="h-6 w-6" strokeWidth={1.7} />
       </span>
       <p className="max-w-sm text-sm text-slate-600">

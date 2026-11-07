@@ -23,7 +23,7 @@ export function notificationIcon(type: string): Icon {
 
 /** Tile colours per kind, so quotes, orders, messages and requests are told apart at a glance. */
 export function notificationTone(type: string): string {
-  if (type.startsWith("QUOTE")) return "bg-teal-50 text-teal-700";
+  if (type.startsWith("QUOTE")) return "bg-primary-50 text-primary-700";
   if (type.startsWith("ORDER")) return "bg-emerald-50 text-emerald-700";
   if (type.startsWith("MESSAGE")) return "bg-slate-100 text-slate-700";
   if (type.startsWith("REQUEST")) return "bg-amber-50 text-amber-700";

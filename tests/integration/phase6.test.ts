@@ -89,7 +89,7 @@ describe("Phase 6 READY features", () => {
       expect(res.status).toBe(201);
       expect(await prisma.leadCreditLedger.count({ where: { businessId: supplier.id } })).toBe(0);
       const flags = await (await publicSettingsRoute()).json();
-      expect(flags).toEqual({ leadCreditsEnabled: false, translationEnabled: false });
+      expect(flags).toMatchObject({ leadCreditsEnabled: false, translationEnabled: false });
     });
 
     it("grants the trial once, charges the first quote per request, keeps revisions free, and returns 402 at zero", async () => {

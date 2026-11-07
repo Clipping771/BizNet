@@ -38,16 +38,16 @@ export default function AdminDashboardPage() {
 
   const section = (titleKey: string, data: Record<string, unknown>, id: string) => (
     <section id={id} className="card p-4">
-      <h2 className="text-sm font-bold text-gray-900 mb-2">
+      <h2 className="text-sm font-bold text-slate-900 mb-2">
         <T k={titleKey} />
       </h2>
-      <dl className="divide-y divide-gray-50 text-xs">
+      <dl className="divide-y divide-slate-50 text-xs">
         {Object.entries(data)
           .filter(([key]) => key !== "latestEval")
           .map(([key, value]) => (
             <div key={key} data-metric={key} className="flex justify-between gap-3 py-1.5">
-              <dt className="text-gray-600">{t(`metric.${key}`)}</dt>
-              <dd className="font-semibold text-gray-900 text-end">{format(value)}</dd>
+              <dt className="text-slate-600">{t(`metric.${key}`)}</dt>
+              <dd className="font-semibold text-slate-900 text-end">{format(value)}</dd>
             </div>
           ))}
       </dl>
@@ -58,31 +58,31 @@ export default function AdminDashboardPage() {
     <div className="space-y-4">
       <div className="card p-4 flex flex-wrap items-end gap-2 text-xs">
         <label className="space-y-1">
-          <span className="block text-gray-500">
+          <span className="block text-slate-500">
             <T k="admin.from" />
           </span>
-          <input id="metrics-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="p-2 rounded-lg border border-gray-200" />
+          <input id="metrics-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="input" />
         </label>
         <label className="space-y-1">
-          <span className="block text-gray-500">
+          <span className="block text-slate-500">
             <T k="admin.to" />
           </span>
-          <input id="metrics-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="p-2 rounded-lg border border-gray-200" />
+          <input id="metrics-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input" />
         </label>
-        <button type="button" id="metrics-apply" onClick={load} className="px-4 py-2 rounded-lg bg-gray-900 text-white font-semibold">
+        <button type="button" id="metrics-apply" onClick={load} className="btn btn-primary">
           <T k="admin.apply" />
         </button>
-        <a href={`/api/admin/metrics/export?from=${from}&to=${to}`} id="metrics-csv" className="px-4 py-2 rounded-lg border border-gray-200 font-semibold text-gray-700">
+        <a href={`/api/admin/metrics/export?from=${from}&to=${to}`} id="metrics-csv" className="px-4 py-2 rounded-lg border border-slate-200 font-semibold text-slate-700">
           <T k="admin.downloadCsv" />
         </a>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-rose-700">{error}</p>}
 
       {metrics && (
         <>
           <section id="metrics-thresholds" className="card p-4">
-            <h2 className="text-sm font-bold text-gray-900 mb-2">
+            <h2 className="text-sm font-bold text-slate-900 mb-2">
               <T k="admin.section.thresholds" />
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -92,12 +92,12 @@ export default function AdminDashboardPage() {
                   data-threshold={key}
                   data-status={th.status}
                   className={`rounded-xl p-3 text-xs border ${
-                    th.status === "green" ? "bg-emerald-50 border-emerald-200" : th.status === "red" ? "bg-rose-50 border-rose-200" : "bg-gray-50 border-gray-200"
+                    th.status === "green" ? "bg-emerald-50 border-emerald-200" : th.status === "red" ? "bg-rose-50 border-rose-200" : "bg-slate-50 border-slate-200"
                   }`}
                 >
-                  <p className="text-gray-600">{t(`metric.${key}`)}</p>
-                  <p className="text-base font-bold text-gray-900">{format(th.value)}</p>
-                  <p className="text-gray-500">{t("admin.target", undefined, { target: th.target })}</p>
+                  <p className="text-slate-600">{t(`metric.${key}`)}</p>
+                  <p className="text-base font-bold text-slate-900">{format(th.value)}</p>
+                  <p className="text-slate-500">{t("admin.target", undefined, { target: th.target })}</p>
                 </div>
               ))}
             </div>
@@ -105,7 +105,7 @@ export default function AdminDashboardPage() {
           {section("admin.section.funnel", metrics.funnel, "metrics-funnel")}
           {section("admin.section.ai", metrics.ai, "metrics-ai")}
           <section className="card p-4 text-xs">
-            <h2 className="text-sm font-bold text-gray-900 mb-1">
+            <h2 className="text-sm font-bold text-slate-900 mb-1">
               <T k="admin.section.eval" />
             </h2>
             {metrics.ai.latestEval ? (
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
                 })}
               </p>
             ) : (
-              <p className="text-gray-500">
+              <p className="text-slate-500">
                 <T k="admin.noEval" />
               </p>
             )}

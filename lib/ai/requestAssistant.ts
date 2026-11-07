@@ -6,6 +6,7 @@
 
 import crypto from "crypto";
 import { getAiProvider } from "@/lib/ai/provider";
+import { AI_INPUT_TOKENS_UPPER_BOUND, AI_MAX_OUTPUT_TOKENS } from "@/lib/ai/pricing";
 import { reserveAiBudget, refundAiBudget } from "@/lib/ai/budget";
 import { getSetting } from "@/lib/settings";
 import {
@@ -150,8 +151,8 @@ export async function processRequestWithAi(
 
   const reservation = await reserveAiBudget({
     userId: params.userId,
-    maxOutputTokens: 600,
-    inputTokensUpperBound: 1200,
+    maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
+    inputTokensUpperBound: AI_INPUT_TOKENS_UPPER_BOUND,
     globalDailyCap: aiDailyBudgetUsd,
     userDailyCap: (aiDailyBudgetUsd / 20) * (aiDailyRequestsPerUser || 20),
   });
@@ -192,7 +193,7 @@ export async function processRequestWithAi(
     uiLanguage,
   });
 
-  const aiTimeoutMs = (await getSetting("aiTimeoutMs")) || 8000;
+  const aiTimeoutMs = (await getSetting("aiTimeoutMs")) || 20000;
   const provider = getAiProvider();
 
   let attempt = 0;
@@ -209,7 +210,7 @@ export async function processRequestWithAi(
     const start = Date.now();
     try {
       const callPromise = provider.structured(RequestAssistantOutputSchema, prompt, {
-        maxOutputTokens: 600,
+        maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
         feature: "REQUEST_ASSISTANT",
         promptVersion: PROMPT_VERSION,
         userId: params.userId,

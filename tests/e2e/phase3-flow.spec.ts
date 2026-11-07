@@ -245,7 +245,7 @@ test.describe("Phase 3 acceptance: core loop at 360×740 (§16)", () => {
     await shot(buyerPage, "14-order-confirm-sheet-bn.png");
     await buyerPage.locator("#confirm-order-action-btn").click();
     await buyerPage.waitForURL(/\/orders\/ORD-/, { timeout: 15000 });
-    await expect(buyerPage.locator("#order-status-badge")).toHaveAttribute("data-status", "CONFIRMED");
+    await expect(buyerPage.locator("#order-status-badge")).toHaveAttribute("data-status", "PENDING_CONFIRMATION");
     await shot(buyerPage, "15-order-detail-bn.png");
 
     const order = await prisma.order.findFirstOrThrow({ where: { requestId: request.id } });
@@ -256,6 +256,9 @@ test.describe("Phase 3 acceptance: core loop at 360×740 (§16)", () => {
 
     // 6. Supplier dispatches and delivers; buyer completes
     await s1Page.goto(`/orders/${order.code}`);
+    // Both sides confirm: the buyer did by accepting, now the supplier
+    await s1Page.locator("#order-action-CONFIRMED").click();
+    await expect(s1Page.locator("#order-status-badge")).toHaveAttribute("data-status", "CONFIRMED", { timeout: 10000 });
     await s1Page.locator("#order-action-DISPATCHED").click();
     await expect(s1Page.locator("#order-status-badge")).toHaveAttribute("data-status", "DISPATCHED", { timeout: 10000 });
     await s1Page.locator("#order-action-DELIVERED").click();
@@ -277,7 +280,7 @@ test.describe("Phase 3 acceptance: core loop at 360×740 (§16)", () => {
       where: { orderId: order.id },
       orderBy: { createdAt: "asc" },
     });
-    expect(history.map((h) => h.toStatus)).toEqual(["CONFIRMED", "DISPATCHED", "DELIVERED", "COMPLETED"]);
+    expect(history.map((h) => h.toStatus)).toEqual(["PENDING_CONFIRMATION", "CONFIRMED", "DISPATCHED", "DELIVERED", "COMPLETED"]);
 
     // 7. Re-order only from the previous supplier → exactly one invite
     await buyerPage.locator("#order-again-btn").click();

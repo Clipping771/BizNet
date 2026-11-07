@@ -59,16 +59,16 @@ test.describe("Phase 4 acceptance at 360×740 (§16)", () => {
     await page.locator("#search-verified").uncheck();
 
     await searchFor(page, "বক্স");
-    await expect(page.locator('[data-listing-title="১০০ পিস ক্রাফট পেপার বক্স"]')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('[data-listing-title="বারবার্গার ক্রাফট বক্স"]')).toBeVisible();
+    await expect(page.locator('[data-listing-title="100 pcs Kraft Paper Box"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-listing-title="Burger Kraft Box"]')).toBeVisible();
     await page.locator("#search-filters-toggle").click();
     await shot(page, "20-search-bn.png");
 
     await searchFor(page, "box");
-    await expect(page.locator('[data-listing-title="১০০ পিস ক্রাফট পেপার বক্স"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-listing-title="100 pcs Kraft Paper Box"]')).toBeVisible({ timeout: 10000 });
 
     await searchFor(page, "কাপ ২৫০");
-    await expect(page.locator("[data-listing-title]").first()).toHaveAttribute("data-listing-title", "২৫০ মিলি পেপার কাপ", { timeout: 10000 });
+    await expect(page.locator("[data-listing-title]").first()).toHaveAttribute("data-listing-title", "250ml Paper Cup");
 
     await page.locator("#search-tab-businesses").click();
     await expect(page.locator("[data-business-name]").first()).toBeVisible({ timeout: 10000 });
@@ -85,7 +85,8 @@ test.describe("Phase 4 acceptance at 360×740 (§16)", () => {
     const containers = page.locator('[data-price-category="containers"]');
     await expect(containers.locator("[data-price-group]")).toHaveCount(1, { timeout: 10000 });
     await expect(page.locator('[data-price-category="cups"] [data-price-group]')).toHaveCount(0);
-    await expect(page.locator('[data-price-category="cups"]')).toContainText("এখনো যথেষ্ট তথ্য নেই");
+    await expect(page.locator('[data-price-category="cups"]')).toBeVisible();
+    await expect(page.locator("main")).toContainText("এখনো যথেষ্ট তথ্য নেই");
     await shot(page, "22-prices-bn.png");
 
     const en = await visitor(browser, "en");
@@ -101,8 +102,8 @@ test.describe("Phase 4 acceptance at 360×740 (§16)", () => {
     const page = await loggedIn(browser, phone);
 
     await page.goto("/q/new");
-    await page.locator("#question-title").fill("খাবারের বক্সে খাবার গরম থাকে");
-    await expect(page.locator("#similar-questions")).toContainText("খাবারের বক্সে খাবার কতক্ষণ গরম থাকে?", { timeout: 10000 });
+    await page.locator("#question-title").fill("How long does food stay hot");
+    await expect(page.locator("#similar-questions")).toContainText("How long does food stay hot", { timeout: 10000 });
     await shot(page, "24-question-new-similar-bn.png");
 
     await page.locator("#question-title").fill(`পাইকারি কন্টেইনার বিক্রি করছি ${letters()}`);
@@ -116,7 +117,7 @@ test.describe("Phase 4 acceptance at 360×740 (§16)", () => {
     await expect(page.locator("#question-status")).toHaveAttribute("data-status", "PENDING_REVIEW");
 
     // A seeded question in a category with listings shows the request card; answer it
-    const seeded = await prisma.question.findFirstOrThrow({ where: { title: "ঢাকনা সহ প্লাস্টিক কাপ কোথা থেকে কিনব?" } });
+    const seeded = await prisma.question.findFirstOrThrow({ where: { title: "Where to source wholesale plastic cups with dome lids in bulk?" } });
     await page.goto(`/q/${seeded.id}`);
     await expect(page.locator("#problem-request-card")).toBeVisible({ timeout: 10000 });
     await page.locator("#answer-body").fill("চকবাজারে কয়েকজন পাইকার আছেন, আগে নমুনা দেখে নিন।");

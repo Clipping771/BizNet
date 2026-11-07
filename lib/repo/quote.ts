@@ -556,6 +556,7 @@ export async function acceptQuoteAndCreateOrderRecord(
       total: quote.totalPrice.toString(),
       quantity: quote.quantity.toString(),
       unit: quote.request.unit,
+      currency: quote.currency,
       deliveryDays: quote.deliveryDays,
       paymentTerm: quote.paymentTerm,
       specDifferences: quote.specMatch,
@@ -620,7 +621,7 @@ export async function acceptQuoteAndCreateOrderRecord(
       data: {
         orderId: order.id,
         fromStatus: null,
-        toStatus: OrderStatus.CONFIRMED,
+        toStatus: OrderStatus.PENDING_CONFIRMATION,
         actorUserId: userId,
         actorSide: "BUYER",
         reason: "Order confirmed by buyer",

@@ -1,5 +1,6 @@
 "use client";
 
+import { AiDraftButton } from "@/components/ai/AiDraftButton";
 import { useCallback, useEffect, useState, use } from "react";
 import Link from "next/link";
 import { ThumbsUp, ThumbsDown, CheckCircle, Flag, ShoppingCart, X } from "lucide-react";
@@ -17,6 +18,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
   const [loggedIn, setLoggedIn] = useState(false);
   const [answer, setAnswer] = useState("");
   const [answerBlocked, setAnswerBlocked] = useState(false);
+  const [answerDrafted, setAnswerDrafted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reported, setReported] = useState<Record<string, boolean>>({});
   const [hideBuyCard, setHideBuyCard] = useState(false);
@@ -106,7 +108,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-700 border-t-transparent" />
       </div>
     );
   }
@@ -114,7 +116,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
   if (!question) {
     return (
       <div className="page p-6 text-center space-y-3">
-        <p id="question-not-found" className="text-sm text-gray-600">
+        <p id="question-not-found" className="text-sm text-slate-600">
           <T k="q.notFound" />
         </p>
         <Link href="/q" className="text-primary text-sm font-bold underline">
@@ -130,7 +132,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="page space-y-4">
-      <Link href="/q" className="text-xs text-primary font-semibold">
+      <Link href="/q" className="text-[13px] text-primary font-semibold">
         <T k="q.backToList" />
       </Link>
 
@@ -139,9 +141,9 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
           <span id="question-status" data-status={question.status}>
             <QuestionStatusChip status={question.status} />
           </span>
-          {question.category && <span className="text-xs text-gray-500">{t(`category.${question.category.slug}`)}</span>}
+          {question.category && <span className="text-[13px] text-slate-500">{t(`category.${question.category.slug}`)}</span>}
         </div>
-        <h1 id="question-title-heading" className="text-base font-bold text-gray-900">
+        <h1 id="question-title-heading" className="text-base font-bold text-slate-900">
           {question.title}
         </h1>
         <TranslatableText
@@ -150,15 +152,15 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
           field="body"
           text={question.body}
           sourceLang={question.lang}
-          className="text-sm text-gray-700 whitespace-pre-wrap"
+          className="text-sm text-slate-700 whitespace-pre-wrap"
         />
-        <p className="text-xs text-gray-400">
+        <p className="text-[13px] text-slate-500">
           {author}
           {" · "}
           {formatDate(question.createdAt, lang)}
         </p>
         {question.status === "PENDING_REVIEW" && (
-          <p id="pending-review-notice" className="text-xs text-amber-800 bg-amber-50 rounded-xl p-2.5">
+          <p id="pending-review-notice" className="text-[13px] text-amber-800 bg-amber-50 rounded-xl p-2.5">
             <T k="q.pendingNotice" />
           </p>
         )}
@@ -176,7 +178,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
       {canBuy && (
         <div id="problem-request-card" className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center gap-2">
           <ShoppingCart className="w-4 h-4 text-emerald-700 shrink-0" />
-          <Link href={`/requests/new?category=${question.category.slug}`} className="flex-1 text-xs font-semibold text-emerald-800">
+          <Link href={`/requests/new?category=${question.category.slug}`} className="flex-1 text-[13px] font-semibold text-emerald-800">
             <T k="q.needToBuy" />
           </Link>
           <button type="button" id="problem-request-dismiss" onClick={dismissBuyCard} aria-label={t("q.dismiss")} className="p-1">
@@ -185,18 +187,18 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
         </div>
       )}
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-[13px] text-rose-700">{error}</p>}
 
       <div className="space-y-2" id="answer-list">
-        <p className="text-xs font-bold text-gray-500">{t("q.answers", undefined, { n: question.answers.length })}</p>
+        <p className="text-[13px] font-bold text-slate-500">{t("q.answers", undefined, { n: question.answers.length })}</p>
         {question.answers.map((a: any) => (
           <div
             key={a.id}
             id={`answer-${a.id}`}
-            className={`bg-white rounded-2xl border p-4 space-y-2 ${a.isAccepted ? "border-emerald-300" : "border-gray-100"}`}
+            className={`bg-white rounded-2xl border p-4 space-y-2 ${a.isAccepted ? "border-emerald-300" : "border-slate-100"}`}
           >
             {a.isAccepted && (
-              <p className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+              <p className="text-[13px] font-bold text-emerald-700 flex items-center gap-1">
                 <CheckCircle className="w-3.5 h-3.5" />
                 <T k="q.best" />
               </p>
@@ -207,9 +209,9 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
               field="body"
               text={a.body}
               sourceLang={a.lang}
-              className="text-sm text-gray-800 whitespace-pre-wrap"
+              className="text-sm text-slate-800 whitespace-pre-wrap"
             />
-            <p className="text-xs text-gray-400">
+            <p className="text-[13px] text-slate-500">
               {a.authorBusiness?.name ?? a.authorName}
               {" · "}
               {formatDate(a.createdAt, lang)}
@@ -224,7 +226,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
               reported={reported[a.id]}
             />
             {isAuthor && !a.isAccepted && (
-              <button type="button" id={`best-answer-${a.id}`} onClick={() => markBest(a.id)} className="text-xs font-bold text-emerald-700">
+              <button type="button" id={`best-answer-${a.id}`} onClick={() => markBest(a.id)} className="text-[13px] font-bold text-emerald-700">
                 <T k="q.markBest" />
               </button>
             )}
@@ -235,9 +237,23 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
       {question.status !== "PENDING_REVIEW" &&
         (loggedIn ? (
           <form onSubmit={postAnswer} className="card p-4 space-y-2">
-            <label htmlFor="answer-body" className="text-xs font-bold text-gray-700 block">
+            <label htmlFor="answer-body" className="label">
               <T k="q.yourAnswer" />
             </label>
+            <AiDraftButton
+              switchKey="aiDiscussionAnswersEnabled"
+              id="answer-ai-draft"
+              payload={() => ({ helper: "answer", questionId: id })}
+              onDraft={(d) => {
+                setAnswer(d.draft);
+                setAnswerDrafted(true);
+              }}
+            />
+            {answerDrafted && (
+              <p className="text-[13px] text-amber-800">
+                <T k="ai.draftNotice" />
+              </p>
+            )}
             <textarea
               id="answer-body"
               rows={3}
@@ -247,10 +263,10 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
                 setAnswer(e.target.value);
                 setAnswerBlocked(false);
               }}
-              className="w-full text-sm p-3 rounded-xl border border-gray-200"
+              className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm placeholder:text-slate-400 hover:border-slate-400"
             />
             {answerBlocked && (
-              <p id="answer-selling-warning" className="text-xs text-amber-800 bg-amber-50 rounded-xl p-2.5">
+              <p id="answer-selling-warning" className="text-[13px] text-amber-800 bg-amber-50 rounded-xl p-2.5">
                 <T k="q.sellingWarning" />
               </p>
             )}
@@ -258,13 +274,13 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
               type="submit"
               id="answer-submit"
               disabled={!answer.trim()}
-              className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-bold disabled:opacity-50"
+              className="btn btn-primary w-full"
             >
               <T k="q.postAnswer" />
             </button>
           </form>
         ) : (
-          <Link href={`/login?next=/q/${id}`} className="block text-center text-xs font-bold text-primary py-3">
+          <Link href={`/login?next=/q/${id}`} className="block text-center text-[13px] font-bold text-primary py-3">
             <T k="q.loginToAnswer" />
           </Link>
         ))}
@@ -291,7 +307,7 @@ function VoteBar({
 }) {
   const t = useT();
   return (
-    <div className="flex items-center gap-3 text-xs text-gray-600">
+    <div className="flex items-center gap-3 text-[13px] text-slate-600">
       <button
         type="button"
         id={`${idPrefix}-up`}
@@ -316,7 +332,7 @@ function VoteBar({
         <ThumbsDown className="w-4 h-4" />
       </button>
       {onReport && (
-        <button type="button" onClick={onReport} disabled={reported} className="ms-auto flex items-center gap-1 text-xs text-gray-400">
+        <button type="button" onClick={onReport} disabled={reported} className="ms-auto flex items-center gap-1 text-[13px] text-slate-500">
           <Flag className="w-3 h-3" />
           {reported ? t("q.reported") : t("q.report")}
         </button>

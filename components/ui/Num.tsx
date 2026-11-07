@@ -40,3 +40,10 @@ export function PercentChange({ value }: { value: number }) {
   const lang = useLang();
   return <>{`${value >= 0 ? "+" : "−"}${formatNumber(Math.abs(value).toFixed(1), lang)}%`}</>;
 }
+
+/** A catalog message with {n} and {total} in the viewer's numerals. */
+export function TNumTotal({ k, n, total }: { k: string; n: number; total: number }) {
+  const lang = useLang();
+  const t = useT();
+  return <>{t(k, undefined, { n: formatNumber(n, lang), total: formatNumber(total, lang) })}</>;
+}

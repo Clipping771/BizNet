@@ -32,8 +32,10 @@ async function loginWithPhone(page: Page, fullPhone: string) {
 async function createBusiness(page: Page, roleIndex: 0 | 1, name: string) {
   await page.goto("/onboarding");
   await page.locator("form button[type='button']").nth(roleIndex).click();
-  await page.getByPlaceholder("e.g. Apex Packaging / Global Trade Co.").fill(name);
-  await page.getByPlaceholder("Road / Shop / House").fill("House 1, Road 2");
+  await page.locator("#business-name").fill(name);
+  await page.locator("#business-area").fill("Chawkbazar");
+  await page.locator("#business-city").fill("Dhaka");
+  await page.locator("#business-address").fill("House 1, Road 2");
   await page.locator("form button[type='submit']").click();
   await page.waitForURL(/\/home/, { timeout: 15000 });
 }

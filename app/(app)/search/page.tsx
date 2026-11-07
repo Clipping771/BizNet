@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search as SearchIcon, SlidersHorizontal, MapPin, Package } from "lucide-react";
 import { T, useT, useLang } from "@/components/ui/T";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
+import { ListSkeleton } from "@/components/ui/ListStates";
+import { Avatar } from "@/components/layout/AccountMenu";
 import { formatMoney } from "@/lib/money";
 
 const AREAS = ["Mirpur", "Dhanmondi", "Mohammadpur", "Uttara", "Gulshan", "Chawkbazar"];
@@ -33,7 +35,10 @@ export default function SearchPage() {
   const lang = useLang();
 
   const [tab, setTab] = useState<Tab>("products");
-  const [q, setQ] = useState("");
+  const urlQ = useSearchParams().get("q") || "";
+  const [q, setQ] = useState(urlQ);
+  // Only the newest search may fill the list; a slower older response must not overwrite it
+  const latestRun = useRef(0);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [categoryId, setCategoryId] = useState("");
@@ -65,10 +70,11 @@ export default function SearchPage() {
   }, []);
 
   const run = useCallback(
-    async (offset = 0) => {
+    async (offset = 0, query = q) => {
+      const runId = ++latestRun.current;
       setLoading(true);
       try {
-        const params = new URLSearchParams({ tab, q, verified: verifiedOnly ? "1" : "0", offset: String(offset) });
+        const params = new URLSearchParams({ tab, q: query, verified: verifiedOnly ? "1" : "0", offset: String(offset) });
         if (categoryId) params.set("categoryId", categoryId);
         if (area) params.set("area", area);
         if (tab === "products") {
@@ -79,28 +85,26 @@ export default function SearchPage() {
         }
         const res = await fetch(`/api/search?${params}`);
         const json = await res.json();
+        if (runId !== latestRun.current) return;
         setResults((prev) => (offset === 0 ? json.results || [] : [...prev, ...(json.results || [])]));
         setNextOffset(json.nextOffset ?? null);
         setSearched(true);
       } finally {
-        setLoading(false);
+        if (runId === latestRun.current) setLoading(false);
       }
     },
     [tab, q, verifiedOnly, categoryId, area, priceMin, priceMax, moqMax, attrs]
   );
 
-  // ?q= from the header search box (also when it changes while this page is open)
-  const urlQ = useSearchParams().get("q") || "";
-  const [urlRun, setUrlRun] = useState(0);
+  // A changed ?q= while this page is open searches for it straight away
+  const firstUrlQ = useRef(urlQ);
   useEffect(() => {
-    if (!urlQ) return;
+    if (urlQ === firstUrlQ.current) return;
+    firstUrlQ.current = urlQ;
     setQ(urlQ);
-    setUrlRun((n) => n + 1);
-  }, [urlQ]);
-  useEffect(() => {
-    if (urlRun) run(0);
+    run(0, urlQ);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlRun]);
+  }, [urlQ]);
 
   // Re-run when the tab or filters change (the text query runs on submit)
   useEffect(() => {
@@ -114,7 +118,7 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="page space-y-4">
+    <div className="page-wide space-y-4">
       <h1 className="page-title">
         <T k="search.title" />
       </h1>
@@ -132,14 +136,10 @@ export default function SearchPage() {
           onChange={(e) => setQ(e.target.value)}
           placeholder={t("search.placeholder")}
           aria-label={t("search.placeholder")}
-          className="flex-1 text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none"
+          className="input flex-1"
         />
-        <button
-          type="submit"
-          id="search-submit"
-          aria-label={t("search.go")}
-          className="px-4 min-h-[44px] rounded-xl bg-primary text-white"
-        >
+        <button type="submit" id="search-submit" aria-label={t("search.go")} className="btn btn-primary h-10 px-4">
+
           <SearchIcon className="w-4 h-4" />
         </button>
       </form>
@@ -157,9 +157,7 @@ export default function SearchPage() {
                 setNextOffset(null);
                 setTab(value);
               }}
-              className={`px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${
-                tab === value ? "bg-teal-50 text-teal-800 border-teal-300 shadow-xs" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-              }`}
+              className={`btn btn-sm ${tab === value ? "bg-primary-700 text-white" : "btn-secondary"}`}
             >
               <T k={value === "products" ? "search.tabProducts" : "search.tabBusinesses"} />
             </button>
@@ -169,7 +167,8 @@ export default function SearchPage() {
           type="button"
           id="search-filters-toggle"
           onClick={() => setShowFilters((v) => !v)}
-          className="flex items-center gap-1 text-xs font-semibold text-gray-600 px-3 py-2"
+          aria-expanded={showFilters}
+          className="btn btn-ghost btn-sm"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           <T k="search.filters" />
@@ -187,7 +186,7 @@ export default function SearchPage() {
                 setAttrs({});
               }}
               aria-label={t("listing.category")}
-              className="p-2.5 rounded-xl border border-gray-200 bg-white"
+              className="input"
             >
               <option value="">{t("search.allCategories")}</option>
               {categories.map((c) => (
@@ -201,7 +200,7 @@ export default function SearchPage() {
               value={area}
               onChange={(e) => setArea(e.target.value)}
               aria-label={t("rfq.deliveryArea")}
-              className="p-2.5 rounded-xl border border-gray-200 bg-white"
+              className="input"
             >
               <option value="">{t("search.allAreas")}</option>
               {AREAS.map((a) => (
@@ -233,7 +232,7 @@ export default function SearchPage() {
                   onChange={(e) => setPriceMin(e.target.value)}
                   placeholder={t("search.priceMin")}
                   aria-label={t("search.priceMin")}
-                  className="p-2.5 rounded-xl border border-gray-200"
+                  className="input"
                 />
                 <input
                   id="search-price-max"
@@ -243,7 +242,7 @@ export default function SearchPage() {
                   onChange={(e) => setPriceMax(e.target.value)}
                   placeholder={t("search.priceMax")}
                   aria-label={t("search.priceMax")}
-                  className="p-2.5 rounded-xl border border-gray-200"
+                  className="input"
                 />
                 <input
                   id="search-moq-max"
@@ -253,7 +252,7 @@ export default function SearchPage() {
                   onChange={(e) => setMoqMax(e.target.value)}
                   placeholder={t("search.moqMax")}
                   aria-label={t("search.moqMax")}
-                  className="p-2.5 rounded-xl border border-gray-200"
+                  className="input"
                 />
               </div>
               {category &&
@@ -264,7 +263,7 @@ export default function SearchPage() {
                     value={attrs[f.key] || ""}
                     onChange={(e) => setAttrs((prev) => ({ ...prev, [f.key]: e.target.value }))}
                     aria-label={t(`attr.${category.slug}.${f.key}.label`)}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 bg-white"
+                    className="input"
                   >
                     <option value="">{t("search.anyField", undefined, { field: t(`attr.${category.slug}.${f.key}.label`) })}</option>
                     {(f.type === "boolean" ? ["true", "false"] : f.options || []).map((opt) => (
@@ -279,7 +278,7 @@ export default function SearchPage() {
               <button
                 type="button"
                 onClick={() => run(0)}
-                className="w-full py-2.5 rounded-xl bg-gray-900 text-white font-semibold"
+                className="btn btn-primary w-full"
               >
                 <T k="search.go" />
               </button>
@@ -289,97 +288,94 @@ export default function SearchPage() {
       )}
 
       <div id="search-results" className="space-y-3">
-        {tab === "products" &&
-          results.map((r) => (
-            <div key={r.id} data-listing-title={r.title} className="card p-4 space-y-2">
-              <Link href={`/l/${r.id}`} className="font-semibold text-sm text-gray-900 block">
-                {r.title}
-              </Link>
-              <div className="flex items-center gap-1.5 text-xs text-gray-600 flex-wrap">
-                <Link href={`/b/${r.businessSlug}`} className="font-medium">
-                  {r.businessName}
-                </Link>
-                <VerificationBadge status={r.verificationStatus} />
-                <span className="flex items-center gap-0.5 text-gray-400">
-                  <MapPin className="w-3 h-3" />
-                  {r.businessArea}
-                </span>
-              </div>
-              <div className="text-xs text-gray-700 flex gap-3 flex-wrap">
-                {r.priceMin && (
-                  <span>
-                    {t("search.priceRange", undefined, {
-                      min: formatMoney(r.priceMin, lang, r.currency),
-                      max: formatMoney(r.priceMax ?? r.priceMin, lang, r.currency),
-                      unit: r.unit,
-                    })}
-                  </span>
-                )}
-                {r.moq && <span>{t("search.moq", undefined, { moq: r.moq })}</span>}
-              </div>
-              <Link
-                href={requestLink(r.categorySlug, { id: r.businessId, name: r.businessName })}
-                className="inline-block text-xs font-bold text-primary py-2"
-              >
-                <T k="search.requestQuote" />
-              </Link>
-            </div>
-          ))}
+        {loading && results.length === 0 && <ListSkeleton />}
 
-        {tab === "businesses" &&
-          results.map((b) => (
-            <div key={b.id} data-business-name={b.name} className="card p-4 space-y-2">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Link href={`/b/${b.slug}`} className="font-semibold text-sm text-gray-900">
-                  {b.name}
+        {tab === "products" && results.length > 0 && (
+          <ul className="card divide-y divide-slate-100">
+            {results.map((r) => (
+              <li key={r.id} data-listing-title={r.title} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <Link href={`/l/${r.id}`} className="block truncate text-[15px] font-medium text-slate-900 hover:text-primary-700">
+                    {r.title}
+                  </Link>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                    <Link href={`/b/${r.businessSlug}`} className="font-medium text-slate-700 hover:text-primary-700">
+                      {r.businessName}
+                    </Link>
+                    <VerificationBadge status={r.verificationStatus} />
+                    <span className="flex items-center gap-0.5">
+                      <MapPin className="h-3 w-3" />
+                      {r.businessArea}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
+                  <div className="text-xs text-slate-500 sm:text-end">
+                    {r.priceMin && (
+                      <p className="text-sm font-semibold tabular-nums text-slate-900">
+                        {t("search.priceRange", undefined, {
+                          min: formatMoney(r.priceMin, lang, r.currency),
+                          max: formatMoney(r.priceMax ?? r.priceMin, lang, r.currency),
+                          unit: r.unit,
+                        })}
+                      </p>
+                    )}
+                    {r.moq && <p>{t("search.moq", undefined, { moq: r.moq })}</p>}
+                  </div>
+                  <Link href={requestLink(r.categorySlug, { id: r.businessId, name: r.businessName })} className="btn btn-secondary btn-sm">
+                    <T k="search.requestQuote" />
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {tab === "businesses" && results.length > 0 && (
+          <ul className="card divide-y divide-slate-100">
+            {results.map((b) => (
+              <li key={b.id} data-business-name={b.name} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <Avatar name={b.name} size="hidden sm:flex h-10 w-10 text-sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Link href={`/b/${b.slug}`} className="text-[15px] font-medium text-slate-900 hover:text-primary-700">
+                      {b.name}
+                    </Link>
+                    <VerificationBadge status={b.verificationStatus} />
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                    <span className="flex items-center gap-0.5">
+                      <MapPin className="h-3 w-3" />
+                      {b.area}
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                      <Package className="h-3 w-3" />
+                      {t("search.listingCount", undefined, { n: b.listingCount })}
+                    </span>
+                    {(b.categorySlugs ?? []).length > 0 && <span>{b.categorySlugs.map((s: string) => t(`category.${s}`)).join(" · ")}</span>}
+                  </div>
+                </div>
+                <Link href={requestLink(b.categorySlugs?.[0] ?? null, { id: b.id, name: b.name })} className="btn btn-secondary btn-sm shrink-0 self-start sm:self-center">
+                  <T k="search.requestQuote" />
                 </Link>
-                <VerificationBadge status={b.verificationStatus} />
-              </div>
-              <div className="text-xs text-gray-500 flex gap-3 flex-wrap">
-                <span className="flex items-center gap-0.5">
-                  <MapPin className="w-3 h-3" />
-                  {b.area}
-                </span>
-                <span className="flex items-center gap-0.5">
-                  <Package className="w-3 h-3" />
-                  {t("search.listingCount", undefined, { n: b.listingCount })}
-                </span>
-              </div>
-              {(b.categorySlugs ?? []).length > 0 && (
-                <p className="text-xs text-gray-500">
-                  {b.categorySlugs.map((s: string) => t(`category.${s}`)).join(" · ")}
-                </p>
-              )}
-              <Link
-                href={requestLink(b.categorySlugs?.[0] ?? null, { id: b.id, name: b.name })}
-                className="inline-block text-xs font-bold text-primary py-2"
-              >
-                <T k="search.requestQuote" />
-              </Link>
-            </div>
-          ))}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {searched && !loading && results.length === 0 && (
-          <div id="search-empty" className="card p-6 text-center space-y-3">
-            <p className="text-sm text-gray-600">
+          <div id="search-empty" className="card space-y-3 p-8 text-center">
+            <p className="text-sm text-slate-600">
               <T k="search.notFound" />
             </p>
-            <Link
-              href={requestLink(category?.slug ?? null)}
-              className="inline-block px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold"
-            >
+            <Link href={requestLink(category?.slug ?? null)} className="btn btn-primary btn-sm">
               <T k="search.postRequest" />
             </Link>
           </div>
         )}
 
         {nextOffset !== null && (
-          <button
-            type="button"
-            onClick={() => run(nextOffset)}
-            disabled={loading}
-            className="w-full py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700"
-          >
+          <button type="button" onClick={() => run(nextOffset)} disabled={loading} className="btn btn-secondary w-full">
             {loading ? t("common.loading") : t("search.loadMore")}
           </button>
         )}

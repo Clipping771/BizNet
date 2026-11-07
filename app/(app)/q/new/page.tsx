@@ -75,7 +75,7 @@ export default function AskQuestionPage() {
 
   return (
     <div className="page space-y-4">
-      <Link href="/q" className="text-xs text-primary font-semibold">
+      <Link href="/q" className="text-[13px] text-primary font-semibold">
         <T k="q.backToList" />
       </Link>
       <h1 className="page-title">
@@ -90,7 +90,7 @@ export default function AskQuestionPage() {
         className="card p-4 space-y-4"
       >
         <div className="space-y-1.5">
-          <label htmlFor="question-title" className="text-xs font-bold text-gray-700 block">
+          <label htmlFor="question-title" className="label">
             <T k="q.titleLabel" />
           </label>
           <input
@@ -98,15 +98,15 @@ export default function AskQuestionPage() {
             value={title}
             maxLength={150}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-sm p-3 rounded-xl border border-gray-200"
+            className="input"
           />
           {similar.length > 0 && (
-            <div id="similar-questions" className="bg-gray-50 rounded-xl p-3 space-y-1.5">
-              <p className="text-xs font-bold text-gray-500">
+            <div id="similar-questions" className="bg-slate-50 rounded-xl p-3 space-y-1.5">
+              <p className="text-[13px] font-bold text-slate-500">
                 <T k="q.similar" />
               </p>
               {similar.map((s) => (
-                <Link key={s.id} href={`/q/${s.id}`} className="flex items-center justify-between gap-2 text-xs text-gray-800">
+                <Link key={s.id} href={`/q/${s.id}`} className="flex items-center justify-between gap-2 text-[13px] text-slate-800">
                   <span className="truncate">{s.title}</span>
                   <QuestionStatusChip status={s.status} />
                 </Link>
@@ -116,7 +116,7 @@ export default function AskQuestionPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="question-body" className="text-xs font-bold text-gray-700 block">
+          <label htmlFor="question-body" className="label">
             <T k="q.bodyLabel" />
           </label>
           <textarea
@@ -125,19 +125,19 @@ export default function AskQuestionPage() {
             maxLength={5000}
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="w-full text-sm p-3 rounded-xl border border-gray-200"
+            className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm placeholder:text-slate-400 hover:border-slate-400"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="question-category" className="text-xs font-bold text-gray-700 block">
+          <label htmlFor="question-category" className="label">
             <T k="q.categoryLabel" />
           </label>
           <select
             id="question-category"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full text-sm p-3 rounded-xl border border-gray-200 bg-white"
+            className="input"
           >
             <option value="">{t("q.noCategory")}</option>
             {categories.map((c) => (
@@ -148,7 +148,7 @@ export default function AskQuestionPage() {
           </select>
         </div>
 
-        <label className="flex items-center gap-2 text-xs text-gray-700">
+        <label className="flex items-center gap-2 text-[13px] text-slate-700">
           <input id="question-anonymous" type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} />
           <span>
             <T k="q.postAnonymously" />
@@ -157,7 +157,7 @@ export default function AskQuestionPage() {
 
         {sellingBlocked && (
           <div id="selling-warning" className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
-            <p className="text-xs text-amber-900 flex gap-1.5">
+            <p className="text-[13px] text-amber-900 flex gap-1.5">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <T k="q.sellingWarning" />
             </p>
@@ -166,20 +166,20 @@ export default function AskQuestionPage() {
               id="question-submit-anyway"
               onClick={() => submit(true)}
               disabled={submitting}
-              className="text-xs font-bold text-amber-900 underline"
+              className="text-[13px] font-bold text-amber-900 underline"
             >
               <T k="q.submitAnyway" />
             </button>
           </div>
         )}
 
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p className="text-[13px] text-rose-700">{error}</p>}
 
         <button
           type="submit"
           id="question-submit"
           disabled={submitting || !titleOk || !body.trim()}
-          className="w-full py-3 rounded-xl bg-primary text-white text-sm font-bold disabled:opacity-50"
+          className="btn btn-primary w-full"
         >
           {submitting ? t("common.loading") : t("q.post")}
         </button>

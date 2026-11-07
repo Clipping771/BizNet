@@ -62,7 +62,7 @@ export function AttributeFields({
                 value={val ?? ""}
                 disabled={readOnly}
                 onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-white border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-500"
+                className="input"
               />
             )}
 
@@ -79,7 +79,7 @@ export function AttributeFields({
                     e.target.value === "" ? "" : Number(e.target.value)
                   )
                 }
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-white border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-500"
+                className="input"
               />
             )}
 
@@ -88,7 +88,7 @@ export function AttributeFields({
                 value={val ?? ""}
                 disabled={readOnly}
                 onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-white border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-500"
+                className="input"
               >
                 <option value="">{t("common.select")}</option>
                 {(field.options || []).map((opt) => {

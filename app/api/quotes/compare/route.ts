@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { AI_MAX_OUTPUT_TOKENS } from "@/lib/ai/pricing";
 import crypto from "crypto";
 import { z } from "zod";
 import { getAuthzContext } from "@/lib/auth-user";
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
         // Reserve budget
         const reservation = await reserveAiBudget({
           userId: user.id,
-          maxOutputTokens: 600,
+          maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
           inputTokensUpperBound: 1500,
         });
 
@@ -164,7 +165,7 @@ Return code-based analysis only.
             `.trim();
 
             const callPromise = provider.structured(AiCompareResponseSchema, prompt, {
-              maxOutputTokens: 600,
+              maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
               feature: "QUOTE_COMPARISON",
               userId: user.id,
               businessId: ctx.activeBusinessId || undefined,

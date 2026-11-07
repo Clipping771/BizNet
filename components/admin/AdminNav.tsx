@@ -23,7 +23,7 @@ const LINKS: Array<[href: string, key: string]> = [
 export function AdminNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Admin" className="-mx-4 flex gap-1 overflow-x-auto border-b border-gray-200 px-4 text-sm scrollbar-none sm:mx-0 sm:px-0">
+    <nav aria-label="Admin" className="-mx-4 flex gap-1 overflow-x-auto border-b border-slate-200 px-4 text-sm scrollbar-none sm:mx-0 sm:px-0">
       {LINKS.map(([href, key]) => {
         const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
         return (
@@ -32,7 +32,7 @@ export function AdminNav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={`-mb-px shrink-0 border-b-2 px-3 py-2.5 font-medium transition-colors ${
-              active ? "border-primary text-primary-800" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-800"
+              active ? "border-primary text-primary-800" : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800"
             }`}
           >
             <T k={key} />

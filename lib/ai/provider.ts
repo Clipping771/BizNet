@@ -1,13 +1,17 @@
 import { getDhakaDateString } from "@/lib/dates";
 import { z } from "zod";
+import type { AiFeature } from "@prisma/client";
+import { AnthropicAiProvider } from "@/lib/ai/anthropic";
 
 export interface AiOptions {
   maxOutputTokens: number;
   inputTokensUpperBound?: number;
   userId?: string;
   businessId?: string;
-  feature?: "REQUEST_ASSISTANT" | "QUOTE_COMPARISON" | "TRANSLATION" | "TRANSCRIPTION";
+  feature?: AiFeature;
   promptVersion?: string;
+  /** What the mock provider answers for the AI helpers; real providers ignore it. */
+  mockData?: unknown;
 }
 
 export interface AiResult<T> {
@@ -51,6 +55,18 @@ export class MockAiProvider implements AiProvider {
   ): Promise<AiResult<T>> {
     const start = Date.now();
     let data: any = {};
+
+    if (options?.mockData !== undefined) {
+      return {
+        data: schema.parse(options.mockData),
+        inputTokens: 100,
+        outputTokens: 60,
+        costUsd: 100 * 0.00000015 + 60 * 0.0000006,
+        latencyMs: Date.now() - start,
+        model: "mock",
+        provider: "mock",
+      };
+    }
 
     if (options?.feature === "QUOTE_COMPARISON") {
       return {
@@ -229,7 +245,14 @@ export class MockAiProvider implements AiProvider {
 }
 
 export function getAiProvider(): AiProvider {
-  return new MockAiProvider();
+  const provider = process.env.AI_PROVIDER || "mock";
+  if (provider === "mock") return new MockAiProvider();
+  if (provider === "anthropic") {
+    if (!process.env.AI_API_KEY) throw new Error("AI_PROVIDER=anthropic needs AI_API_KEY");
+    return new AnthropicAiProvider(process.env.AI_API_KEY, process.env.AI_MODEL);
+  }
+  // Callers treat a throw as "AI unavailable" and offer the manual form
+  throw new Error(`Unsupported AI_PROVIDER: ${provider}`);
 }
 
 /**

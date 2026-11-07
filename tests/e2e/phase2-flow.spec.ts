@@ -51,8 +51,10 @@ async function createSupplierBusiness(page: Page, name: string) {
   await page.goto("/onboarding");
   // Click supplier role button (index 1)
   await page.locator("form button[type='button']").nth(1).click();
-  await page.getByPlaceholder("e.g. Apex Packaging / Global Trade Co.").fill(name);
-  await page.getByPlaceholder("Road / Shop / House").fill("Shop 14, Chawkbazar Main Road");
+  await page.locator("#business-name").fill(name);
+  await page.locator("#business-area").fill("Chawkbazar");
+  await page.locator("#business-city").fill("Dhaka");
+  await page.locator("#business-address").fill("Shop 14, Chawkbazar Main Road");
   await page.locator("form button[type='submit']").click();
   await page.waitForURL(/\/home/, { timeout: 15000 });
 }
@@ -293,7 +295,7 @@ test.describe("Phase 2 Acceptance: Supply Side Flow 360x740 (§16)", () => {
     // 1. Visit /business/listings - verify blocked banner is visible
     await page.goto("/business/listings");
     await expect(page.locator("main a:has-text('নতুন'), main a:has-text('New')")).not.toBeVisible();
-    await expect(page.locator("a[href='/business/verification']")).toBeVisible();
+    await expect(page.locator("main a[href='/business/verification']")).toBeVisible();
 
     // 2. Direct API call to POST /api/business/listings is blocked with 403
     const category = await prisma.category.findFirstOrThrow();

@@ -48,7 +48,7 @@ export default function CreditsPage() {
   };
 
   if (!data) {
-    return error ? <p className="text-sm text-red-600">{error}</p> : null;
+    return error ? <p className="text-sm text-rose-700">{error}</p> : null;
   }
 
   const receiver = method === "BKASH" ? data.receivers?.bkash : data.receivers?.nagad;
@@ -60,7 +60,7 @@ export default function CreditsPage() {
       </h1>
 
       {!data.enabled ? (
-        <p id="credits-not-active" className="card p-4 text-sm text-gray-600">
+        <p id="credits-not-active" className="card p-4 text-sm text-slate-600">
           <T k="credits.notActive" />
         </p>
       ) : (
@@ -69,13 +69,13 @@ export default function CreditsPage() {
             <p id="credits-balance" data-balance={data.balance} className="text-xl font-bold text-primary">
               {t("credits.balance", undefined, { n: formatNumber(data.balance, lang) })}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-[13px] text-slate-500">
               <T k="credits.howItWorks" />
             </p>
           </div>
 
-          <form onSubmit={submit} className="card p-4 space-y-3 text-xs">
-            <h2 className="text-sm font-bold text-gray-900">
+          <form onSubmit={submit} className="card p-4 space-y-3 text-[13px]">
+            <h2 className="text-sm font-bold text-slate-900">
               <T k="credits.buy" />
             </h2>
             <div className="space-y-1.5">
@@ -92,39 +92,39 @@ export default function CreditsPage() {
                   key={m}
                   type="button"
                   onClick={() => setMethod(m)}
-                  className={`px-3 py-2 rounded-lg border font-semibold ${method === m ? "bg-primary text-white border-primary" : "border-gray-200 text-gray-700"}`}
+                  className={`px-3 py-2 rounded-lg border font-semibold ${method === m ? "bg-primary text-white border-primary" : "border-slate-200 text-slate-700"}`}
                 >
                   <T k={`method.${m}`} />
                 </button>
               ))}
             </div>
-            <p className="text-gray-600">
+            <p className="text-slate-600">
               {receiver
                 ? t("credits.payTo", undefined, { method: t(`method.${method}`), number: receiver })
                 : t("credits.receiverMissing")}
             </p>
             <label className="block space-y-1">
-              <span className="text-gray-500">
+              <span className="text-slate-500">
                 <T k="credits.trxId" />
               </span>
-              <input id="credits-trx" value={trxId} onChange={(e) => setTrxId(e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 font-mono" />
+              <input id="credits-trx" value={trxId} onChange={(e) => setTrxId(e.target.value)} className="input font-mono" />
             </label>
             <label className="block space-y-1">
-              <span className="text-gray-500">
+              <span className="text-slate-500">
                 <T k="credits.sender" />
               </span>
-              <input id="credits-sender" type="tel" value={sender} onChange={(e) => setSender(e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200" />
+              <input id="credits-sender" type="tel" value={sender} onChange={(e) => setSender(e.target.value)} className="input" />
             </label>
-            {error && <p className="text-red-600">{error}</p>}
+            {error && <p className="text-rose-700">{error}</p>}
             {message && <p id="credits-submitted" className="text-emerald-700">{message}</p>}
-            <button type="submit" id="credits-submit" disabled={!trxId.trim() || !sender.trim()} className="w-full py-2.5 rounded-lg bg-primary text-white font-semibold disabled:opacity-50">
+            <button type="submit" id="credits-submit" disabled={!trxId.trim() || !sender.trim()} className="btn btn-primary w-full">
               <T k="credits.submit" />
             </button>
           </form>
 
           {data.payments.length > 0 && (
-            <section className="card p-4 space-y-1.5 text-xs">
-              <h2 className="text-sm font-bold text-gray-900">
+            <section className="card p-4 space-y-1.5 text-[13px]">
+              <h2 className="text-sm font-bold text-slate-900">
                 <T k="credits.payments" />
               </h2>
               {data.payments.map((p: any) => (
@@ -136,8 +136,8 @@ export default function CreditsPage() {
             </section>
           )}
 
-          <section className="card p-4 space-y-1.5 text-xs">
-            <h2 className="text-sm font-bold text-gray-900">
+          <section className="card p-4 space-y-1.5 text-[13px]">
+            <h2 className="text-sm font-bold text-slate-900">
               <T k="credits.history" />
             </h2>
             {data.ledger.map((l: any) => (
@@ -147,7 +147,7 @@ export default function CreditsPage() {
                   {" · "}
                   {formatDate(l.createdAt, lang)}
                 </span>
-                <span className={l.delta > 0 ? "text-emerald-700 font-semibold" : "text-gray-700 font-semibold"}>
+                <span className={l.delta > 0 ? "text-emerald-700 font-semibold" : "text-slate-700 font-semibold"}>
                   {(l.delta > 0 ? "+" : "") + formatNumber(l.delta, lang)}
                 </span>
               </div>

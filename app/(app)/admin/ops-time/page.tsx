@@ -96,21 +96,21 @@ export default function AdminOpsTimePage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+      <div className="card p-5 space-y-2">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="page-title flex items-center gap-2">
               <Clock className="w-5 h-5 text-emerald-600" />
               <T k="admin.opsTime.title" />
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-[13px] text-slate-500">
               <T k="admin.opsTime.subtitle" />
             </p>
           </div>
           <div className="text-right">
-            <span className="text-xs text-slate-400 block">
+            <span className="text-[13px] text-slate-500 block">
               <T k="admin.opsTime.totalMinutes" />
             </span>
             <span className="text-base font-bold text-emerald-600 font-mono">
@@ -121,21 +121,21 @@ export default function AdminOpsTimePage() {
       </div>
 
       {/* Manual Log Form */}
-      <form onSubmit={handleLogSubmit} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+      <form onSubmit={handleLogSubmit} className="card p-5 space-y-4">
         <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
           <Plus className="w-4 h-4 text-emerald-600" />
           <T k="admin.opsTime.log" />
         </h2>
 
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[13px] text-rose-800 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[13px] text-emerald-800 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{success}</span>
           </div>
@@ -143,7 +143,7 @@ export default function AdminOpsTimePage() {
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="admin.opsTime.activity" />
             </label>
             <input
@@ -152,12 +152,12 @@ export default function AdminOpsTimePage() {
               placeholder="verification_review"
               value={activity}
               onChange={(e) => setActivity(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="admin.opsTime.minutes" />
             </label>
             <input
@@ -167,14 +167,14 @@ export default function AdminOpsTimePage() {
               placeholder="30"
               value={minutes}
               onChange={(e) => setMinutes(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="admin.opsTime.refType" />
             </label>
             <input
@@ -182,19 +182,19 @@ export default function AdminOpsTimePage() {
               placeholder="VerificationRequest"
               value={refType}
               onChange={(e) => setRefType(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="label">
               <T k="admin.opsTime.refId" />
             </label>
             <input
               type="text"
               value={refId}
               onChange={(e) => setRefId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-xl text-sm border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
             />
           </div>
         </div>
@@ -202,29 +202,29 @@ export default function AdminOpsTimePage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm transition shadow-sm disabled:opacity-50"
+          className="btn btn-primary w-full"
         >
           {submitting ? t("common.loading") : t("admin.opsTime.submit")}
         </button>
       </form>
 
       {/* Recent Logs List */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+      <div className="card p-5 space-y-3">
         <h2 className="text-sm font-bold text-slate-900">
           <T k="admin.opsTime.recentLogs" />
         </h2>
 
         {logs.length === 0 ? (
-          <p className="text-xs text-slate-400 py-3 text-center">
+          <p className="text-[13px] text-slate-500 py-3 text-center">
             <T k="admin.verifications.empty" />
           </p>
         ) : (
-          <div className="divide-y divide-slate-100 text-xs">
+          <div className="divide-y divide-slate-100 text-[13px]">
             {logs.map((log) => (
               <div key={log.id} className="py-2.5 flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-slate-800 block">{log.activity}</span>
-                  <span className="text-xs text-slate-400 block">
+                  <span className="text-[13px] text-slate-500 block">
                     <span>{log.user.name}</span>
                     {log.refType && (
                       <>

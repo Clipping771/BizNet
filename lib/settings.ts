@@ -4,6 +4,13 @@ export interface PlatformSettings {
   aiEnabled: boolean;
   aiRequestAssistantEnabled: boolean;
   aiQuoteComparisonEnabled: boolean;
+  /** F24 helpers: built and tested, off until an admin turns each one on. */
+  aiListingWriterEnabled: boolean;
+  aiQuoteAssistantEnabled: boolean;
+  aiDiscussionAnswersEnabled: boolean;
+  aiMarketInsightEnabled: boolean;
+  aiSemanticSearchEnabled: boolean;
+  aiTrustSignalsEnabled: boolean;
   aiProviderModelRequest: string;
   aiProviderModelCompare: string;
   aiDailyBudgetUsd: number;
@@ -61,11 +68,17 @@ export const defaultSettings: PlatformSettings = {
   aiEnabled: true,
   aiRequestAssistantEnabled: true,
   aiQuoteComparisonEnabled: true,
-  aiProviderModelRequest: "gpt-4o-mini",
-  aiProviderModelCompare: "gpt-4o-mini",
+  aiListingWriterEnabled: false,
+  aiQuoteAssistantEnabled: false,
+  aiDiscussionAnswersEnabled: false,
+  aiMarketInsightEnabled: false,
+  aiSemanticSearchEnabled: false,
+  aiTrustSignalsEnabled: false,
+  aiProviderModelRequest: "claude-opus-5-5",
+  aiProviderModelCompare: "claude-opus-5-5",
   aiDailyBudgetUsd: 10.0,
   aiDailyRequestsPerUser: 20,
-  aiTimeoutMs: 8000,
+  aiTimeoutMs: 20000,
   aiDisabledUntilDay: null,
   metricThresholds: {
     requestsPer4Weeks: 20,
@@ -102,21 +115,21 @@ export const defaultSettings: PlatformSettings = {
   evalMinFieldAccuracy: 0.8,
 };
 
-const settingsCache = new Map<string, any>();
-let cacheTimestamp = 0;
+const CACHE_MS = 30000;
+const settingsCache = new Map<string, { value: any; at: number }>();
 
 export async function getSetting<K extends keyof PlatformSettings>(key: K): Promise<PlatformSettings[K]> {
   const now = Date.now();
-  if (settingsCache.has(key) && now - cacheTimestamp < 30000) {
-    return settingsCache.get(key);
+  const cached = settingsCache.get(key);
+  if (cached && now - cached.at < CACHE_MS) {
+    return cached.value;
   }
 
   const record = await findSettingByKey(key);
 
   if (record && record.value !== undefined) {
     const val = record.value as unknown as PlatformSettings[K];
-    settingsCache.set(key, val);
-    cacheTimestamp = now;
+    settingsCache.set(key, { value: val, at: now });
     return val;
   }
 
@@ -128,6 +141,5 @@ export async function updateSetting<K extends keyof PlatformSettings>(
   value: PlatformSettings[K]
 ): Promise<void> {
   await upsertSettingRecord(key, value);
-  settingsCache.set(key, value);
-  cacheTimestamp = Date.now();
+  settingsCache.set(key, { value, at: Date.now() });
 }

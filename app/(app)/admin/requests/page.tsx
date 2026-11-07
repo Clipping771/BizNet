@@ -24,26 +24,26 @@ export default function AdminRequestsPage() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={t("admin.languages.status")} className="p-2 rounded-lg border border-gray-200 text-xs bg-white">
+        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={t("admin.languages.status")} className="input">
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {s ? t(`reqStatus.${s}`) : t("search.any")}
             </option>
           ))}
         </select>
-        <Link href="/admin/concierge" className="px-3 py-2 rounded-lg bg-gray-900 text-white text-xs font-semibold">
+        <Link href="/admin/concierge" className="btn btn-primary btn-sm">
           <T k="admin.nav.concierge" />
         </Link>
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-rose-700">{error}</p>}
       {rows.map((r) => (
         <Link key={r.id} href={`/requests/${r.code}`} className="block card p-3 text-xs space-y-1">
           <div className="flex justify-between gap-2">
-            <span className="font-mono text-gray-400">{r.code}</span>
+            <span className="font-mono text-slate-500">{r.code}</span>
             <span className="font-semibold">{t(`reqStatus.${r.status}`)}</span>
           </div>
-          <p className="font-semibold text-gray-900">{r.title}</p>
-          <p className="text-gray-500">
+          <p className="font-semibold text-slate-900">{r.title}</p>
+          <p className="text-slate-500">
             {r.buyerBusiness.name}
             {" · "}
             {t(`category.${r.category.slug}`)}
@@ -51,7 +51,7 @@ export default function AdminRequestsPage() {
             {r.deliveryArea}
             {r.createdViaConcierge ? ` · ${t("admin.requests.concierge")}` : ""}
           </p>
-          <p className="text-gray-500">{t("admin.requests.counts", undefined, { invites: r._count.invites, quotes: r._count.quotes })}</p>
+          <p className="text-slate-500">{t("admin.requests.counts", undefined, { invites: r._count.invites, quotes: r._count.quotes })}</p>
         </Link>
       ))}
     </div>

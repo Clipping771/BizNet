@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DEFAULT_CURRENCY, normalizeCurrency } from "@/lib/currencies";
 import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { submitQuoteRecord, listQuotesForRequest } from "@/lib/repo/quote";
@@ -33,6 +34,7 @@ export async function POST(
     const body = await req.json();
     const {
       unitPrice,
+      currency,
       quantity,
       deliveryCharge,
       deliveryDays,
@@ -53,6 +55,7 @@ export async function POST(
       supplierBusinessId: ctx.activeBusinessId,
       createdByUserId: user.id,
       unitPrice,
+      currency: normalizeCurrency(currency) ?? DEFAULT_CURRENCY,
       quantity,
       deliveryCharge: deliveryCharge ?? 0,
       deliveryDays: Number(deliveryDays),

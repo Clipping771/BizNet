@@ -11,32 +11,33 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // Inter covers Latin glyphs; the browser falls back per glyph to Hind Siliguri for Bangla
-        sans: ["var(--font-inter)", "var(--font-bn)", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        // IBM Plex Sans covers Latin glyphs; the browser falls back per glyph to Hind Siliguri for Bangla
+        sans: ["var(--font-sans)", "var(--font-bn)", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
       },
       colors: {
-        // Stripe / Linear slate neutrals
         slate: {
+          // A shade darker than Tailwind's, so secondary text passes AA on the grey page background
+          500: "#5A6A7E",
           850: "#131B2E",
           950: "#080C14",
         },
-        // Deep Ocean Teal theme: Deep Teal (#0F766E) for primary actions, soft Mint Teal (#F0FDFA) for active states
+        // Trade Desk: deep navy for structure and primary actions; amber (Tailwind's scale) marks what needs attention
         primary: {
-          DEFAULT: "#0F766E",
-          hover: "#115E59",
-          active: "#134E4A",
-          light: "#F0FDFA",
-          50: "#F0FDFA",
-          100: "#CCFBF1",
-          200: "#99F6E4",
-          300: "#5EEAD4",
-          400: "#2DD4BF",
-          500: "#14B8A6",
-          600: "#0D9488",
-          700: "#0F766E",
-          800: "#115E59",
-          900: "#134E4A",
-          950: "#042F2E",
+          DEFAULT: "#1E3A68",
+          hover: "#172D52",
+          active: "#12233F",
+          light: "#EEF3FA",
+          50: "#EEF3FA",
+          100: "#D9E3F2",
+          200: "#B5C7E3",
+          300: "#8AA5CF",
+          400: "#5E80B6",
+          500: "#3F629C",
+          600: "#2C4C82",
+          700: "#1E3A68",
+          800: "#172D52",
+          900: "#12233F",
+          950: "#0B1628",
         },
         secondary: {
           DEFAULT: "#475569",
@@ -47,7 +48,7 @@ const config: Config = {
           DEFAULT: "#FFFFFF",
           muted: "#F8FAFC",
           border: "#E2E8F0",
-          canvas: "#F8FAFC",
+          canvas: "#F4F5F7",
           card: "#FFFFFF",
           dark: {
             DEFAULT: "#0F172A",
@@ -59,16 +60,22 @@ const config: Config = {
         },
       },
       boxShadow: {
-        card: "0 0 0 1px rgba(0, 0, 0, 0.08)",
-        raised: "0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 12px 0 rgba(0, 0, 0, 0.08)",
-        pop: "0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.06)",
-        fab: "0 8px 20px -4px rgba(15, 118, 110, 0.45)",
-        nav: "0 1px 2px 0 rgba(0, 0, 0, 0.03)",
+        card: "0 1px 2px 0 rgba(11, 22, 40, 0.05)",
+        raised: "0 1px 2px 0 rgba(11, 22, 40, 0.06), 0 4px 12px 0 rgba(11, 22, 40, 0.08)",
+        pop: "0 12px 28px -6px rgba(11, 22, 40, 0.18), 0 0 0 1px rgba(11, 22, 40, 0.06)",
+        fab: "0 8px 20px -4px rgba(30, 58, 104, 0.45)",
+        nav: "0 1px 2px 0 rgba(11, 22, 40, 0.04)",
       },
+      // Tighter corners than Tailwind's defaults: a working tool, not a consumer app
       borderRadius: {
-        xl: "0.75rem",
-        "2xl": "1rem",
+        lg: "0.375rem",
+        xl: "0.5rem",
+        "2xl": "0.625rem",
+        "3xl": "0.75rem",
         card: "0.5rem",
+      },
+      spacing: {
+        "4.5": "1.125rem",
       },
       keyframes: {
         "fade-up": {

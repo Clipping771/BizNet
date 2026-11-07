@@ -12,6 +12,7 @@
  * Runs deterministically in CI with mock AI provider.
  */
 
+import { getDhakaDateString } from "@/lib/dates";
 import { describe, it, expect, beforeAll } from "vitest";
 import {
   processRequestWithAi,
@@ -25,6 +26,8 @@ describe("AI Request Assistant Evaluation Suite (>= 60 cases)", () => {
   let testUserId: string;
 
   beforeAll(async () => {
+    // Budget suites spend or suspend the shared daily counter in this database
+    await prisma.aiBudgetCounter.deleteMany({});
     // Ensure test user exists
     const user = await prisma.user.findFirst();
     if (user) {
@@ -206,7 +209,7 @@ describe("AI Request Assistant Evaluation Suite (>= 60 cases)", () => {
         userText: "কাল ৫০০টি কন্টেইনার লাগবে",
       });
       expect(res.success).toBe(true);
-      const expectedTomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+      const expectedTomorrow = getDhakaDateString(new Date(Date.now() + 86400000));
       expect(res.data?.neededBy).toBe(expectedTomorrow);
     });
 
@@ -216,7 +219,7 @@ describe("AI Request Assistant Evaluation Suite (>= 60 cases)", () => {
         userText: "Need 500 containers tomorrow",
       });
       expect(res.success).toBe(true);
-      const expectedTomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+      const expectedTomorrow = getDhakaDateString(new Date(Date.now() + 86400000));
       expect(res.data?.neededBy).toBe(expectedTomorrow);
     });
 
@@ -226,7 +229,7 @@ describe("AI Request Assistant Evaluation Suite (>= 60 cases)", () => {
         userText: "পরশু ৫০০টি ফুড বক্স লাগবে",
       });
       expect(res.success).toBe(true);
-      const expectedPorshu = new Date(Date.now() + 2 * 86400000).toISOString().split("T")[0];
+      const expectedPorshu = getDhakaDateString(new Date(Date.now() + 2 * 86400000));
       expect(res.data?.neededBy).toBe(expectedPorshu);
     });
 
@@ -236,7 +239,7 @@ describe("AI Request Assistant Evaluation Suite (>= 60 cases)", () => {
         userText: "Need 500 tissue packs next week",
       });
       expect(res.success).toBe(true);
-      const expectedNextWeek = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+      const expectedNextWeek = getDhakaDateString(new Date(Date.now() + 7 * 86400000));
       expect(res.data?.neededBy).toBe(expectedNextWeek);
     });
 

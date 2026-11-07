@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_CURRENCY, normalizeCurrency } from "@/lib/currencies";
 import { validateListingAttributes, AttributeSchema } from "@/lib/attributes";
 import { Decimal } from "@prisma/client/runtime/library";
 import { VerificationStatus } from "@prisma/client";
@@ -25,6 +26,7 @@ export interface ListingInputData {
   unit: string;
   priceMin?: number | null;
   priceMax?: number | null;
+  currency?: string | null;
   moq?: number | null;
   leadTimeDays?: number | null;
   imageKeys?: string[];
@@ -73,6 +75,7 @@ export async function createListing(actingBusinessId: string, data: ListingInput
         unit: data.unit.trim(),
         priceMin: data.priceMin !== undefined && data.priceMin !== null ? new Decimal(data.priceMin) : null,
         priceMax: data.priceMax !== undefined && data.priceMax !== null ? new Decimal(data.priceMax) : null,
+        currency: normalizeCurrency(data.currency) ?? DEFAULT_CURRENCY,
         moq: data.moq || null,
         leadTimeDays: data.leadTimeDays || null,
         imageKeys: checkImageKeys(actingBusinessId, data.imageKeys || []),
@@ -157,6 +160,7 @@ export async function updateListing(
         title: data.title !== undefined ? data.title.trim() : existing.title,
         description: data.description !== undefined ? data.description?.trim() || null : existing.description,
         unit: data.unit !== undefined ? data.unit.trim() : existing.unit,
+        currency: normalizeCurrency(data.currency) ?? existing.currency,
         priceMin:
           data.priceMin !== undefined
             ? data.priceMin !== null

@@ -41,7 +41,7 @@ pnpm worker                   # in a second terminal
 | `TRUST_PROXY` | `nginx`, `cloudflare` or `none` — which forwarded-IP header to trust (see below) |
 | `STORAGE_DRIVER`, `S3_ENDPOINT`, `S3_BUCKET_PUBLIC`, `S3_BUCKET_PRIVATE`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | S3-compatible storage (R2 in production, moto locally); `memory` only for tests |
 | `SMS_PROVIDER`, `SMS_HTTP_URL`, `SMS_API_KEY`, `SMS_SENDER_ID` | `console` (dev) or `http` gateway |
-| `AI_PROVIDER`, `AI_API_KEY`, `STT_PROVIDER`, `STT_API_KEY` | AI and speech-to-text (mock by default) |
+| `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`, `STT_PROVIDER`, `STT_API_KEY` | AI (`mock` by default, or `anthropic`, which uses `claude-opus-5-5` unless `AI_MODEL` says otherwise) and speech-to-text. Optional AI helpers are switched on one by one in `/admin/settings` |
 | `TRANSLATION_PROVIDER`, `TRANSLATION_API_KEY` | UI auto-draft / content translation (mock by default; content translation is off) |
 | `DEV_TEST_PHONES`, `ADMIN_PHONES`, `ADMIN_EMAILS` | Test logins and admin bootstrap |
 | `EVAL_REPORT_TOKEN` | Bearer token the nightly AI-eval workflow uses for `POST /api/admin/eval-report` |

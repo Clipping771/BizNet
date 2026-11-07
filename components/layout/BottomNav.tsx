@@ -11,7 +11,7 @@ export function BottomNav() {
   const t = useT();
 
   return (
-    <nav aria-label={t("nav.main")} className="fixed bottom-0 start-0 end-0 z-50 border-t border-slate-200/80 bg-white/90 pb-safe backdrop-blur-xl md:hidden">
+    <nav aria-label={t("nav.main")} className="fixed bottom-0 start-0 end-0 z-50 border-t border-slate-200 bg-white pb-safe md:hidden">
       <div className="mx-auto flex h-16 max-w-lg items-stretch justify-around">
         {PRIMARY_NAV.map(({ href, labelKey, icon: Icon }) => {
           const active = isActivePath(pathname, href);
@@ -20,8 +20,8 @@ export function BottomNav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`flex flex-1 flex-col items-center justify-center gap-0.5 my-1.5 rounded-xl text-[11px] transition-colors ${
-                active ? "bg-teal-50 font-semibold text-teal-800" : "text-slate-500 hover:text-slate-700"
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] transition-colors ${
+                active ? "font-semibold text-primary-700" : "text-slate-500 hover:text-slate-700"
               }`}
             >
               <Icon size={24} weight={active ? "fill" : "regular"} />

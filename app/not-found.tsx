@@ -7,10 +7,10 @@ export default function NotFound() {
       <h1 className="page-title">
         <T k="error.notFoundTitle" />
       </h1>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-slate-600">
         <T k="error.notFoundBody" />
       </p>
-      <Link href="/" className="inline-block px-4 py-2 rounded-xl bg-emerald-700 text-white text-sm font-semibold">
+      <Link href="/" className="btn btn-primary">
         <T k="error.home" />
       </Link>
     </div>

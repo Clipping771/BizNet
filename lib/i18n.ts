@@ -49,7 +49,7 @@ export async function getTranslations(lang: string = "en"): Promise<Translations
   // Load database-backed approved translations and overlay on top
   try {
     const { listApprovedUiTranslations } = await import("./repo/i18n");
-    const dbTranslations = await listApprovedUiTranslations(lang);
+    const dbTranslations = await listApprovedUiTranslations(lang, langTranslations);
     langTranslations = { ...langTranslations, ...dbTranslations };
   } catch {
     // Graceful fallback to file-based translations if DB not available

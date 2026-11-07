@@ -46,28 +46,28 @@ export default function AdminBusinessesPage() {
         }}
         className="flex gap-2"
       >
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.businesses.search")} aria-label={t("admin.businesses.search")} className="flex-1 p-2.5 rounded-xl border border-gray-200 text-sm" />
-        <label className="flex items-center gap-1 text-xs text-gray-600">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.businesses.search")} aria-label={t("admin.businesses.search")} className="input flex-1" />
+        <label className="flex items-center gap-1 text-xs text-slate-600">
           <span>
             <T k="admin.businesses.minutes" />
           </span>
-          <input type="number" min="1" value={minutes} onChange={(e) => setMinutes(e.target.value)} className="w-16 p-2 rounded-lg border border-gray-200" />
+          <input type="number" min="1" value={minutes} onChange={(e) => setMinutes(e.target.value)} className="input w-16" />
         </label>
       </form>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-rose-700">{error}</p>}
       {rows.map((b) => (
         <div key={b.id} data-admin-business={b.slug} className="card p-4 space-y-2 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm text-gray-900">{b.name}</span>
+            <span className="font-semibold text-sm text-slate-900">{b.name}</span>
             <VerificationBadge status={b.verificationStatus} />
-            <span className="text-gray-400">{b.area}</span>
+            <span className="text-slate-500">{b.area}</span>
           </div>
-          <p className="text-gray-500">
+          <p className="text-slate-500">
             {t("admin.businesses.counts", undefined, { listings: b._count.listings, requests: b._count.requestsAsBuyer, quotes: b._count.quotes })}
           </p>
           <div className="flex gap-2 flex-wrap">
             {b.verificationStatus !== "SUSPENDED" ? (
-              <button type="button" onClick={() => setStatus(b.id, "SUSPENDED")} className="px-3 py-1.5 rounded-lg border border-rose-300 text-rose-700 font-semibold">
+              <button type="button" onClick={() => setStatus(b.id, "SUSPENDED")} className="btn btn-secondary text-rose-700 btn-sm">
                 <T k="admin.businesses.suspend" />
               </button>
             ) : (

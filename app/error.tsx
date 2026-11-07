@@ -15,14 +15,14 @@ export default function RouteError({ error, reset }: { error: Error & { digest?:
       <h1 className="page-title">
         <T k="error.title" />
       </h1>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-slate-600">
         <T k="error.body" />
       </p>
       <div className="flex justify-center gap-2">
-        <button type="button" onClick={reset} className="px-4 py-2 rounded-xl bg-emerald-700 text-white text-sm font-semibold">
+        <button type="button" onClick={reset} className="btn btn-primary">
           <T k="error.retry" />
         </button>
-        <Link href="/" className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700">
+        <Link href="/" className="btn btn-secondary">
           <T k="error.home" />
         </Link>
       </div>

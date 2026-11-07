@@ -1,16 +1,14 @@
-import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Building, Package, Shield, ExternalLink } from "lucide-react";
+import { CheckCircle, MapPin, Shield } from "lucide-react";
+import { getTrustSignals } from "@/lib/repo/trust";
 import { getPublicBusinessBySlug } from "@/lib/repo/listing";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
+import { Avatar } from "@/components/layout/AccountMenu";
+import { MoneyRange, Num, TNumTotal } from "@/components/ui/Num";
 import { T } from "@/components/ui/T";
 
-export default async function PublicBusinessProfilePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function PublicBusinessProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const business = await getPublicBusinessBySlug(resolvedParams.slug);
 
@@ -19,101 +17,87 @@ export default async function PublicBusinessProfilePage({
     notFound();
   }
 
+  const signals = await getTrustSignals(business.id);
+  const quoteHref = `/requests/new?supplier=${encodeURIComponent(business.id)}&supplierName=${encodeURIComponent(business.name)}`;
+
   return (
-    <div className="max-w-xl mx-auto p-4 space-y-6">
-      {/* Business Header Card */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block">
-              {business.businessType}
-            </span>
-            <h1 className="page-title">{business.name}</h1>
+    <div className="page-wide grid grid-cols-1 items-start gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
+      <aside className="card space-y-4 p-5 lg:sticky lg:top-20">
+        <div className="flex items-center gap-3">
+          <Avatar name={business.name} size="h-12 w-12 text-base" />
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold leading-tight text-slate-900">{business.name}</h1>
+            <p className="truncate text-[13px] text-slate-500">{business.businessType}</p>
           </div>
-          <VerificationBadge status={business.verificationStatus} />
         </div>
-
-        {business.description && (
-          <p className="text-xs text-slate-600 leading-relaxed pt-1">
-            {business.description}
-          </p>
+        <VerificationBadge status={business.verificationStatus} />
+        {signals.length > 0 && (
+          <ul id="trust-signals" className="space-y-1 text-[13px] text-slate-700">
+            {signals.map((s) => (
+              <li key={s.key} className="flex items-center gap-1.5">
+                <CheckCircle className={`h-3.5 w-3.5 shrink-0 ${s.key === "trust.openDisputes" ? "text-amber-600" : "text-emerald-600"}`} />
+                <TNumTotal k={s.key} n={s.n ?? 0} total={s.total ?? 0} />
+              </li>
+            ))}
+          </ul>
         )}
-
-        <div className="flex items-center gap-1.5 text-xs text-slate-400 pt-2 border-t border-slate-100">
-          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span>{business.area}</span>
-          <span>{" · "}</span>
-          <span>{business.city}</span>
-        </div>
-
+        {business.description && <p className="text-sm leading-relaxed text-slate-600">{business.description}</p>}
+        <p className="flex items-center gap-1.5 text-[13px] text-slate-500">
+          <MapPin className="h-3.5 w-3.5 shrink-0" />
+          {[business.area, business.city].filter(Boolean).join(" · ")}
+        </p>
+        {business.isSupplier && (
+          <Link href={quoteHref} className="btn btn-primary w-full">
+            <T k="search.requestQuote" />
+          </Link>
+        )}
         {/* Contact Protection Notice (§10, D1) */}
-        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-500 flex items-center gap-2">
-          <Shield className="w-4 h-4 text-slate-400 shrink-0" />
-          <span>
-            <T k="public.contactNotice" />
-          </span>
-        </div>
-      </div>
+        <p className="flex items-start gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+          <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <T k="public.contactNotice" />
+        </p>
+      </aside>
 
-      {/* Listings Section */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <Package className="w-4 h-4 text-emerald-600" />
+      <section className="card overflow-hidden">
+        <h2 className="card-header section-title">
           <T k="public.listings" />
         </h2>
-
         {business.listings.length === 0 ? (
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 text-center text-xs text-slate-400">
+          <p className="px-4 py-8 text-center text-sm text-slate-500">
             <T k="public.noListings" />
-          </div>
+          </p>
         ) : (
-          <div className="space-y-3">
-            {business.listings.map((l) => (
-              <Link
-                key={l.id}
-                href={`/l/${l.id}`}
-                className="block bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:border-emerald-200 transition space-y-2"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
-                      <T k={`category.${l.category.slug}`} />
-                    </span>
-                    <h3 className="text-sm font-bold text-slate-900">{l.title}</h3>
-                  </div>
-                  <ExternalLink className="w-4 h-4 text-slate-400 shrink-0" />
-                </div>
-
-                <div className="text-xs text-slate-500 flex items-center gap-2">
-                  <span>
-                    {l.priceMin || l.priceMax ? (
-                      <>
-                        <span>{l.priceMin ? String(l.priceMin) : ""}</span>
-                        <span>{" / "}</span>
-                        <span>{l.priceMax ? String(l.priceMax) : ""}</span>
-                        <span>{" · "}</span>
-                        <span>{l.unit}</span>
-                      </>
-                    ) : (
-                      <span>{l.unit}</span>
-                    )}
-                  </span>
-                  {l.moq && (
-                    <>
-                      <span>{" · "}</span>
-                      <span>
-                        <T k="public.moqLabel" />
-                      </span>
-                      <span>{" "}</span>
-                      <span>{l.moq}</span>
-                    </>
-                  )}
-                </div>
-              </Link>
-            ))}
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th><T k="listing.titleField" /></th>
+                  <th className="hidden sm:table-cell"><T k="listing.category" /></th>
+                  <th className="text-end"><T k="home.stat.price" /></th>
+                  <th className="hidden text-end sm:table-cell"><T k="public.moqLabel" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                {business.listings.map((l) => (
+                  <tr key={l.id}>
+                    <td>
+                      <Link href={`/l/${l.id}`} className="font-medium text-slate-900 hover:text-primary-700">
+                        {l.title}
+                      </Link>
+                    </td>
+                    <td className="hidden sm:table-cell"><T k={`category.${l.category.slug}`} /></td>
+                    <td className="whitespace-nowrap text-end font-medium text-slate-900">
+                      {l.priceMin ? <MoneyRange min={Number(l.priceMin)} max={l.priceMax ? Number(l.priceMax) : null} currency={l.currency} /> : "—"}
+                      <span className="ms-1 text-xs font-normal text-slate-500">{l.unit}</span>
+                    </td>
+                    <td className="hidden whitespace-nowrap text-end sm:table-cell">{l.moq ? <Num n={l.moq} /> : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

@@ -30,15 +30,15 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="space-y-3">
-      {message && <p className="text-sm text-gray-700">{message}</p>}
+      {message && <p className="text-sm text-slate-700">{message}</p>}
       {payments.length === 0 && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-slate-500">
           <T k="admin.payments.none" />
         </p>
       )}
       {payments.map((p) => (
         <div key={p.id} data-payment={p.trxId} className="card p-4 space-y-2 text-xs">
-          <p className="font-semibold text-gray-900">
+          <p className="font-semibold text-slate-900">
             {t("admin.payments.line", undefined, {
               business: p.business.name,
               method: t(`method.${p.method}`),
@@ -46,12 +46,12 @@ export default function AdminPaymentsPage() {
               credits: p.creditsRequested,
             })}
           </p>
-          <p className="font-mono text-gray-500">{t("admin.payments.detail", undefined, { trx: p.trxId, sender: p.senderNumber })}</p>
+          <p className="font-mono text-slate-500">{t("admin.payments.detail", undefined, { trx: p.trxId, sender: p.senderNumber })}</p>
           <div className="flex gap-2">
-            <button type="button" onClick={() => review(p.id, true)} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold">
+            <button type="button" onClick={() => review(p.id, true)} className="btn btn-primary btn-sm">
               <T k="admin.payments.approve" />
             </button>
-            <button type="button" onClick={() => review(p.id, false)} className="px-3 py-1.5 rounded-lg border border-rose-300 text-rose-700 font-semibold">
+            <button type="button" onClick={() => review(p.id, false)} className="btn btn-secondary text-rose-700 btn-sm">
               <T k="admin.payments.reject" />
             </button>
           </div>

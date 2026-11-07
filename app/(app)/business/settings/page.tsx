@@ -83,7 +83,7 @@ export default function BusinessSettingsPage() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-sm text-gray-500">
+      <div className="py-12 text-center text-sm text-slate-500">
         <T k="common.loading" />
       </div>
     );
@@ -103,21 +103,21 @@ export default function BusinessSettingsPage() {
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 leading-none">
             <T k="business.settingsTitle" />
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">
             <T k="business.settingsSubtitle" />
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 text-xs rounded-lg flex items-center gap-2">
+        <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 text-[13px] rounded-lg flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs rounded-lg flex items-center gap-2">
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[13px] rounded-lg flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <T k={success} />
         </div>
@@ -129,22 +129,22 @@ export default function BusinessSettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">{business.name}</h3>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">{business.slug}</p>
+              <p className="text-[13px] text-slate-500 font-mono mt-0.5">{business.slug}</p>
             </div>
             <span className="px-2 py-0.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-semibold rounded-md text-[11px] border border-slate-200/80 dark:border-slate-700/80">
               {business.businessType}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[13px]">
             <div>
-              <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-semibold uppercase tracking-wider">
+              <span className="text-slate-500 dark:text-slate-500 block text-[10px] font-semibold uppercase tracking-wider">
                 <T k="business.area" />
               </span>
               <span className="font-medium text-slate-800 dark:text-slate-200 mt-0.5 block">{business.area}</span>
             </div>
             <div>
-              <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-semibold uppercase tracking-wider">
+              <span className="text-slate-500 dark:text-slate-500 block text-[10px] font-semibold uppercase tracking-wider">
                 <T k="business.city" />
               </span>
               <span className="font-medium text-slate-800 dark:text-slate-200 mt-0.5 block">{business.city}</span>
@@ -159,10 +159,10 @@ export default function BusinessSettingsPage() {
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400" />
             <div>
-              <h3 className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+              <h3 className="font-semibold text-[13px] text-slate-900 dark:text-slate-100">
                 <T k="business.transferTitle" />
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[13px] text-slate-500 dark:text-slate-400">
                 <T k="business.transferSubtitle" />
               </p>
             </div>
@@ -170,14 +170,14 @@ export default function BusinessSettingsPage() {
 
           <form onSubmit={handleInitiateTransfer} className="space-y-3 pt-1">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-[13px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 <T k="business.selectNewOwner" />
               </label>
               <select
                 value={newOwnerId}
                 onChange={(e) => setNewOwnerId(e.target.value)}
                 required
-                className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:border-primary-600 focus:ring-1 focus:ring-primary-600 text-slate-900 dark:text-slate-100 font-medium"
+                className="input"
               >
                 <option value="">{undefined}</option>
                 {eligibleMembers.map((m) => (
@@ -191,18 +191,18 @@ export default function BusinessSettingsPage() {
             <button
               type="submit"
               disabled={submitting || !newOwnerId}
-              className="btn btn-primary w-full text-xs font-semibold"
+              className="btn btn-primary w-full text-[13px] font-semibold"
             >
               {submitting ? <T k="common.loading" /> : <T k="business.initiateTransfer" />}
             </button>
           </form>
 
           {transferId && (
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1 dark:bg-slate-900 dark:border-slate-800">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[13px] space-y-1 dark:bg-slate-900 dark:border-slate-800">
               <p className="font-semibold text-slate-900 dark:text-slate-100">
                 <T k="common.confirm" />
               </p>
-              <p className="text-primary-600 dark:text-primary-400 font-mono text-xs">
+              <p className="text-primary-600 dark:text-primary-400 font-mono text-[13px]">
                 {transferId}
               </p>
             </div>

@@ -70,40 +70,40 @@ export default function AdminCategoriesPage() {
       <button
         type="button"
         onClick={() => setDraft({ id: null, slug: "", schema: '{\n  "fields": []\n}', units: "pcs", sortOrder: "100", isActive: true })}
-        className="px-3 py-2 rounded-lg bg-gray-900 text-white text-xs font-semibold"
+        className="btn btn-primary btn-sm"
       >
         <T k="admin.categories.new" />
       </button>
-      {message && <p className="text-sm text-gray-700">{message}</p>}
+      {message && <p className="text-sm text-slate-700">{message}</p>}
 
       {draft && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-2 text-xs">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-2 text-xs">
           {!draft.id && (
             <label className="block space-y-1">
-              <span className="text-gray-500">
+              <span className="text-slate-500">
                 <T k="admin.categories.slug" />
               </span>
-              <input value={draft.slug} onChange={(e) => setDraft({ ...draft, slug: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200 font-mono" />
+              <input value={draft.slug} onChange={(e) => setDraft({ ...draft, slug: e.target.value })} className="input font-mono" />
             </label>
           )}
           <label className="block space-y-1">
-            <span className="text-gray-500">
+            <span className="text-slate-500">
               <T k="admin.categories.schema" />
             </span>
-            <textarea rows={12} value={draft.schema} onChange={(e) => setDraft({ ...draft, schema: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200 font-mono text-xs" />
+            <textarea rows={12} value={draft.schema} onChange={(e) => setDraft({ ...draft, schema: e.target.value })} className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm placeholder:text-slate-400 hover:border-slate-400 font-mono" />
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label className="block space-y-1">
-              <span className="text-gray-500">
+              <span className="text-slate-500">
                 <T k="admin.categories.units" />
               </span>
-              <input value={draft.units} onChange={(e) => setDraft({ ...draft, units: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200" />
+              <input value={draft.units} onChange={(e) => setDraft({ ...draft, units: e.target.value })} className="input" />
             </label>
             <label className="block space-y-1">
-              <span className="text-gray-500">
+              <span className="text-slate-500">
                 <T k="admin.categories.sortOrder" />
               </span>
-              <input type="number" value={draft.sortOrder} onChange={(e) => setDraft({ ...draft, sortOrder: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200" />
+              <input type="number" value={draft.sortOrder} onChange={(e) => setDraft({ ...draft, sortOrder: e.target.value })} className="input" />
             </label>
           </div>
           <label className="flex items-center gap-2">
@@ -113,10 +113,10 @@ export default function AdminCategoriesPage() {
             </span>
           </label>
           <div className="flex gap-2">
-            <button type="button" onClick={save} className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold">
+            <button type="button" onClick={save} className="btn btn-primary">
               <T k="admin.save" />
             </button>
-            <button type="button" onClick={() => setDraft(null)} className="px-4 py-2 rounded-lg border border-gray-200 font-semibold">
+            <button type="button" onClick={() => setDraft(null)} className="px-4 py-2 rounded-lg border border-slate-200 font-semibold">
               <T k="common.cancel" />
             </button>
           </div>
@@ -131,10 +131,10 @@ export default function AdminCategoriesPage() {
           className="w-full text-start card p-3 text-xs flex justify-between gap-2"
         >
           <span>
-            <span className="font-semibold text-gray-900">{t(`category.${c.slug}`)}</span>
-            <span className="ms-2 font-mono text-gray-400">{c.slug}</span>
+            <span className="font-semibold text-slate-900">{t(`category.${c.slug}`)}</span>
+            <span className="ms-2 font-mono text-slate-500">{c.slug}</span>
           </span>
-          <span className={c.isActive ? "text-emerald-700" : "text-gray-400"}>
+          <span className={c.isActive ? "text-emerald-700" : "text-slate-500"}>
             {c.attributeSchema?.fields?.length ?? 0}
             {" · "}
             {c._count.listings}

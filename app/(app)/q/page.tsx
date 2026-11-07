@@ -77,7 +77,7 @@ export default function DiscussPage() {
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
           aria-label={t("q.categoryLabel")}
-          className="w-36 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-primary-600 focus:ring-1 focus:ring-primary-600"
+          className="input w-36"
         >
           <option value="">{t("search.allCategories")}</option>
           {categories.map((c) => (
@@ -97,7 +97,7 @@ export default function DiscussPage() {
             className="block card card-link p-4.5 space-y-2.5"
           >
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug">{item.title}</p>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex flex-wrap items-center gap-3 text-[13px] text-slate-500 dark:text-slate-400">
               <QuestionStatusChip status={item.status} />
               <span className="flex items-center gap-1">
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -113,7 +113,7 @@ export default function DiscussPage() {
         ))}
         {!loading && questions.length === 0 && (
           <div className="card p-8 text-center">
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-[13px] text-slate-500 dark:text-slate-500">
               <T k="q.empty" />
             </p>
           </div>

@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Package, Edit, ExternalLink, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Plus, Package, Edit, ExternalLink, AlertTriangle } from "lucide-react";
 import { T, useT } from "@/components/ui/T";
-import { VerificationBadge } from "@/components/business/VerificationBadge";
-import { VerificationStatus } from "@prisma/client";
+import { EmptyState, PageHeader } from "@/components/ui/ListStates";
+import { MoneyRange, Num } from "@/components/ui/Num";
+
+const VerificationStatus = { BASIC: "BASIC", VERIFIED: "VERIFIED" } as const;
 
 interface ListingItem {
   id: string;
   title: string;
   unit: string;
+  currency?: string;
   priceMin?: number | null;
   priceMax?: number | null;
   moq?: number | null;
@@ -61,29 +64,15 @@ export default function BusinessListingsPage() {
   const isSupplier = business?.isSupplier;
 
   return (
-    <div className="page space-y-6">
-      {/* Header */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <Package className="w-5 h-5 text-emerald-600" />
-            <T k="listing.title" />
-          </h1>
-          <p className="text-xs text-slate-500">
-            <T k="listing.subtitle" />
-          </p>
-        </div>
-
+    <div className="page-wide space-y-4">
+      <PageHeader titleKey="listing.title" subtitleKey="listing.subtitle">
         {isVerified && isSupplier && (
-          <Link
-            href="/business/listings/new"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
+          <Link href="/business/listings/new" className="btn btn-primary">
+            <Plus className="h-4 w-4" />
             <span>{t("listing.new")}</span>
           </Link>
         )}
-      </div>
+      </PageHeader>
 
       {error && (
         <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
@@ -117,68 +106,54 @@ export default function BusinessListingsPage() {
       )}
 
       {/* Listings List */}
-      <div className="space-y-3">
-        {listings.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center text-sm text-slate-400">
-            <T k="listing.noListings" />
-          </div>
-        ) : (
-          listings.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between"
-            >
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
-                  {t(`category.${item.category.slug}`)}
-                </span>
-                <h2 className="text-sm font-bold text-slate-900">{item.title}</h2>
-                <div className="text-xs text-slate-500 flex items-center gap-1">
-                  {item.priceMin || item.priceMax ? (
-                    <>
-                      <span>{item.priceMin ?? ""}</span>
-                      <span>{" / "}</span>
-                      <span>{item.priceMax ?? ""}</span>
-                      <span>{" · "}</span>
-                      <span>{item.unit}</span>
-                    </>
-                  ) : (
-                    <span>{item.unit}</span>
-                  )}
-                  {item.moq && (
-                    <>
-                      <span>{" · "}</span>
-                      <span>
-                        <T k="listing.moq" />
-                      </span>
-                      <span>{" "}</span>
-                      <span>{item.moq}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/business/listings/${item.id}/edit`}
-                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition"
-                  title="Edit"
-                >
-                  <Edit className="w-4 h-4" />
-                </Link>
-                <Link
-                  href={`/l/${item.id}`}
-                  target="_blank"
-                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition"
-                  title="View Public Page"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      {listings.length === 0 ? (
+        <EmptyState k="listing.noListings" icon={Package} />
+      ) : (
+        <div className="card table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th><T k="listing.titleField" /></th>
+                <th className="hidden md:table-cell"><T k="listing.category" /></th>
+                <th className="text-end"><T k="home.stat.price" /></th>
+                <th className="hidden text-end sm:table-cell"><T k="listing.moq" /></th>
+                <th><span className="sr-only">{t("common.edit")}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {listings.map((item) => (
+                <tr key={item.id}>
+                  <td className="max-w-[20rem]">
+                    <Link href={`/l/${item.id}`} className="block truncate font-medium text-slate-900 hover:text-primary-700">
+                      {item.title}
+                    </Link>
+                  </td>
+                  <td className="hidden whitespace-nowrap md:table-cell">{t(`category.${item.category.slug}`)}</td>
+                  <td className="whitespace-nowrap text-end font-medium text-slate-900">
+                    {item.priceMin != null ? (
+                      <MoneyRange min={Number(item.priceMin)} max={item.priceMax != null ? Number(item.priceMax) : null} currency={item.currency} />
+                    ) : (
+                      "—"
+                    )}
+                    <span className="ms-1 text-xs font-normal text-slate-500">{item.unit}</span>
+                  </td>
+                  <td className="hidden whitespace-nowrap text-end sm:table-cell">{item.moq != null ? <Num n={item.moq} /> : "—"}</td>
+                  <td className="text-end">
+                    <span className="flex justify-end gap-1">
+                      <Link href={`/business/listings/${item.id}/edit`} className="btn btn-ghost btn-sm" aria-label={t("common.edit")} title={t("common.edit")}>
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                      <Link href={`/l/${item.id}`} target="_blank" className="btn btn-ghost btn-sm" aria-label={t("public.viewListing")} title={t("public.viewListing")}>
+                        <ExternalLink className="h-4 w-4" />
+                      </Link>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

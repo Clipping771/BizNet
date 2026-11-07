@@ -19,12 +19,18 @@ import { Decimal } from "@prisma/client/runtime/library";
 import { runComputeMarketPricesJob } from "../jobs/compute-market-prices";
 import { isCriticalKey, placeholdersOf } from "../lib/i18n-critical";
 
+/** The pilot market prices in taka. */
+const SEED_CURRENCY = "BDT";
+/** Past orders, so a business's history does not read as one repeated line. */
+const COMPLETED_TITLES = ["500 pcs 750ml Containers", "750ml lidded containers for lunch boxes", "Monthly restock: 750ml PP containers", "Takeaway containers, 750ml with lid", "750ml clear containers for catering", "Weekend event: 750ml food containers"];
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding BizNet database...");
 
   // Idempotent cleanup of transactional seed records
+  await prisma.aiBudgetCounter.deleteMany({});
   await prisma.reliabilityFeedback.deleteMany({});
   await prisma.orderStatusChange.deleteMany({});
   await prisma.order.deleteMany({});
@@ -391,6 +397,7 @@ async function main() {
             title: l.title,
             attributes: l.attrs,
             unit: l.unit,
+            currency: SEED_CURRENCY,
             priceMin: new Decimal(l.priceMin),
             priceMax: new Decimal(l.priceMax),
             moq: l.moq,
@@ -458,7 +465,7 @@ async function main() {
         buyerBusinessId: buyer.business.id,
         createdByUserId: buyer.user.id,
         categoryId: cat.id,
-        title: "500 pcs 750ml Containers",
+        title: COMPLETED_TITLES[i % COMPLETED_TITLES.length],
         quantity: new Decimal(500),
         unit: "pcs",
         deliveryArea: "Mirpur",
@@ -474,6 +481,7 @@ async function main() {
         supplierBusinessId: supplier.business.id,
         createdByUserId: supplier.user.id,
         unitPrice: new Decimal(9.0),
+        currency: SEED_CURRENCY,
         quantity: new Decimal(500),
         deliveryCharge: new Decimal(100),
         totalPrice: new Decimal(4600),
@@ -490,6 +498,27 @@ async function main() {
       data: { awardedQuoteId: quote.id },
     });
 
+    // A second quote the buyer did not choose. No confirmed spec, so market prices leave it out
+    if (i === 1) {
+      await prisma.quote.create({
+        data: {
+          requestId: req.id,
+          supplierBusinessId: supplierBusinesses[(i + 1) % supplierBusinesses.length].business.id,
+          createdByUserId: supplierBusinesses[(i + 1) % supplierBusinesses.length].user.id,
+          unitPrice: new Decimal(10.0),
+          currency: SEED_CURRENCY,
+          quantity: new Decimal(500),
+          deliveryCharge: new Decimal(100),
+          totalPrice: new Decimal(5100),
+          deliveryDays: 3,
+          paymentTerm: PaymentTerm.CASH_ON_DELIVERY,
+          validUntil: new Date(Date.now() + 7 * 86400000),
+          specMatch: {},
+          status: QuoteStatus.REJECTED,
+        },
+      });
+    }
+
     const order = await prisma.order.create({
       data: {
         code: `ORD-SEED-${i + 1}`,
@@ -498,7 +527,27 @@ async function main() {
         buyerBusinessId: buyer.business.id,
         supplierBusinessId: supplier.business.id,
         status: OrderStatus.COMPLETED,
-        snapshot: { unitPrice: 9.0, quantity: 500, deliveryCharge: 100, totalPrice: 4600 },
+        snapshot: {
+          price: "9",
+          deliveryCharge: "100",
+          total: "4600",
+          currency: SEED_CURRENCY,
+          quantity: "500",
+          unit: "pcs",
+          deliveryDays: 2,
+          paymentTerm: PaymentTerm.CASH_ON_DELIVERY,
+          specDifferences: { capacity_ml: "MATCH", has_lid: "MATCH", material: "MATCH" },
+          notes: null,
+          requestTitle: COMPLETED_TITLES[i % COMPLETED_TITLES.length],
+        },
+        statusHistory: {
+          create: [
+            { toStatus: OrderStatus.CONFIRMED, actorSide: "SUPPLIER", createdAt: new Date(Date.now() - 5 * 86400000) },
+            { fromStatus: OrderStatus.CONFIRMED, toStatus: OrderStatus.DISPATCHED, actorSide: "SUPPLIER", createdAt: new Date(Date.now() - 3 * 86400000) },
+            { fromStatus: OrderStatus.DISPATCHED, toStatus: OrderStatus.DELIVERED, actorSide: "SUPPLIER", createdAt: new Date(Date.now() - 2 * 86400000) },
+            { fromStatus: OrderStatus.DELIVERED, toStatus: OrderStatus.COMPLETED, actorSide: "BUYER", createdAt: new Date(Date.now() - 1 * 86400000) },
+          ],
+        },
         dispatchedAt: new Date(Date.now() - 3 * 86400000),
         deliveredAt: new Date(Date.now() - 2 * 86400000),
         completedAt: new Date(Date.now() - 1 * 86400000),
@@ -545,6 +594,7 @@ async function main() {
       supplierBusinessId: supplierBusinesses[0].business.id,
       createdByUserId: supplierBusinesses[0].user.id,
       unitPrice: new Decimal(8.8),
+      currency: SEED_CURRENCY,
       quantity: new Decimal(500),
       deliveryCharge: new Decimal(80),
       totalPrice: new Decimal(4480),
@@ -564,6 +614,7 @@ async function main() {
       supplierBusinessId: supplierBusinesses[1].business.id,
       createdByUserId: supplierBusinesses[1].user.id,
       unitPrice: new Decimal(8.5),
+      currency: SEED_CURRENCY,
       quantity: new Decimal(500),
       deliveryCharge: new Decimal(50),
       totalPrice: new Decimal(4300),
@@ -594,12 +645,12 @@ async function main() {
   });
 
   // 9. Seed 5 Discussion Questions (2 solved)
-  const qData = [
-    { title: "How long does food stay hot in PP 3-chamber food boxes?", body: "What is the standard procedure to test food-grade packaging quality?", solved: true },
-    { title: "How much weight can a 100 GSM kraft paper bag reliably hold?", body: "Looking for verified load limits for twisted-handle kraft bags.", solved: true },
-    { title: "Where to source wholesale plastic cups with dome lids in bulk?", body: "Who are the best verified container and cup distributors?", solved: false },
-    { title: "What is the standard shipping rate structure for packaging deliveries?", body: "What is the typical intra-city flat rate for heavy packaging cartons?", solved: false },
-    { title: "What are typical setup costs for custom 2-color brand logo printing?", body: "Is there any supplier offering low-MOQ custom printing from 100 pcs?", solved: false },
+  const qData: { title: string; body: string; solved: boolean; cat: string }[] = [
+    { title: "How long does food stay hot in PP 3-chamber food boxes?", body: "What is the standard procedure to test food-grade packaging quality?", solved: true, cat: "food_boxes" },
+    { title: "How much weight can a 100 GSM kraft paper bag reliably hold?", body: "Looking for verified load limits for twisted-handle kraft bags.", solved: true, cat: "carry_bags" },
+    { title: "Where to source wholesale plastic cups with dome lids in bulk?", body: "Who are the best verified container and cup distributors?", solved: false, cat: "cups" },
+    { title: "What is the standard shipping rate structure for packaging deliveries?", body: "What is the typical intra-city flat rate for heavy packaging cartons?", solved: false, cat: "containers" },
+    { title: "What are typical setup costs for custom 2-color brand logo printing?", body: "Is there any supplier offering low-MOQ custom printing from 100 pcs?", solved: false, cat: "food_boxes" },
   ];
 
   for (let i = 0; i < qData.length; i++) {
@@ -608,7 +659,7 @@ async function main() {
       data: {
         authorUserId: buyerBusinesses[i % buyerBusinesses.length].user.id,
         authorBusinessId: buyerBusinesses[i % buyerBusinesses.length].business.id,
-        categoryId: categories["containers"].id,
+        categoryId: categories[q.cat].id,
         title: q.title,
         body: q.body,
         status: q.solved ? QuestionStatus.SOLVED : QuestionStatus.OPEN,
@@ -671,6 +722,7 @@ async function main() {
         supplierBusinessId: supplierBusinesses[supplierIdx].business.id,
         createdByUserId: supplierBusinesses[supplierIdx].user.id,
         unitPrice: new Decimal(unitPrice),
+        currency: SEED_CURRENCY,
         quantity: new Decimal(quantity),
         deliveryCharge: new Decimal(deliveryCharge),
         totalPrice: new Decimal(unitPrice * quantity + deliveryCharge),

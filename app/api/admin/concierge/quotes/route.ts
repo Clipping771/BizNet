@@ -3,6 +3,7 @@ import { getAuthzContext } from "@/lib/auth-user";
 import { assertCan } from "@/lib/authz";
 import { submitQuoteRecord } from "@/lib/repo/quote";
 import { QuoteSource } from "@prisma/client";
+import { DEFAULT_CURRENCY, normalizeCurrency } from "@/lib/currencies";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
       requestId,
       supplierBusinessId,
       unitPrice,
+      currency,
       quantity,
       deliveryCharge,
       deliveryDays,
@@ -37,6 +39,7 @@ export async function POST(req: NextRequest) {
       supplierBusinessId,
       createdByUserId: user.id,
       unitPrice,
+      currency: normalizeCurrency(currency) ?? DEFAULT_CURRENCY,
       quantity,
       deliveryCharge: deliveryCharge ?? 0,
       deliveryDays: Number(deliveryDays),

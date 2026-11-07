@@ -64,7 +64,7 @@ test.describe("Bottom-nav screens at 360×740", () => {
     const page = await login(browser, BUYER_PHONE);
 
     await page.goto("/home");
-    await expect(page.locator("#home-activity")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("#desk-tasks")).toBeVisible({ timeout: 10000 });
     await expect(page.locator("#home-open-requests")).toContainText("১");
     await expect(page.locator("#header-unread")).toHaveText("১");
     await shot(page, "36-home-activity-bn.png");

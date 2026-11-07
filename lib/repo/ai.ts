@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { AiFeature, AiOutcome, Prisma } from "@prisma/client";
 
 export interface CreateAiInteractionInput {
-  userId: string;
+  userId?: string;
   businessId?: string;
   feature: AiFeature;
   promptVersion: string;
@@ -68,4 +68,17 @@ export async function rateAiInteractionRecord(id: string, userId: string, rating
     },
   });
   return result.count === 1;
+}
+
+/** Only an open request's public fields go to the model. */
+export function openRequestForDraft(id: string) {
+  return prisma.request.findFirst({ where: { id, status: "OPEN" }, select: { title: true, deliveryArea: true } });
+}
+
+/** Held or removed questions never go to the model. */
+export function openQuestionForDraft(id: string) {
+  return prisma.question.findFirst({
+    where: { id, deletedAt: null, status: { in: ["OPEN", "ANSWERED", "SOLVED"] } },
+    select: { title: true, body: true },
+  });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Num } from "@/components/ui/Num";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -271,6 +272,23 @@ export default function NewRequestPage() {
   };
 
   // AI Assistant Submission (§8.4, A3-A6)
+  // Arriving from the instant answer: the buyer already wrote the need and clicked, so structure it straight away
+  const arrivedWithNeed = useRef<string | null>(null);
+  useEffect(() => {
+    const need = new URLSearchParams(window.location.search).get("need")?.trim();
+    if (need) {
+      arrivedWithNeed.current = need.slice(0, 1000);
+      setAiText(arrivedWithNeed.current);
+    }
+  }, []);
+  useEffect(() => {
+    if (arrivedWithNeed.current && aiText === arrivedWithNeed.current) {
+      arrivedWithNeed.current = null;
+      handleAiSubmit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiText]);
+
   const handleAiSubmit = async () => {
     if (!aiText.trim()) return;
     setLoadingAi(true);
@@ -490,7 +508,7 @@ export default function NewRequestPage() {
     <div className="page space-y-4 pb-12">
       {/* 1. AI Entry Screen (§8.4, A1) */}
       {mode === "AI_ENTRY" && (
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-5">
+        <div className="card p-6 space-y-5">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
               <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -500,7 +518,7 @@ export default function NewRequestPage() {
                 <T k="rfq.aiEntryTitle" />
               </h1>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-[13px] text-slate-500">
               <T k="home.aiSubtitle" />
             </p>
           </div>
@@ -513,19 +531,19 @@ export default function NewRequestPage() {
               value={aiText}
               onChange={(e) => setAiText(e.target.value)}
               placeholder={t("rfq.aiPlaceholder")}
-              className="w-full text-sm p-4 rounded-2xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none transition-all"
+              className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm placeholder:text-slate-400 hover:border-slate-400"
             />
 
             {/* 🎤 Voice Recording Button (§8.4, A2) */}
-            <div className="absolute right-3 bottom-3 flex items-center gap-2">
+            <div className="absolute bottom-3 end-3 flex items-center gap-2">
               <button
                 type="button"
                 id="voice-record-button"
                 onClick={isRecording ? stopRecording : startRecording}
-                className={`p-2.5 rounded-full transition-all flex items-center gap-1.5 text-xs font-semibold ${
+                className={`p-2.5 rounded-full transition-all flex items-center gap-1.5 text-[13px] font-semibold ${
                   isRecording
                     ? "bg-red-500 text-white animate-pulse"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
                 title={isRecording ? t("rfq.voiceStop") : t("rfq.voiceSpeak")}
               >
@@ -535,12 +553,12 @@ export default function NewRequestPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center justify-between text-[13px] text-slate-500">
             <span>{aiText.length} / {1000}</span>
             <button
               type="button"
               onClick={handleFillMyself}
-              className="text-primary font-semibold hover:underline"
+              className="link text-[13px]"
             >
               <T k="rfq.fillMyself" />
             </button>
@@ -551,7 +569,7 @@ export default function NewRequestPage() {
             id="continue-with-ai-btn"
             disabled={!aiText.trim() || loadingAi}
             onClick={handleAiSubmit}
-            className="w-full py-3.5 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-md shadow-primary/20"
+            className="btn btn-primary w-full"
           >
             {loadingAi ? (
               <span className="flex items-center gap-2">
@@ -573,35 +591,35 @@ export default function NewRequestPage() {
         <div className="space-y-4">
           {/* Fallback Notice if triggered */}
           {fallbackNotice && (
-            <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl flex items-start gap-2.5 text-amber-800 text-xs">
+            <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl flex items-start gap-2.5 text-amber-800 text-[13px]">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{fallbackNotice}</span>
             </div>
           )}
 
           {/* Stepper Navigation */}
-          <div className="flex items-center justify-between px-2 text-xs font-semibold text-gray-500">
-            <span className={step === 1 ? "text-primary font-bold" : ""}>
-              <T k="rfq.step1" />
-            </span>
-            <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-            <span className={step === 2 ? "text-primary font-bold" : ""}>
-              <T k="rfq.step2" />
-            </span>
-            <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-            <span className={step === 3 ? "text-primary font-bold" : ""}>
-              <T k="rfq.step3" />
-            </span>
-          </div>
+          <ol aria-label={t("rfq.progress")} className="card flex items-center gap-1 px-4 py-3 text-[13px]">
+            {([1, 2, 3] as const).map((n) => (
+              <li key={n} className="flex min-w-0 flex-1 items-center gap-2">
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ${step > n ? "bg-primary-700 text-white" : step === n ? "bg-amber-400 text-primary-950" : "bg-slate-100 text-slate-500"}`}>
+                  <Num n={n} />
+                </span>
+                <span className={`truncate ${step === n ? "font-medium text-slate-900" : "text-slate-500"}`}>
+                  <T k={`rfq.step${n}`} />
+                </span>
+                {n < 3 && <span aria-hidden="true" className={`h-px min-w-3 flex-1 ${step > n ? "bg-primary-700" : "bg-slate-200"}`} />}
+              </li>
+            ))}
+          </ol>
 
           {/* Step 1: What */}
           {step === 1 && (
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <div className="card p-6 space-y-5">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="label">
                   <T k="listing.category" />
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
@@ -610,20 +628,12 @@ export default function NewRequestPage() {
                       onClick={() => {
                         setSelectedCategory(cat);
                         if (cat.defaultUnits?.[0]) setUnit(cat.defaultUnits[0]);
-                        if (cat?.attributeSchema?.fields) {
-                          const defaults: Record<string, any> = {};
-                          for (const f of cat.attributeSchema.fields) {
-                            if (f.required && f.type === "select" && f.options?.length) {
-                              defaults[f.key] = f.options[0];
-                            }
-                          }
-                          setAttributes((prev) => ({ ...defaults, ...prev }));
-                        }
                       }}
-                      className={`p-3 rounded-2xl border text-left text-xs font-semibold transition-all ${
+                      aria-pressed={selectedCategory?.slug === cat.slug}
+                      className={`rounded-lg border p-3 text-start text-[13px] font-medium transition-colors ${
                         selectedCategory?.slug === cat.slug
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                          ? "border-primary bg-primary-50 text-primary"
+                          : "border-slate-300 text-slate-700 hover:border-slate-400"
                       }`}
                     >
                       <T k={`category.${cat.slug}`} />
@@ -635,7 +645,7 @@ export default function NewRequestPage() {
               {/* Title input with AI Chip */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-700">
+                  <label className="label">
                     <T k="listing.itemTitle" />
                   </label>
                   {aiPrefilledKeys.has("title") && <AiChip />}
@@ -646,20 +656,20 @@ export default function NewRequestPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t("listing.titlePlaceholder")}
-                  className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none"
+                  className="input"
                 />
               </div>
 
               {/* Uncertain Fields Highlighting & Clarifying Questions (§8.4, A4) */}
               {questions.length > 0 && (
                 <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                  <div className="flex items-center gap-1.5 text-[13px] font-bold text-primary">
                     <Sparkles className="w-3.5 h-3.5" />
                     <T k="rfq.uncertainHint" />
                   </div>
                   {questions.map((q) => (
                     <div key={q.field} className="space-y-2">
-                      <p className="text-xs font-semibold text-gray-800">{q.question}</p>
+                      <p className="text-[13px] font-semibold text-slate-800">{q.question}</p>
                       {q.options && (
                         <div className="flex flex-wrap gap-1.5">
                           {q.options.map((opt) => (
@@ -671,10 +681,10 @@ export default function NewRequestPage() {
                                 setAttributes({ ...attributes, [q.field]: opt });
                                 setUncertainFields(uncertainFields.filter((f) => f !== q.field));
                               }}
-                              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold border transition-all ${
                                 attributes[q.field] === opt
                                   ? "bg-primary text-white border-primary"
-                                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                               }`}
                             >
                               {t(`attr.${selectedCategory?.slug ?? ""}.${q.field}.opt.${opt}`)}
@@ -689,9 +699,9 @@ export default function NewRequestPage() {
 
               {/* Dynamic Attribute Fields (§6) */}
               {selectedCategory && (
-                <div className="space-y-3 pt-2 border-t border-gray-100">
+                <div className="space-y-3 pt-2 border-t border-slate-100">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-gray-700">
+                    <h3 className="text-[13px] font-bold text-slate-700">
                       <T k="listing.attributes" />
                     </h3>
                     {Array.from(aiPrefilledKeys).some((k) => k.startsWith("attr_")) && <AiChip />}
@@ -707,7 +717,7 @@ export default function NewRequestPage() {
 
               {/* Photos (≤ 5) */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700">
+                <label className="label">
                   <T k="rfq.photos" />
                 </label>
 
@@ -715,7 +725,7 @@ export default function NewRequestPage() {
                 {imageKeys.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {imageKeys.map((k, idx) => (
-                      <div key={k} className="relative group w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                      <div key={k} className="relative group w-16 h-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={`/api/files/download?key=${encodeURIComponent(k)}`}
@@ -737,8 +747,8 @@ export default function NewRequestPage() {
 
                 {imageKeys.length < 5 && (
                   <div>
-                    <label className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-gray-50 transition ${uploadingPhoto ? "opacity-50 pointer-events-none" : ""}`}>
-                      <Upload className="w-4 h-4 text-gray-500" />
+                    <label className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 text-[13px] font-semibold cursor-pointer hover:bg-slate-50 transition ${uploadingPhoto ? "opacity-50 pointer-events-none" : ""}`}>
+                      <Upload className="w-4 h-4 text-slate-500" />
                       <span>{uploadingPhoto ? t("common.loading") : t("rfq.photos")}</span>
                       <input
                         type="file"
@@ -757,47 +767,38 @@ export default function NewRequestPage() {
                 )}
 
                 {photoError && (
-                  <p className="text-xs text-red-500 font-semibold">{photoError}</p>
+                  <p className="text-[13px] text-rose-700 font-semibold">{photoError}</p>
                 )}
               </div>
 
-              {formErrors.title && (
-                <p className="text-xs text-red-500 font-semibold">{formErrors.title}</p>
-              )}
+              {[formErrors.category, formErrors.title, formErrors.attributes].filter(Boolean).map((message) => (
+                <p key={message} role="alert" className="text-[13px] font-medium text-rose-700">
+                  {message}
+                </p>
+              ))}
 
               <button
                 type="button"
                 id="rfq-next-step-1"
                 onClick={() => {
-                  let cat = selectedCategory;
-                  if (!cat && categories.length > 0) {
-                    cat = categories[0];
-                    setSelectedCategory(cat);
-                    if (cat.defaultUnits?.[0]) setUnit(cat.defaultUnits[0]);
-                  }
-                  if (!title.trim()) {
-                    setFormErrors((prev) => ({ ...prev, title: t("common.required") || "Please enter product title" }));
-                    return;
-                  }
-                  if (cat?.attributeSchema?.fields) {
-                    const newAttrs = { ...attributes };
-                    let changed = false;
-                    for (const f of cat.attributeSchema.fields) {
-                      if (f.required && f.type === "select" && f.options?.length && !newAttrs[f.key]) {
-                        newAttrs[f.key] = f.options[0];
-                        changed = true;
-                      }
-                    }
-                    if (changed) setAttributes(newAttrs);
-                  }
+                  // The buyer states the category and specification; nothing is filled in for them
+                  const errors: Record<string, string> = {};
+                  if (!selectedCategory) errors.category = t("rfq.chooseCategory");
+                  if (!title.trim()) errors.title = t("common.required");
+                  const missing = (selectedCategory?.attributeSchema?.fields ?? []).filter(
+                    (f: any) => f.required && (attributes[f.key] === undefined || attributes[f.key] === "" || attributes[f.key] === null)
+                  );
+                  if (missing.length) errors.attributes = t("rfq.fillRequiredSpecs");
                   setFormErrors((prev) => {
                     const copy = { ...prev };
+                    delete copy.category;
                     delete copy.title;
-                    return copy;
+                    delete copy.attributes;
+                    return { ...copy, ...errors };
                   });
-                  setStep(2);
+                  if (Object.keys(errors).length === 0) setStep(2);
                 }}
-                className="w-full py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover transition-all flex items-center justify-center gap-2"
+                className="btn btn-primary w-full"
               >
                 <span><T k="rfq.step2" /></span>
                 <ArrowRight className="w-4 h-4" />
@@ -807,12 +808,12 @@ export default function NewRequestPage() {
 
           {/* Step 2: Quantity & When */}
           {step === 2 && (
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <div className="card p-6 space-y-5">
               {/* Quantity + Unit */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-gray-700">
+                    <label className="label">
                       <T k="rfq.quantity" />
                     </label>
                     {aiPrefilledKeys.has("quantity") && <AiChip />}
@@ -823,22 +824,22 @@ export default function NewRequestPage() {
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     placeholder="500"
-                    className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none"
+                    className="input"
                   />
                   {formErrors.quantity && (
-                    <p className="text-xs text-red-500 font-semibold">{formErrors.quantity}</p>
+                    <p className="text-[13px] text-rose-700 font-semibold">{formErrors.quantity}</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700">
+                  <label className="label">
                     <T k="rfq.unit" />
                   </label>
                   <select
                     id="rfq-unit-select"
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none bg-white"
+                    className="input"
                   >
                     {selectedCategory?.defaultUnits?.map((u) => (
                       <option key={u} value={u}>
@@ -852,7 +853,7 @@ export default function NewRequestPage() {
               {/* Needed By Chips */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-700">
+                  <label className="label">
                     <T k="rfq.neededBy" />
                   </label>
                   {aiPrefilledKeys.has("neededBy") && <AiChip />}
@@ -864,10 +865,10 @@ export default function NewRequestPage() {
                       type="button"
                       id={`needed-by-chip-${chip}`}
                       onClick={() => setNeededByChip(chip)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-[13px] font-semibold border transition-all ${
                         neededByChip === chip
                           ? "bg-primary text-white border-primary"
-                          : "bg-gray-50 text-gray-700 border-gray-200"
+                          : "bg-slate-50 text-slate-700 border-slate-200"
                       }`}
                     >
                       <T k={`rfq.chip.${chip}`} />
@@ -881,7 +882,7 @@ export default function NewRequestPage() {
                     value={customNeededByDate}
                     min={getDhakaDateString()}
                     onChange={(e) => setCustomNeededByDate(e.target.value)}
-                    className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none"
+                    className="w-full text-sm p-3 rounded-xl border border-slate-200 focus:border-primary outline-none"
                   />
                 )}
               </div>
@@ -889,7 +890,7 @@ export default function NewRequestPage() {
               {/* Delivery Area */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-700">
+                  <label className="label">
                     <T k="rfq.deliveryArea" />
                   </label>
                   {aiPrefilledKeys.has("deliveryArea") && <AiChip />}
@@ -901,7 +902,7 @@ export default function NewRequestPage() {
                   value={deliveryArea}
                   onChange={(e) => setDeliveryArea(e.target.value)}
                   placeholder={t("rfq.deliveryAreaPlaceholder") || "e.g. New York, London, Dubai, or your city"}
-                  className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none bg-white"
+                  className="input"
                 />
                 <datalist id="popular-delivery-locations">
                   {POPULAR_LOCATIONS.map((loc) => (
@@ -909,13 +910,13 @@ export default function NewRequestPage() {
                   ))}
                 </datalist>
                 {formErrors.deliveryArea && (
-                  <p className="text-xs text-red-500 font-semibold">{formErrors.deliveryArea}</p>
+                  <p className="text-[13px] text-rose-700 font-semibold">{formErrors.deliveryArea}</p>
                 )}
               </div>
 
               {/* Payment Term Chips */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700">
+                <label className="label">
                   <T k="rfq.paymentTerm" />
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -925,10 +926,10 @@ export default function NewRequestPage() {
                       type="button"
                       id={`payment-term-chip-${pt}`}
                       onClick={() => setPreferredPaymentTerm(pt)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-[13px] font-semibold border transition-all ${
                         preferredPaymentTerm === pt
                           ? "bg-primary text-white border-primary"
-                          : "bg-gray-50 text-gray-700 border-gray-200"
+                          : "bg-slate-50 text-slate-700 border-slate-200"
                       }`}
                     >
                       <T k={`payterm.${pt}`} />
@@ -939,7 +940,7 @@ export default function NewRequestPage() {
 
               {/* Priority Chips */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700">
+                <label className="label">
                   <T k="rfq.priority" />
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -949,10 +950,10 @@ export default function NewRequestPage() {
                       type="button"
                       id={`priority-chip-${p}`}
                       onClick={() => setPriority(p)}
-                      className={`p-2.5 rounded-xl text-xs font-semibold border text-center transition-all ${
+                      className={`p-2.5 rounded-xl text-[13px] font-semibold border text-center transition-all ${
                         priority === p
                           ? "bg-primary text-white border-primary"
-                          : "bg-gray-50 text-gray-700 border-gray-200"
+                          : "bg-slate-50 text-slate-700 border-slate-200"
                       }`}
                     >
                       <T k={`priority.${p}`} />
@@ -963,7 +964,7 @@ export default function NewRequestPage() {
 
               {/* Budget note */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
+                <label className="label">
                   <T k="rfq.budgetNote" />
                 </label>
                 <input
@@ -973,7 +974,7 @@ export default function NewRequestPage() {
                   value={budgetNote}
                   onChange={(e) => setBudgetNote(e.target.value)}
                   placeholder={t("rfq.budgetPlaceholder")}
-                  className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:border-primary outline-none"
+                  className="input"
                 />
               </div>
 
@@ -981,7 +982,7 @@ export default function NewRequestPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="py-3 px-4 rounded-2xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50"
+                  className="btn btn-secondary btn-sm"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
@@ -1016,9 +1017,9 @@ export default function NewRequestPage() {
 
           {/* Step 3: Quote Window & Review */}
           {step === 3 && (
-            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <div className="card p-6 space-y-5">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700">
+                <label className="label">
                   <T k="rfq.quoteWindow" />
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -1028,10 +1029,10 @@ export default function NewRequestPage() {
                       type="button"
                       id={`quote-window-${hrs}h`}
                       onClick={() => setQuoteWindowHours(hrs)}
-                      className={`py-2 rounded-xl text-xs font-semibold border text-center transition-all ${
+                      className={`py-2 rounded-xl text-[13px] font-semibold border text-center transition-all ${
                         quoteWindowHours === hrs
                           ? "bg-primary text-white border-primary"
-                          : "bg-gray-50 text-gray-700 border-gray-200"
+                          : "bg-slate-50 text-slate-700 border-slate-200"
                       }`}
                     >
                       <T k={`rfq.window.${hrs}`} />
@@ -1041,21 +1042,21 @@ export default function NewRequestPage() {
               </div>
 
               {/* Review Card */}
-              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
-                <div className="font-bold text-sm text-gray-900">{title}</div>
-                <div className="text-gray-600">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 text-[13px]">
+                <div className="font-bold text-sm text-slate-900">{title}</div>
+                <div className="text-slate-600">
                   <span>{quantity} {unit}</span> · <span>{deliveryArea}</span>
                 </div>
-                <div className="text-gray-500">
-                  <T k="rfq.priority" />{": "}<span className="font-semibold text-gray-700">{t(`priority.${priority}`)}</span>
+                <div className="text-slate-500">
+                  <T k="rfq.priority" />{": "}<span className="font-semibold text-slate-700">{t(`priority.${priority}`)}</span>
                 </div>
-                <div className="text-gray-500">
-                  <T k="rfq.paymentTerm" />{": "}<span className="font-semibold text-gray-700">{t(`payterm.${preferredPaymentTerm}`)}</span>
+                <div className="text-slate-500">
+                  <T k="rfq.paymentTerm" />{": "}<span className="font-semibold text-slate-700">{t(`payterm.${preferredPaymentTerm}`)}</span>
                 </div>
               </div>
 
               {directSupplier && (
-                <label className="flex items-center gap-2 text-xs text-gray-700">
+                <label className="flex items-center gap-2 text-[13px] text-slate-700">
                   <input
                     type="checkbox"
                     id="rfq-only-direct-supplier"
@@ -1067,14 +1068,14 @@ export default function NewRequestPage() {
               )}
 
               {formErrors.general && (
-                <p className="text-xs text-red-500 font-semibold">{formErrors.general}</p>
+                <p className="text-[13px] text-rose-700 font-semibold">{formErrors.general}</p>
               )}
 
               <div className="flex items-center gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="py-3 px-4 rounded-2xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50"
+                  className="btn btn-secondary btn-sm"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
@@ -1083,7 +1084,7 @@ export default function NewRequestPage() {
                   id="send-request-submit-btn"
                   onClick={handleSubmitRequest}
                   disabled={submitting}
-                  className="flex-1 py-3.5 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-md shadow-primary/20"
+                  className="btn btn-primary flex-1"
                 >
                   <Send className="w-4 h-4" />
                   <span>{submitting ? t("common.loading") : t("rfq.sendRequest")}</span>
@@ -1096,22 +1097,22 @@ export default function NewRequestPage() {
 
       {/* 3. Success Screen (§8.5, B5) */}
       {mode === "SUCCESS" && createdRequest && (
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-center space-y-5">
+        <div className="card p-6 text-center space-y-5">
           <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
             <CheckCircle className="w-8 h-8" />
           </div>
 
           <div className="space-y-1.5">
-            <h2 className="text-lg font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-slate-900">
               <T k="rfq.successTitle" />
             </h2>
-            <p className="text-xs text-gray-500">
+            <p className="text-[13px] text-slate-500">
               <T k="rfq.successDesc" />
             </p>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-1">
-            <span className="text-[11px] uppercase font-bold text-gray-400"><T k="rfq.requestCode" /></span>
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1">
+            <span className="text-[11px] uppercase font-bold text-slate-500"><T k="rfq.requestCode" /></span>
             <div id="created-request-code" className="text-base font-bold text-primary font-mono">
               {createdRequest.code}
             </div>
@@ -1119,7 +1120,7 @@ export default function NewRequestPage() {
 
           {/* Share Link without buyer contact info (§8.5, B5) */}
           <div className="space-y-2 text-left">
-            <label className="text-xs font-bold text-gray-700">
+            <label className="label">
               <T k="rfq.shareLink" />
             </label>
             <div className="flex items-center gap-2">
@@ -1127,27 +1128,27 @@ export default function NewRequestPage() {
                 type="text"
                 readOnly
                 value={`${typeof window !== "undefined" ? window.location.origin : ""}/requests/${createdRequest.code}`}
-                className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"
+                className="input"
               />
               <button
                 type="button"
                 id="copy-share-link-btn"
                 onClick={copyShareLink}
-                className="p-3 bg-gray-100 rounded-xl hover:bg-gray-200 text-gray-700"
+                className="p-3 bg-slate-100 rounded-xl hover:bg-slate-200 text-slate-700"
                 title={t("rfq.copyLink")}
               >
                 <Copy className="w-4 h-4" />
               </button>
             </div>
             {copiedLink && (
-              <p className="text-xs text-emerald-600 font-semibold"><T k="rfq.linkCopied" /></p>
+              <p className="text-[13px] text-emerald-600 font-semibold"><T k="rfq.linkCopied" /></p>
             )}
           </div>
 
           <Link
             href={`/requests/${createdRequest.code}`}
             id="view-request-details-btn"
-            className="block w-full py-3.5 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-hover shadow-md shadow-primary/20"
+            className="btn btn-primary w-full"
           >
             <T k="public.viewListing" />
           </Link>

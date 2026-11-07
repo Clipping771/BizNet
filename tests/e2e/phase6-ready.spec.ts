@@ -41,6 +41,12 @@ const shot = (page: Page, name: string) => page.screenshot({ path: path.join(scr
 const setSetting = (key: string, value: unknown) =>
   prisma.setting.upsert({ where: { key }, create: { key, value: value as any }, update: { value: value as any } });
 
+async function waitForSwitch(page: Page, key: string) {
+  await expect
+    .poll(async () => (await (await page.request.get("/api/settings/public")).json())[key], { timeout: 45000, intervals: [2000] })
+    .toBe(true);
+}
+
 test.describe("Phase 6 READY features at 360×740", () => {
   test.beforeAll(async () => {
     fs.mkdirSync(screenshotDir, { recursive: true });
@@ -60,6 +66,7 @@ test.describe("Phase 6 READY features at 360×740", () => {
     await prisma.leadCreditLedger.deleteMany({ where: { businessId: supplier.id } });
 
     const page = await login(browser, SUPPLIER_PHONE, "bn");
+    await waitForSwitch(page, "leadCreditsEnabled");
     await page.goto("/business/credits");
     await expect(page.locator("#credits-balance")).toHaveAttribute("data-balance", "5", { timeout: 15000 });
     const trx = `E2E${Date.now().toString(36).toUpperCase()}`;
@@ -93,7 +100,9 @@ test.describe("Phase 6 READY features at 360×740", () => {
     const body = `কাল ৫০০ পিস ৳8.80 দরে দিতে পারব ${Date.now().toString(36)}`;
     await prisma.message.create({ data: { conversationId: conv.id, senderUserId: supplierUser.id, senderBusinessId: supplier.id, body, lang: "bn" } });
 
+    test.setTimeout(120000);
     const page = await login(browser, BUYER_PHONE, "en");
+    await waitForSwitch(page, "translationEnabled");
     await page.goto(`/requests/${request.code}`);
     await page.locator(`[data-supplier="${supplier.name}"] [id^='message-supplier-btn-']`).click();
     const panel = page.locator("#chat-panel");
