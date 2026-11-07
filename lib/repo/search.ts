@@ -12,6 +12,18 @@ import type { ParsedQuery } from "@/lib/search/query";
 
 export const SEARCH_PAGE_SIZE = 20;
 
+/** Areas public suppliers are based in, for the search filter. Real data, so it works in any country. */
+export async function listSearchAreas(take = 100): Promise<string[]> {
+  const rows = await prisma.business.findMany({
+    where: { isSupplier: true, isSuspended: false, deletedAt: null, verificationStatus: { in: ["BASIC", "VERIFIED"] } },
+    distinct: ["area"],
+    orderBy: { area: "asc" },
+    take,
+    select: { area: true },
+  });
+  return rows.map((r) => r.area).filter(Boolean);
+}
+
 export interface SearchFilters {
   categoryId?: string | null;
   area?: string | null;

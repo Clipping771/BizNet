@@ -4,6 +4,7 @@
  * Repository for quotations and quote-to-order transactions (§8.7, §8.9, F9, F11).
  */
 
+import { quoteReceivedSms } from "@/lib/sms/messages";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import {
@@ -349,13 +350,10 @@ export async function submitQuoteRecord(input: SubmitQuoteInput) {
     if (!existingQuote && totalQuotesCount <= 3 && member.user.phone) {
       const formattedTotal = formatMoney(
         resultQuote.totalPrice,
-        member.user.uiLanguage || "bn",
+        member.user.uiLanguage || "en",
         resultQuote.currency
       );
-      await smsProvider.sendSms(
-        member.user.phone,
-        `BizNet: আপনার অনুরোধ "${request.title}"-এর জন্য নতুন কোটেশন এসেছে (মোট ${formattedTotal})। দেখতে অ্যাপে যান।`
-      );
+      await smsProvider.sendSms(member.user.phone, quoteReceivedSms(member.user.uiLanguage, request.title, formattedTotal));
     }
   }
 

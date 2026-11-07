@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       isBuyer: Boolean(body.isBuyer),
       isSupplier: Boolean(body.isSupplier),
       area: body.area,
-      city: body.city || "Dhaka",
+      city: body.city || body.area,
       addressLine: body.addressLine,
       whatsapp: body.whatsapp,
       phonePublic: body.phonePublic,

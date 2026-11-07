@@ -11,9 +11,9 @@ import { getSession } from "@/lib/session";
 
 /** Hero illustration only: clearly labelled as an example, with invented suppliers and amounts. */
 const SAMPLE_QUOTES = [
-  { name: "Supplier A", price: 4600, days: 2, best: true },
-  { name: "Supplier B", price: 4850, days: 1, best: false },
-  { name: "Supplier C", price: 5100, days: 3, best: false },
+  { name: "Supplier A", price: 60, days: 2, best: true },
+  { name: "Supplier B", price: 64, days: 1, best: false },
+  { name: "Supplier C", price: 68, days: 3, best: false },
 ];
 
 export default async function LandingPage() {
@@ -100,7 +100,7 @@ export default async function LandingPage() {
                       )}
                     </td>
                     <td><DaysText n={q.days} /></td>
-                    <td className="text-end font-semibold"><Money n={q.price} currency="BDT" /></td>
+                    <td className="text-end font-semibold"><Money n={q.price} currency="USD" /></td>
                   </tr>
                 ))}
               </tbody>

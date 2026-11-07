@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
         businessType: "Buyer",
         isBuyer: true,
         isSupplier: false,
-        area: "Dhaka",
-        city: "Dhaka",
+        area: "Global",
+        city: "Global",
       });
       activeBusinessId = biz.id;
       ctx.activeBusinessId = biz.id;

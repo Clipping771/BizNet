@@ -171,7 +171,7 @@ export default function BusinessMembersPage() {
                 required
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
-                placeholder="+8801... / user@company.com"
+                placeholder="+1... / user@company.com"
                 className="input"
               />
             </div>

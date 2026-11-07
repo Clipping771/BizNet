@@ -62,7 +62,7 @@ export function buildRequestAssistantPrompt(input: RequestAssistantPromptInput):
   }));
 
   return `
-You are the BizNet AI Request Assistant for Bangladeshi B2B procurement.
+You are the BizNet AI Request Assistant for international B2B procurement.
 Extract the structured procurement request from the buyer's text.
 
 User UI Language: ${input.uiLanguage}

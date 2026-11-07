@@ -10,8 +10,6 @@ import { ListSkeleton } from "@/components/ui/ListStates";
 import { Avatar } from "@/components/layout/AccountMenu";
 import { formatMoney } from "@/lib/money";
 
-const AREAS = ["Mirpur", "Dhanmondi", "Mohammadpur", "Uttara", "Gulshan", "Chawkbazar"];
-
 type Tab = "products" | "businesses";
 
 interface Category {
@@ -43,6 +41,7 @@ export default function SearchPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [categoryId, setCategoryId] = useState("");
   const [area, setArea] = useState("");
+  const [areas, setAreas] = useState<string[]>([]);
   const [verifiedOnly, setVerifiedOnly] = useState(true);
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
@@ -66,6 +65,10 @@ export default function SearchPage() {
         const match = categorySlug ? d.find((c: Category) => c.slug === categorySlug) : null;
         if (match) setCategoryId(match.id);
       })
+      .catch(() => {});
+    fetch("/api/search/areas")
+      .then((r) => r.json())
+      .then((d) => setAreas(Array.isArray(d.areas) ? d.areas : []))
       .catch(() => {});
   }, []);
 
@@ -203,7 +206,7 @@ export default function SearchPage() {
               className="input"
             >
               <option value="">{t("search.allAreas")}</option>
-              {AREAS.map((a) => (
+              {areas.map((a) => (
                 <option key={a} value={a}>
                   {a}
                 </option>
