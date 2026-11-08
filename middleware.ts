@@ -57,8 +57,11 @@ export async function middleware(req: NextRequest) {
     pathname !== "/requests/new" &&
     !pathname.startsWith("/requests/inbox");
 
+  // Choosing a language needs no account: the picker only sets a cookie (and saves it on the user when signed in)
+  const isPublicLanguagePage = pathname === "/account/language";
+
   const isProtected =
-    PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) && !isPublicRequestDetail;
+    PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) && !isPublicRequestDetail && !isPublicLanguagePage;
 
   if (!isProtected && pathname !== "/login") {
     return NextResponse.next();
