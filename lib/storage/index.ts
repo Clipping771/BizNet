@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { appUrlOrLocal, publicAppUrl } from "@/lib/app-url";
+import { readStoredFile, saveStoredFile, storedFileExists, storedFilesHealth } from "@/lib/repo/storedFile";
 import {
   S3Client,
   PutObjectCommand,
@@ -38,6 +39,14 @@ function signSecret(): string {
     throw new Error("SESSION_SECRET is required to sign file URLs in production");
   }
   return secret || "dev-only-file-sign-secret-0123456789abcdef";
+}
+
+/**
+ * "database" keeps files in Postgres (the StoredFile table): lasting storage for hosts
+ * without S3, such as a single Render service. Files are at most 10 MB each.
+ */
+function isDatabaseDriver(): boolean {
+  return process.env.STORAGE_DRIVER === "database";
 }
 
 /**
@@ -261,6 +270,10 @@ function isNotFound(err: any): boolean {
  * Store file content. Throws if the storage backend fails.
  */
 export async function putFile(key: string, buffer: Buffer, contentType: string, isPrivate: boolean = true) {
+  if (isDatabaseDriver()) {
+    await saveStoredFile(key, buffer, contentType, isPrivate);
+    return;
+  }
   if (isMemoryDriver()) {
     memoryStorage.set(key, { buffer, contentType });
     return;
@@ -271,6 +284,7 @@ export async function putFile(key: string, buffer: Buffer, contentType: string, 
 }
 
 export async function fileExists(key: string, isPrivate: boolean = true): Promise<boolean> {
+  if (isDatabaseDriver()) return storedFileExists(key);
   if (isMemoryDriver()) return memoryStorage.has(key);
   try {
     await s3Client.send(new HeadObjectCommand({ Bucket: bucketFor(isPrivate), Key: key }));
@@ -285,6 +299,7 @@ export async function fileExists(key: string, isPrivate: boolean = true): Promis
  * Retrieve file content; null if it does not exist. Backend failures throw.
  */
 export async function getFile(key: string, isPrivate: boolean = true): Promise<{ buffer: Buffer; contentType: string } | null> {
+  if (isDatabaseDriver()) return readStoredFile(key);
   if (isMemoryDriver()) return memoryStorage.get(key) ?? null;
   try {
     const res = await s3Client.send(new GetObjectCommand({ Bucket: bucketFor(isPrivate), Key: key }));
@@ -298,7 +313,11 @@ export async function getFile(key: string, isPrivate: boolean = true): Promise<{
 }
 
 /** Health check (§14): both buckets reachable; "memory" when the in-memory driver is on. */
-export async function storageHealth(): Promise<"ok" | "memory"> {
+export async function storageHealth(): Promise<"ok" | "memory" | "database"> {
+  if (isDatabaseDriver()) {
+    await storedFilesHealth();
+    return "database";
+  }
   if (isMemoryDriver()) return "memory";
   const { HeadBucketCommand } = await import("@aws-sdk/client-s3");
   await s3Client.send(new HeadBucketCommand({ Bucket: S3_BUCKET_PUBLIC }));

@@ -14,15 +14,18 @@ enum PlatformRole {
   USER
   ADMIN
 }
+
 enum MemberRole {
   OWNER
   MANAGER
   STAFF
 }
+
 enum InviteRole {
   MANAGER
   STAFF
 }
+
 enum VerificationStatus {
   UNVERIFIED
   PENDING
@@ -31,6 +34,7 @@ enum VerificationStatus {
   REJECTED
   SUSPENDED
 }
+
 enum RequestStatus {
   DRAFT
   OPEN
@@ -39,12 +43,14 @@ enum RequestStatus {
   CANCELLED
   EXPIRED
 }
+
 enum RequestOutcome {
   NONE
   ORDER_COMPLETED
   ORDER_CANCELLED
   ORDER_DISPUTE_CLOSED
 }
+
 enum QuoteStatus {
   SUBMITTED
   REVISED
@@ -53,10 +59,12 @@ enum QuoteStatus {
   REJECTED
   EXPIRED
 }
+
 enum QuoteSource {
   SUPPLIER
   CONCIERGE
 }
+
 enum OrderStatus {
   PENDING_CONFIRMATION
   CONFIRMED
@@ -66,10 +74,12 @@ enum OrderStatus {
   CANCELLED
   DISPUTED
 }
+
 enum DisputeResolution {
   RESOLVED_COMPLETED
   RESOLVED_CANCELLED
 }
+
 enum PaymentTerm {
   CASH_ON_DELIVERY
   ADVANCE
@@ -78,12 +88,14 @@ enum PaymentTerm {
   CREDIT_30
   OTHER
 }
+
 enum Priority {
   PRICE
   SPEED
   PAYMENT_TERMS
   BALANCED
 }
+
 enum QuestionStatus {
   OPEN
   ANSWERED
@@ -91,24 +103,28 @@ enum QuestionStatus {
   CLOSED
   PENDING_REVIEW
 }
+
 enum ReportStatus {
   OPEN
   REVIEWED
   ACTION_TAKEN
   DISMISSED
 }
+
 enum LanguageStatus {
   DRAFT
   BETA
   ACTIVE
   DISABLED
 }
+
 enum TranslationSource {
   BUILTIN
   MACHINE
   HUMAN
   REVIEWED
 }
+
 enum AiFeature {
   REQUEST_ASSISTANT
   QUOTE_COMPARISON
@@ -120,6 +136,7 @@ enum AiFeature {
   MARKET_INSIGHT
   SEMANTIC_SEARCH
 }
+
 enum AiOutcome {
   ACCEPTED_AS_IS
   EDITED
@@ -127,10 +144,12 @@ enum AiOutcome {
   ERROR
   FALLBACK
 }
+
 enum VoteTarget {
   QUESTION
   ANSWER
 }
+
 enum ContactRevealReason {
   ORDER
   BUYER_REQUESTED_AFTER_QUOTE
@@ -154,28 +173,28 @@ model User {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
-  passkeys             Passkey[]
-  activeBusiness       Business?             @relation("ActiveBusiness", fields: [activeBusinessId], references: [id], onDelete: SetNull)
-  memberships          Membership[]
-  invitesSent          MemberInvite[]        @relation("InviteSender")
-  verificationsSubmitted VerificationRequest[] @relation("VerificationSubmitter")
-  verificationsReviewed  VerificationRequest[] @relation("VerificationReviewer")
-  requestsCreated      Request[]             @relation("RequestCreator")
-  quotesCreated        Quote[]               @relation("QuoteCreator")
-  feedbackGiven        ReliabilityFeedback[]
-  messagesSent         Message[]
-  questions            Question[]
-  answers              Answer[]
-  votes                Vote[]
-  reportsFiled         Report[]              @relation("ReportFiler")
-  reportsResolved      Report[]              @relation("ReportResolver")
-  opsTimeLogs          OpsTimeLog[]
-  notifications        Notification[]
-  aiInteractions       AiInteraction[]
-  translationsReviewed UiTranslation[]
-  priceExclusions      MarketPriceExclusion[]
-  ownershipTransfersFrom OwnershipTransfer[] @relation("TransferFrom")
-  ownershipTransfersTo   OwnershipTransfer[] @relation("TransferTo")
+  passkeys               Passkey[]
+  activeBusiness         Business?              @relation("ActiveBusiness", fields: [activeBusinessId], references: [id], onDelete: SetNull)
+  memberships            Membership[]
+  invitesSent            MemberInvite[]         @relation("InviteSender")
+  verificationsSubmitted VerificationRequest[]  @relation("VerificationSubmitter")
+  verificationsReviewed  VerificationRequest[]  @relation("VerificationReviewer")
+  requestsCreated        Request[]              @relation("RequestCreator")
+  quotesCreated          Quote[]                @relation("QuoteCreator")
+  feedbackGiven          ReliabilityFeedback[]
+  messagesSent           Message[]
+  questions              Question[]
+  answers                Answer[]
+  votes                  Vote[]
+  reportsFiled           Report[]               @relation("ReportFiler")
+  reportsResolved        Report[]               @relation("ReportResolver")
+  opsTimeLogs            OpsTimeLog[]
+  notifications          Notification[]
+  aiInteractions         AiInteraction[]
+  translationsReviewed   UiTranslation[]
+  priceExclusions        MarketPriceExclusion[]
+  ownershipTransfersFrom OwnershipTransfer[]    @relation("TransferFrom")
+  ownershipTransfersTo   OwnershipTransfer[]    @relation("TransferTo")
 
   @@index([activeBusinessId])
 }
@@ -220,54 +239,54 @@ model OtpCode {
 }
 
 model Business {
-  id                  String             @id @default(cuid())
-  slug                String             @unique
-  name                String
-  lang                String             @default("en")
-  description         String?
-  isBuyer             Boolean            @default(false)
-  isSupplier          Boolean            @default(false)
-  businessType        String
-  phonePublic         String?
-  whatsapp            String?
-  addressLine         String
-  search_vector       Unsupported("tsvector")?
-  area                String
-  city                String
-  lat                 Float?
-  lng                 Float?
-  deliveryAreas       String[]
-  logoKey             String?
-  verificationStatus  VerificationStatus @default(UNVERIFIED)
-  verifiedAt          DateTime?
-  isSuspended         Boolean            @default(false)
-  deletedAt           DateTime?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  id                 String                   @id @default(cuid())
+  slug               String                   @unique
+  name               String
+  lang               String                   @default("en")
+  description        String?
+  isBuyer            Boolean                  @default(false)
+  isSupplier         Boolean                  @default(false)
+  businessType       String
+  phonePublic        String?
+  whatsapp           String?
+  addressLine        String
+  search_vector      Unsupported("tsvector")?
+  area               String
+  city               String
+  lat                Float?
+  lng                Float?
+  deliveryAreas      String[]
+  logoKey            String?
+  verificationStatus VerificationStatus       @default(UNVERIFIED)
+  verifiedAt         DateTime?
+  isSuspended        Boolean                  @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
 
-  activeForUsers       User[]                @relation("ActiveBusiness")
-  members              Membership[]
-  invites              MemberInvite[]
-  ownershipTransfers   OwnershipTransfer[]
-  verificationRequests VerificationRequest[]
-  supplierCategories   SupplierCategory[]
-  listings             Listing[]
-  requestsAsBuyer      Request[]             @relation("BuyerRequests")
-  directRequests       Request[]             @relation("DirectSupplierRequests")
-  invitesReceived      RequestInvite[]
-  quotes               Quote[]
-  ordersAsBuyer        Order[]               @relation("BuyerOrders")
-  ordersAsSupplier     Order[]               @relation("SupplierOrders")
-  conversationsAsBuyer    Conversation[]     @relation("ConvBuyer")
-  conversationsAsSupplier Conversation[]     @relation("ConvSupplier")
-  messagesSent         Message[]
-  revealsAsBuyer       ContactReveal[]       @relation("RevealBuyer")
-  revealsAsSupplier    ContactReveal[]       @relation("RevealSupplier")
-  questions            Question[]
-  answers              Answer[]
-  aiInteractions       AiInteraction[]
-  creditLedger         LeadCreditLedger[]
-  payments             PaymentSubmission[]
+  activeForUsers          User[]                @relation("ActiveBusiness")
+  members                 Membership[]
+  invites                 MemberInvite[]
+  ownershipTransfers      OwnershipTransfer[]
+  verificationRequests    VerificationRequest[]
+  supplierCategories      SupplierCategory[]
+  listings                Listing[]
+  requestsAsBuyer         Request[]             @relation("BuyerRequests")
+  directRequests          Request[]             @relation("DirectSupplierRequests")
+  invitesReceived         RequestInvite[]
+  quotes                  Quote[]
+  ordersAsBuyer           Order[]               @relation("BuyerOrders")
+  ordersAsSupplier        Order[]               @relation("SupplierOrders")
+  conversationsAsBuyer    Conversation[]        @relation("ConvBuyer")
+  conversationsAsSupplier Conversation[]        @relation("ConvSupplier")
+  messagesSent            Message[]
+  revealsAsBuyer          ContactReveal[]       @relation("RevealBuyer")
+  revealsAsSupplier       ContactReveal[]       @relation("RevealSupplier")
+  questions               Question[]
+  answers                 Answer[]
+  aiInteractions          AiInteraction[]
+  creditLedger            LeadCreditLedger[]
+  payments                PaymentSubmission[]
 
   @@index([city, area])
   @@index([verificationStatus, isSupplier])
@@ -295,7 +314,7 @@ model MemberInvite {
   invitedByUserId String
   phone           String?
   email           String?
-  role            InviteRole                 // OWNER can never be invited
+  role            InviteRole // OWNER can never be invited
   tokenHash       String     @unique
   expiresAt       DateTime
   acceptedAt      DateTime?
@@ -390,25 +409,25 @@ model SupplierCategory {
 }
 
 model Listing {
-  id           String    @id @default(cuid())
-  businessId   String
-  categoryId   String
-  title        String
-  lang         String    @default("en")
-  description  String?
-  attributes   Json
-  unit         String
-  priceMin     Decimal?  @db.Decimal(18, 4)
-  priceMax     Decimal?  @db.Decimal(18, 4)
-  currency     String    @default("USD")
-  moq          Int?
-  leadTimeDays Int?
-  imageKeys    String[]
-  isActive     Boolean   @default(true)
-  deletedAt    DateTime?
+  id            String                   @id @default(cuid())
+  businessId    String
+  categoryId    String
+  title         String
+  lang          String                   @default("en")
+  description   String?
+  attributes    Json
+  unit          String
+  priceMin      Decimal?                 @db.Decimal(18, 4)
+  priceMax      Decimal?                 @db.Decimal(18, 4)
+  currency      String                   @default("USD")
+  moq           Int?
+  leadTimeDays  Int?
+  imageKeys     String[]
+  isActive      Boolean                  @default(true)
+  deletedAt     DateTime?
   search_vector Unsupported("tsvector")?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
@@ -451,15 +470,15 @@ model Request {
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
-  buyerBusiness  Business       @relation("BuyerRequests", fields: [buyerBusinessId], references: [id], onDelete: Restrict)
-  createdBy      User           @relation("RequestCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
-  category       Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  repeatOf       Request?       @relation("RequestRepeat", fields: [repeatOfRequestId], references: [id], onDelete: SetNull)
-  repeats        Request[]      @relation("RequestRepeat")
-  directSupplier Business?      @relation("DirectSupplierRequests", fields: [directSupplierId], references: [id], onDelete: SetNull)
-  awardedQuote   Quote?         @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: Restrict)
-  aiInteraction  AiInteraction? @relation(fields: [aiInteractionId], references: [id], onDelete: SetNull)
-  quotes         Quote[]        @relation("RequestQuotes")
+  buyerBusiness  Business        @relation("BuyerRequests", fields: [buyerBusinessId], references: [id], onDelete: Restrict)
+  createdBy      User            @relation("RequestCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  repeatOf       Request?        @relation("RequestRepeat", fields: [repeatOfRequestId], references: [id], onDelete: SetNull)
+  repeats        Request[]       @relation("RequestRepeat")
+  directSupplier Business?       @relation("DirectSupplierRequests", fields: [directSupplierId], references: [id], onDelete: SetNull)
+  awardedQuote   Quote?          @relation("AwardedQuote", fields: [awardedQuoteId], references: [id], onDelete: Restrict)
+  aiInteraction  AiInteraction?  @relation(fields: [aiInteractionId], references: [id], onDelete: SetNull)
+  quotes         Quote[]         @relation("RequestQuotes")
   invites        RequestInvite[]
   order          Order?
   conversations  Conversation[]
@@ -490,39 +509,39 @@ model RequestInvite {
 }
 
 model Quote {
-  id                 String      @id @default(cuid())
-  requestId          String
-  supplierBusinessId String
-  createdByUserId    String
-  unitPrice          Decimal     @db.Decimal(18, 4)
-  quantity           Decimal     @db.Decimal(14, 3)
-  deliveryCharge     Decimal     @default(0) @db.Decimal(18, 4)
-  totalPrice         Decimal     @db.Decimal(18, 4)
-  currency           String      @default("USD")
+  id                    String      @id @default(cuid())
+  requestId             String
+  supplierBusinessId    String
+  createdByUserId       String
+  unitPrice             Decimal     @db.Decimal(18, 4)
+  quantity              Decimal     @db.Decimal(14, 3)
+  deliveryCharge        Decimal     @default(0) @db.Decimal(18, 4)
+  totalPrice            Decimal     @db.Decimal(18, 4)
+  currency              String      @default("USD")
   displayedCurrency     String?
   displayedTotalAmount  Decimal?    @db.Decimal(18, 4)
   crossRateSnapshot     Decimal?    @db.Decimal(20, 10)
   baseRateToUsd         Decimal?    @db.Decimal(20, 10)
   displayedRateToUsd    Decimal?    @db.Decimal(20, 10)
   exchangeRateTimestamp DateTime?
-  deliveryDays       Int
-  paymentTerm        PaymentTerm
-  validUntil         DateTime
-  specMatch          Json
-  lang               String      @default("en")
-  notes              String?
-  attachmentKeys     String[]
-  status             QuoteStatus @default(SUBMITTED)
-  version            Int         @default(1)
-  source             QuoteSource @default(SUPPLIER)
-  idempotencyKey     String?     @unique
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
+  deliveryDays          Int
+  paymentTerm           PaymentTerm
+  validUntil            DateTime
+  specMatch             Json
+  lang                  String      @default("en")
+  notes                 String?
+  attachmentKeys        String[]
+  status                QuoteStatus @default(SUBMITTED)
+  version               Int         @default(1)
+  source                QuoteSource @default(SUPPLIER)
+  idempotencyKey        String?     @unique
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
 
-  request          Request               @relation("RequestQuotes", fields: [requestId], references: [id], onDelete: Restrict)
-  supplierBusiness Business              @relation(fields: [supplierBusinessId], references: [id], onDelete: Restrict)
-  createdBy        User                  @relation("QuoteCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
-  awardedFor       Request?              @relation("AwardedQuote")
+  request          Request                @relation("RequestQuotes", fields: [requestId], references: [id], onDelete: Restrict)
+  supplierBusiness Business               @relation(fields: [supplierBusinessId], references: [id], onDelete: Restrict)
+  createdBy        User                   @relation("QuoteCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  awardedFor       Request?               @relation("AwardedQuote")
   order            Order?
   revisions        QuoteRevision[]
   priceExclusions  MarketPriceExclusion[]
@@ -546,31 +565,31 @@ model QuoteRevision {
 }
 
 model Order {
-  id                 String             @id @default(cuid())
-  code               String             @unique
-  requestId          String             @unique
-  quoteId            String             @unique
-  buyerBusinessId    String
-  supplierBusinessId String
-  snapshot           Json
-  status             OrderStatus        @default(PENDING_CONFIRMATION)
-  buyerConfirmedAt   DateTime?
+  id                  String             @id @default(cuid())
+  code                String             @unique
+  requestId           String             @unique
+  quoteId             String             @unique
+  buyerBusinessId     String
+  supplierBusinessId  String
+  snapshot            Json
+  status              OrderStatus        @default(PENDING_CONFIRMATION)
+  buyerConfirmedAt    DateTime?
   supplierConfirmedAt DateTime?
-  parityLocked       Boolean            @default(true)
-  expectedDeliveryAt DateTime?
-  dispatchedAt       DateTime?
-  deliveredAt        DateTime?
-  completedAt        DateTime?
-  cancelledAt        DateTime?
-  cancelledBySide    String?            // BUYER | SUPPLIER | ADMIN
-  cancelReason       String?
-  disputedAt         DateTime?
-  disputeReason      String?
-  disputeResolution  DisputeResolution?
-  disputeResolvedAt  DateTime?
-  disputeNote        String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  parityLocked        Boolean            @default(true)
+  expectedDeliveryAt  DateTime?
+  dispatchedAt        DateTime?
+  deliveredAt         DateTime?
+  completedAt         DateTime?
+  cancelledAt         DateTime?
+  cancelledBySide     String? // BUYER | SUPPLIER | ADMIN
+  cancelReason        String?
+  disputedAt          DateTime?
+  disputeReason       String?
+  disputeResolution   DisputeResolution?
+  disputeResolvedAt   DateTime?
+  disputeNote         String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   request          Request              @relation(fields: [requestId], references: [id], onDelete: Restrict)
   quote            Quote                @relation(fields: [quoteId], references: [id], onDelete: Restrict)
@@ -590,7 +609,7 @@ model OrderStatusChange {
   fromStatus  OrderStatus?
   toStatus    OrderStatus
   actorUserId String?
-  actorSide   String       // BUYER | SUPPLIER | ADMIN | SYSTEM
+  actorSide   String // BUYER | SUPPLIER | ADMIN | SYSTEM
   reason      String?
   createdAt   DateTime     @default(now())
 
@@ -673,22 +692,22 @@ model ContactReveal {
 
 // ================= Discussion (LITE) =================
 model Question {
-  id               String         @id @default(cuid())
+  id               String                   @id @default(cuid())
   authorUserId     String
   authorBusinessId String?
-  isAnonymous      Boolean        @default(false)
+  isAnonymous      Boolean                  @default(false)
   categoryId       String?
   title            String
   body             String
-  lang             String         @default("en")
-  status           QuestionStatus @default(OPEN)
-  acceptedAnswerId String?        @unique
-  score            Int            @default(0)
-  answerCount      Int            @default(0)
+  lang             String                   @default("en")
+  status           QuestionStatus           @default(OPEN)
+  acceptedAnswerId String?                  @unique
+  score            Int                      @default(0)
+  answerCount      Int                      @default(0)
   deletedAt        DateTime?
   search_vector    Unsupported("tsvector")?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
 
   author         User      @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
   authorBusiness Business? @relation(fields: [authorBusinessId], references: [id], onDelete: SetNull)
@@ -730,7 +749,7 @@ model Vote {
   id         String     @id @default(cuid())
   userId     String
   targetType VoteTarget
-  targetId   String     // polymorphic; integrity enforced in service + test
+  targetId   String // polymorphic; integrity enforced in service + test
   value      Int
   createdAt  DateTime   @default(now())
 
@@ -768,11 +787,11 @@ model MarketPriceSnapshot {
 }
 
 model MarketPriceExclusion {
-  id            String   @id @default(cuid())
-  quoteId       String   @unique
-  reason        String
+  id              String   @id @default(cuid())
+  quoteId         String   @unique
+  reason          String
   createdByUserId String
-  createdAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
 
   quote     Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   createdBy User  @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
@@ -903,11 +922,11 @@ model AiInteraction {
   @@index([inputHash])
 }
 
-model AiBudgetCounter {          // atomic reservation: UPDATE ... SET spent = spent + $maxCost WHERE spent + $maxCost <= cap
-  scope     String   // "global" | "user:<id>"
-  day       DateTime @db.Date
-  spentUsd  Decimal  @default(0) @db.Decimal(12, 6)
-  calls     Int      @default(0)
+model AiBudgetCounter {
+  scope    String // "global" | "user:<id>"
+  day      DateTime @db.Date
+  spentUsd Decimal  @default(0) @db.Decimal(12, 6)
+  calls    Int      @default(0)
 
   @@id([scope, day])
 }
@@ -1008,12 +1027,12 @@ model PaymentSubmission {
 
 // ================= Global Trade (Currency & Compliance) =================
 model Currency {
-  code        String   @id // ISO 4217: "USD", "BDT", "CNY", "EUR", "AED"
-  name        String
-  symbol      String
-  rateToUsd   Decimal  @db.Decimal(20, 10) // High precision forex rate
-  isOfficial  Boolean  @default(true)
-  updatedAt   DateTime @updatedAt
+  code       String   @id // ISO 4217: "USD", "BDT", "CNY", "EUR", "AED"
+  name       String
+  symbol     String
+  rateToUsd  Decimal  @db.Decimal(20, 10) // High precision forex rate
+  isOfficial Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
 }
 
 model RestrictedJurisdiction {
@@ -1024,3 +1043,13 @@ model RestrictedJurisdiction {
   updatedAt   DateTime @updatedAt
 }
 
+// ================= File storage (STORAGE_DRIVER=database) =================
+// Uploaded files kept in Postgres, for hosts without S3. Keys mirror the S3 object keys.
+model StoredFile {
+  key         String   @id
+  isPrivate   Boolean  @default(true)
+  contentType String
+  sizeBytes   Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+}
