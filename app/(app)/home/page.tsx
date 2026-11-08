@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ChatCircleDots, CheckCircle, ClipboardText, FileText, Package, Scales, SealCheck, Warning } from "@phosphor-icons/react/dist/ssr";
+import { ChartLineUp, ChatCircleDots, CheckCircle, ClipboardText, FileText, MagnifyingGlass, Package, Plus, Scales, SealCheck, Storefront, Warning } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react";
 import { T } from "@/components/ui/T";
 import { Num, Money, TNum } from "@/components/ui/Num";
@@ -34,15 +34,20 @@ const ACTIVE_ORDER_TASK: Record<string, { supplier?: { k: string; urgent?: boole
   DISPUTED: { supplier: { k: "desk.task.dispute", urgent: true }, buyer: { k: "desk.task.dispute", urgent: true } },
 };
 
-function Stat({ id, labelKey, value, href }: { id?: string; labelKey: string; value: number; href: string }) {
+function Stat({ id, labelKey, value, href, icon: StatIcon, tile }: { id?: string; labelKey: string; value: number; href: string; icon: Icon; tile: string }) {
   return (
-    <Link id={id} href={href} className="card card-link block px-4 py-3">
-      <p className="truncate text-xs text-slate-500">
-        <T k={labelKey} />
-      </p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+    <Link id={id} href={href} className="card card-link group relative overflow-hidden p-4 sm:p-5">
+      <span className="flex items-start justify-between gap-3">
+        <span className="min-w-0 text-[13px] font-medium leading-snug text-slate-500">
+          <T k={labelKey} />
+        </span>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ${tile}`}>
+          <StatIcon size={18} weight="duotone" />
+        </span>
+      </span>
+      <span className="mt-3 block text-3xl font-bold leading-none tabular-nums tracking-tight text-slate-900">
         <Num n={value} />
-      </p>
+      </span>
     </Link>
   );
 }
@@ -110,29 +115,63 @@ export default async function HomePage() {
   const activeOrders = desk.orders.slice(0, 5);
 
   return (
-    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="page-wide space-y-6">
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            <span className="truncate">{business.name}</span>
+            {canSell && <SealCheck size={16} weight="fill" className="shrink-0 text-primary-600" />}
+          </p>
+          <h1 className="page-title mt-1">
+            <T k="desk.welcome" />
+          </h1>
+        </div>
+        <div className="hidden shrink-0 gap-2 sm:flex">
+          {business.isSupplier ? (
+            <Link href="/business/listings/new" className="btn btn-secondary">
+              <Storefront size={16} weight="bold" />
+              <T k="desk.quick.listing" />
+            </Link>
+          ) : (
+            <Link href="/prices" className="btn btn-secondary">
+              <ChartLineUp size={16} weight="bold" />
+              <T k="nav.prices" />
+            </Link>
+          )}
+          <Link href="/requests/new" className="btn btn-primary">
+            <Plus size={16} weight="bold" />
+            <T k="home.newRequest" />
+          </Link>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden rounded-3xl border border-primary-100 bg-gradient-to-br from-primary-50 via-white to-sky-50 p-4 sm:p-6">
+        <div aria-hidden="true" className="bg-grid pointer-events-none absolute inset-0 opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute -end-20 -top-24 h-64 w-64 rounded-full bg-primary-200/50 blur-3xl" />
+        <div className="relative max-w-3xl">
+          <h2 className="mb-3 text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
+            <T k="desk.hero.title" />
+          </h2>
+          <InstantAnswer />
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat id="home-open-requests" labelKey="desk.stat.openRequests" value={desk.openRequests} href="/requests" icon={FileText} tile="bg-sky-50 text-sky-600 ring-sky-100" />
+        <Stat labelKey="desk.stat.quotes" value={desk.quotesReceived} href="/requests" icon={Scales} tile="bg-violet-50 text-violet-600 ring-violet-100" />
+        <Stat labelKey="desk.stat.orders" value={desk.orders.length} href="/orders" icon={Package} tile="bg-emerald-50 text-emerald-600 ring-emerald-100" />
+        <Stat labelKey="desk.stat.unread" value={desk.unreadMessages} href="/inbox" icon={ChatCircleDots} tile="bg-amber-50 text-amber-600 ring-amber-100" />
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-5">
-        <div>
-          <h1 className="page-title">{business.name}</h1>
-          <div className="mt-3">
-            <InstantAnswer />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat id="home-open-requests" labelKey="desk.stat.openRequests" value={desk.openRequests} href="/requests" />
-          <Stat labelKey="desk.stat.quotes" value={desk.quotesReceived} href="/requests" />
-          <Stat labelKey="desk.stat.orders" value={desk.orders.length} href="/orders" />
-          <Stat labelKey="desk.stat.unread" value={desk.unreadMessages} href="/inbox" />
-        </div>
-
         <section className="card" id="desk-tasks">
           <div className="card-header">
             <h2 className="section-title">
               <T k="desk.needsYou" />
             </h2>
             {tasks.length > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold tabular-nums text-primary-950">
+              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-100 px-2 text-xs font-bold tabular-nums text-amber-800">
                 <Num n={tasks.length} />
               </span>
             )}
@@ -145,8 +184,8 @@ export default async function HomePage() {
           ) : (
             <ul className="divide-y divide-slate-100">
               {tasks.slice(0, 8).map(({ key, icon: TaskIcon, urgent, labelKey, n, title, href, actKey }) => (
-                <li key={key} className="flex items-center gap-3 px-4 py-3">
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${urgent ? "bg-amber-100 text-amber-700" : "bg-primary-50 text-primary-700"}`}>
+                <li key={key} className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-slate-50/70 sm:px-5">
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ${urgent ? "bg-amber-50 text-amber-600 ring-amber-100" : "bg-primary-50 text-primary-600 ring-primary-100"}`}>
                     <TaskIcon size={18} />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -188,7 +227,7 @@ export default async function HomePage() {
               </div>
             ) : (
               <div className="table-wrap">
-                <table className="data-table">
+                <table className="data-table table-stack">
                   <thead>
                     <tr>
                       <th><T k="desk.col.request" /></th>
@@ -209,7 +248,10 @@ export default async function HomePage() {
                         <td className="hidden whitespace-nowrap sm:table-cell">
                           <Num n={Number(r.quantity)} /> {r.unit}
                         </td>
-                        <td><Num n={r._count.quotes} /></td>
+                        <td>
+                          <span className="sm:hidden"><TNum k="desk.quotesShort" n={r._count.quotes} /></span>
+                          <span className="hidden sm:inline"><Num n={r._count.quotes} /></span>
+                        </td>
                         <td><StatusChip k={`reqStatus.${r.status}`} tone={REQUEST_STATUS_TONE[r.status] ?? "gray"} /></td>
                         <td className="hidden whitespace-nowrap text-slate-500 md:table-cell"><DateText iso={r.createdAt.toISOString()} /></td>
                       </tr>
@@ -237,7 +279,7 @@ export default async function HomePage() {
             </p>
           ) : (
             <div className="table-wrap">
-              <table className="data-table">
+              <table className="data-table table-stack">
                 <thead>
                   <tr>
                     <th><T k="desk.col.order" /></th>
@@ -265,7 +307,7 @@ export default async function HomePage() {
         </section>
       </div>
 
-      <aside className="space-y-5 lg:sticky lg:top-20">
+      <aside className="grid items-start gap-5 md:grid-cols-2 lg:sticky lg:top-20 lg:grid-cols-1">
         <section className="card">
           <div className="card-header">
             <h2 className="section-title">
@@ -319,6 +361,7 @@ export default async function HomePage() {
           }))}
         />
       </aside>
+      </div>
     </div>
   );
 }

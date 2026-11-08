@@ -48,7 +48,7 @@ export default function QuotesPage() {
         </EmptyState>
       ) : (
         <div id="quote-list" className="card table-wrap">
-          <table className="data-table">
+          <table className="data-table table-stack">
             <thead>
               <tr>
                 <th><T k="desk.col.request" /></th>

@@ -220,7 +220,7 @@ export default function OrderDetailPage() {
               <li key={step} className="flex min-w-0 flex-1 items-center gap-2">
                 <span
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                    done ? "bg-primary-700 text-white" : current ? "bg-amber-400 text-primary-950" : "bg-slate-100 text-slate-500"
+                    done ? "bg-primary-600 text-white" : current ? "bg-white text-primary-700 ring-2 ring-primary-600" : "bg-slate-100 text-slate-500"
                   }`}
                 >
                   {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : formatNumber(i + 1, lang)}
@@ -398,7 +398,7 @@ export default function OrderDetailPage() {
       </div>
 
       {pending && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-primary-950/50 p-4 sm:items-center">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-4 backdrop-blur-sm sm:items-center">
           <div className="w-full max-w-sm space-y-3 rounded-2xl bg-white p-5 shadow-pop">
             <h3 className="section-title">
               <T k={role === "ADMIN" && order.status === "DISPUTED" ? "order.adminNote" : pending === "CANCELLED" ? "order.cancelReasonPrompt" : "order.disputePrompt"} />
@@ -442,7 +442,7 @@ export default function OrderDetailPage() {
       )}
 
       {showReorder && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-primary-950/50 p-4 sm:items-center">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-4 backdrop-blur-sm sm:items-center">
           <div className="w-full max-w-sm space-y-3 rounded-2xl bg-white p-5 shadow-pop">
             <h3 className="section-title">
               <T k="order.orderAgain" />
@@ -534,7 +534,7 @@ function FeedbackSheet({ orderId, onClose, onSaved }: { orderId: string; onClose
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-primary-950/50 p-4 sm:items-center">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-4 backdrop-blur-sm sm:items-center">
       <div id="feedback-sheet" className="w-full max-w-sm space-y-3 rounded-2xl bg-white p-5 shadow-pop">
         <div>
           <h3 className="section-title">

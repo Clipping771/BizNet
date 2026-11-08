@@ -98,7 +98,7 @@ export default function RequestsPage() {
             </p>
           ) : (
             <div id="my-requests" className="table-wrap">
-              <table className="data-table">
+              <table className="data-table table-stack">
                 <thead>
                   <tr>
                     <th><T k="desk.col.request" /></th>
@@ -122,7 +122,10 @@ export default function RequestsPage() {
                       <td className="hidden whitespace-nowrap sm:table-cell">
                         {formatNumber(Number(r.quantity), lang)} {r.unit}
                       </td>
-                      <td>{formatNumber(r._count?.quotes ?? 0, lang)}</td>
+                      <td>
+                        <span className="sm:hidden">{t("desk.quotesShort", undefined, { n: formatNumber(r._count?.quotes ?? 0, lang) })}</span>
+                        <span className="hidden sm:inline">{formatNumber(r._count?.quotes ?? 0, lang)}</span>
+                      </td>
                       <td><StatusChip k={`reqStatus.${r.status}`} tone={REQUEST_STATUS_TONE[r.status] ?? "gray"} /></td>
                       <td className="hidden whitespace-nowrap text-slate-500 lg:table-cell">{formatDate(r.createdAt, lang)}</td>
                     </tr>

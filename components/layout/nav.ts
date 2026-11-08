@@ -30,13 +30,12 @@ export interface NavSection {
   items: NavItem[];
 }
 
-/** The five destinations on the phone tab bar (§7). */
+/** Phone tab bar: the daily destinations around a centre "new request" button; "More" opens the rest.
+ *  Messages sit in the top bar on phones. */
 export const PRIMARY_NAV: NavItem[] = [
   { href: "/home", labelKey: "nav.home", icon: House },
   { href: "/requests", labelKey: "nav.requests", icon: FileText },
-  { href: "/search", labelKey: "nav.search", icon: MagnifyingGlass },
-  { href: "/q", labelKey: "nav.discuss", icon: ChatsCircle },
-  { href: "/inbox", labelKey: "nav.inbox", icon: Tray },
+  { href: "/orders", labelKey: "orders.title", icon: Package },
 ];
 
 /** Pages the phone tab bar has no room for; the account menu lists them on phones. */

@@ -51,7 +51,7 @@ export default function InboxPage() {
                       <span
                         data-unread={c.unread}
                         aria-label={t("inbox.unread", undefined, { n: formatNumber(c.unread, lang) })}
-                        className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-semibold text-primary-950"
+                        className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary-600 px-1.5 text-[11px] font-semibold text-white"
                       >
                         {formatNumber(c.unread, lang)}
                       </span>

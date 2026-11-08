@@ -36,7 +36,7 @@ export default function OrdersPage() {
         </EmptyState>
       ) : (
         <div id="order-list" className="card table-wrap">
-          <table className="data-table">
+          <table className="data-table table-stack">
             <thead>
               <tr>
                 <th><T k="desk.col.order" /></th>

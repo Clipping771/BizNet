@@ -511,7 +511,7 @@ export default function NewRequestPage() {
         <div className="card p-6 space-y-5">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <span className="w-8 h-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <Sparkles className="w-4 h-4" />
               </span>
               <h1 className="page-title">
@@ -601,7 +601,7 @@ export default function NewRequestPage() {
           <ol aria-label={t("rfq.progress")} className="card flex items-center gap-1 px-4 py-3 text-[13px]">
             {([1, 2, 3] as const).map((n) => (
               <li key={n} className="flex min-w-0 flex-1 items-center gap-2">
-                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ${step > n ? "bg-primary-700 text-white" : step === n ? "bg-amber-400 text-primary-950" : "bg-slate-100 text-slate-500"}`}>
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ${step > n ? "bg-primary-600 text-white" : step === n ? "bg-white text-primary-700 ring-2 ring-primary-600" : "bg-slate-100 text-slate-500"}`}>
                   <Num n={n} />
                 </span>
                 <span className={`truncate ${step === n ? "font-medium text-slate-900" : "text-slate-500"}`}>
