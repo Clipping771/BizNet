@@ -194,7 +194,7 @@ export async function processRequestWithAi(
   });
 
   const aiTimeoutMs = (await getSetting("aiTimeoutMs")) || 20000;
-  const provider = getAiProvider();
+  const provider = await getAiProvider();
 
   let attempt = 0;
   let parsedResult: RequestAssistantOutput | null = null;

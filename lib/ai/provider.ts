@@ -2,6 +2,8 @@ import { getDhakaDateString } from "@/lib/dates";
 import { z } from "zod";
 import type { AiFeature } from "@prisma/client";
 import { AnthropicAiProvider } from "@/lib/ai/anthropic";
+import { OLLAMA_DEFAULT_MODEL, OLLAMA_DEFAULT_URL, OllamaAiProvider } from "@/lib/ai/ollama";
+import { getSetting } from "@/lib/settings";
 
 export interface AiOptions {
   maxOutputTokens: number;
@@ -244,15 +246,47 @@ export class MockAiProvider implements AiProvider {
   }
 }
 
-export function getAiProvider(): AiProvider {
-  const provider = process.env.AI_PROVIDER || "mock";
-  if (provider === "mock") return new MockAiProvider();
-  if (provider === "anthropic") {
+export interface AiProviderConfig {
+  /** "mock" | "anthropic" | "ollama" */
+  name: string;
+  ollamaBaseUrl?: string;
+  ollamaModel?: string;
+}
+
+/**
+ * Which provider runs and how it is configured: the admin's choice in Settings, or AI_PROVIDER when
+ * the setting is "env". Ollama's URL and model come from Settings, then OLLAMA_BASE_URL / OLLAMA_MODEL.
+ */
+export async function resolveAiProviderConfig(): Promise<AiProviderConfig> {
+  const [chosen, ollamaBaseUrl, ollamaModel] = await Promise.all([
+    getSetting("aiProvider").catch(() => "env"),
+    getSetting("ollamaBaseUrl").catch(() => ""),
+    getSetting("ollamaModel").catch(() => ""),
+  ]);
+  const name = chosen && chosen !== "env" ? chosen : process.env.AI_PROVIDER || "mock";
+  return {
+    name,
+    ollamaBaseUrl: ollamaBaseUrl || process.env.OLLAMA_BASE_URL || OLLAMA_DEFAULT_URL,
+    ollamaModel: ollamaModel || process.env.OLLAMA_MODEL || OLLAMA_DEFAULT_MODEL,
+  };
+}
+
+/** Builds a provider from a config; throws when it cannot run (callers then offer the manual form). */
+export function buildAiProvider(config: AiProviderConfig): AiProvider {
+  if (config.name === "mock") return new MockAiProvider();
+  if (config.name === "anthropic") {
     if (!process.env.AI_API_KEY) throw new Error("AI_PROVIDER=anthropic needs AI_API_KEY");
     return new AnthropicAiProvider(process.env.AI_API_KEY, process.env.AI_MODEL);
   }
+  if (config.name === "ollama") {
+    return new OllamaAiProvider({ baseUrl: config.ollamaBaseUrl, model: config.ollamaModel, apiKey: process.env.OLLAMA_API_KEY });
+  }
   // Callers treat a throw as "AI unavailable" and offer the manual form
-  throw new Error(`Unsupported AI_PROVIDER: ${provider}`);
+  throw new Error(`Unsupported AI_PROVIDER: ${config.name}`);
+}
+
+export async function getAiProvider(): Promise<AiProvider> {
+  return buildAiProvider(await resolveAiProviderConfig());
 }
 
 /**

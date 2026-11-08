@@ -11,6 +11,12 @@ export interface PlatformSettings {
   aiMarketInsightEnabled: boolean;
   aiSemanticSearchEnabled: boolean;
   aiTrustSignalsEnabled: boolean;
+  /** Which AI runs the helpers: "env" follows AI_PROVIDER, or pick "mock", "anthropic" or "ollama" here. */
+  aiProvider: string;
+  /** Ollama server, e.g. http://localhost:11434. Empty: OLLAMA_BASE_URL, then the local default. */
+  ollamaBaseUrl: string;
+  /** Ollama model tag, e.g. llama3.1 or qwen2.5:7b. Empty: OLLAMA_MODEL, then llama3.1. */
+  ollamaModel: string;
   aiProviderModelRequest: string;
   aiProviderModelCompare: string;
   aiDailyBudgetUsd: number;
@@ -74,6 +80,9 @@ export const defaultSettings: PlatformSettings = {
   aiMarketInsightEnabled: false,
   aiSemanticSearchEnabled: false,
   aiTrustSignalsEnabled: false,
+  aiProvider: "env",
+  ollamaBaseUrl: "",
+  ollamaModel: "",
   aiProviderModelRequest: "claude-opus-5-5",
   aiProviderModelCompare: "claude-opus-5-5",
   aiDailyBudgetUsd: 10.0,
@@ -117,6 +126,9 @@ export const defaultSettings: PlatformSettings = {
 
 const CACHE_MS = 30000;
 const settingsCache = new Map<string, { value: any; at: number }>();
+
+/** Providers an admin can choose; "env" keeps whatever AI_PROVIDER says. */
+export const AI_PROVIDER_CHOICES = ["env", "mock", "anthropic", "ollama"] as const;
 
 export async function getSetting<K extends keyof PlatformSettings>(key: K): Promise<PlatformSettings[K]> {
   const now = Date.now();
