@@ -146,6 +146,10 @@ describe("Phase 1 Security & Concurrency Verification", () => {
         process.env.RENDER_EXTERNAL_URL = "https://biznet-test.onrender.com/";
         expect(getRpConfig()).toMatchObject({ rpID: "biznet-test.onrender.com", expectedOrigin: "https://biznet-test.onrender.com" });
 
+        // A leftover localhost APP_URL yields to Render's public URL
+        process.env.APP_URL = "http://localhost:3000";
+        expect(getRpConfig()).toMatchObject({ rpID: "biznet-test.onrender.com", expectedOrigin: "https://biznet-test.onrender.com" });
+
         // An explicit RP_ID / APP_URL still wins
         process.env.APP_URL = "https://biznet.example";
         process.env.RP_ID = "example";
