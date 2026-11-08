@@ -36,8 +36,7 @@ function crossSiteMutation(req: NextRequest): boolean {
   const allowed = new Set<string>();
   for (const h of [req.headers.get("x-forwarded-host"), req.headers.get("host"), req.nextUrl.host]) if (h) allowed.add(h);
   try {
-    const appUrl = process.env.APP_URL || process.env.RENDER_EXTERNAL_URL;
-    if (appUrl) allowed.add(new URL(appUrl).host);
+    for (const appUrl of [process.env.APP_URL, process.env.RENDER_EXTERNAL_URL]) if (appUrl) allowed.add(new URL(appUrl).host);
   } catch {
     // ignore a malformed APP_URL
   }
