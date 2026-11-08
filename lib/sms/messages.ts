@@ -1,9 +1,10 @@
+import { publicAppUrl } from "@/lib/app-url";
 /**
  * lib/sms/messages.ts — outgoing SMS text in the recipient's language. English unless they chose Bangla;
  * other languages get English until their translations are written.
  */
 
-export function newRequestSms(lang: string | null | undefined, title: string, code: string, appUrl = process.env.APP_URL || ""): string {
+export function newRequestSms(lang: string | null | undefined, title: string, code: string, appUrl = publicAppUrl() || ""): string {
   const link = `${appUrl.replace(/\/$/, "")}/requests/${code}`;
   return lang === "bn"
     ? `BizNet: নতুন কোটেশন অনুরোধ "${title}"। কোড: ${code}। কোট দিন: ${link}`

@@ -137,6 +137,28 @@ describe("Phase 1 Security & Concurrency Verification", () => {
       }
     });
 
+    it("on Render, falls back to RENDER_EXTERNAL_URL for the origin and its host for rpID", () => {
+      const saved = { NODE_ENV: process.env.NODE_ENV, RP_ID: process.env.RP_ID, APP_URL: process.env.APP_URL, R: process.env.RENDER_EXTERNAL_URL };
+      try {
+        (process.env as any).NODE_ENV = "production";
+        delete process.env.RP_ID;
+        delete process.env.APP_URL;
+        process.env.RENDER_EXTERNAL_URL = "https://biznet-test.onrender.com/";
+        expect(getRpConfig()).toMatchObject({ rpID: "biznet-test.onrender.com", expectedOrigin: "https://biznet-test.onrender.com" });
+
+        // An explicit RP_ID / APP_URL still wins
+        process.env.APP_URL = "https://biznet.example";
+        process.env.RP_ID = "example";
+        expect(getRpConfig()).toMatchObject({ rpID: "example", expectedOrigin: "https://biznet.example" });
+      } finally {
+        (process.env as any).NODE_ENV = saved.NODE_ENV;
+        for (const [k, v] of [["RP_ID", saved.RP_ID], ["APP_URL", saved.APP_URL], ["RENDER_EXTERNAL_URL", saved.R]] as const) {
+          if (v === undefined) delete process.env[k];
+          else process.env[k] = v;
+        }
+      }
+    });
+
     it("does not take rpID or origin from Host headers", () => {
       const config = getRpConfig();
       expect(config.rpID).toBe(process.env.RP_ID || "localhost");

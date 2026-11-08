@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { appUrlOrLocal, publicAppUrl } from "@/lib/app-url";
 import {
   S3Client,
   PutObjectCommand,
@@ -48,7 +49,7 @@ function signSecret(): string {
 function isMemoryDriver(): boolean {
   if ((process.env.STORAGE_DRIVER || "s3") !== "memory") return false;
   if (process.env.NODE_ENV === "production" && process.env.ALLOW_INSECURE_MEMORY_STORAGE !== "true") {
-    const host = new URL(process.env.APP_URL || "http://localhost").hostname;
+    const host = new URL(publicAppUrl() || "http://localhost").hostname;
     if (host !== "localhost" && host !== "127.0.0.1") {
       throw new Error("STORAGE_DRIVER=memory is not allowed in production; configure S3");
     }
@@ -196,7 +197,7 @@ export function createUploadTicket(params: {
     uploadPayload({ key, contentType: params.contentType, maxBytes: rule.maxBytes, expiresAt, userId: params.userId })
   );
 
-  const baseUrl = (params.baseUrl || process.env.APP_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const baseUrl = (params.baseUrl || appUrlOrLocal()).replace(/\/+$/, "");
   const query = new URLSearchParams({
     ct: params.contentType,
     max: String(rule.maxBytes),
@@ -246,7 +247,7 @@ export function verifySignedDownloadToken(key: string, expiresAt: number, signat
 export async function getPrivateFileSignedUrl(key: string, expiresInSeconds: number = 300): Promise<string> {
   const expiresAt = Date.now() + expiresInSeconds * 1000;
   const sig = generateSignedDownloadToken(key, expiresAt);
-  const baseUrl = process.env.APP_URL || "http://localhost:3000";
+  const baseUrl = appUrlOrLocal();
   return `${baseUrl}/api/files/download?key=${encodeURIComponent(key)}&expires=${expiresAt}&sig=${sig}`;
 }
 
