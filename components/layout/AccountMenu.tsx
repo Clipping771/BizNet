@@ -13,11 +13,14 @@ export function initials(name: string): string {
   return letters.join("").toUpperCase() || "B";
 }
 
-// Neutral Slate monograms for user avatars and secondary elements
+// Soft tinted monograms, picked by name so a business always gets the same colour
 const AVATAR_TONES = [
-  "bg-slate-100 text-slate-700 ring-slate-200",
-  "bg-slate-200/80 text-slate-800 ring-slate-300/80",
-  "bg-slate-100 text-slate-800 ring-slate-200",
+  "bg-primary-50 text-primary-700 ring-primary-100",
+  "bg-violet-50 text-violet-700 ring-violet-100",
+  "bg-emerald-50 text-emerald-700 ring-emerald-100",
+  "bg-amber-50 text-amber-800 ring-amber-100",
+  "bg-sky-50 text-sky-700 ring-sky-100",
+  "bg-rose-50 text-rose-700 ring-rose-100",
 ];
 
 /** Rounded-square monogram for a business, like a company logo placeholder. */

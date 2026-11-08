@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, MagnifyingGlass, Plus } from "@phosphor-icons/react";
+import { Bell, ChatCircleDots, MagnifyingGlass } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useT } from "@/components/ui/T";
 import { formatNumber } from "@/lib/money";
 import { Brand } from "./Brand";
 import { AccountMenu } from "./AccountMenu";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { isActivePath } from "./nav";
 
 interface HeaderProps {
@@ -57,11 +58,11 @@ export function Header({ activeBusinessName, activeBusinessId, businesses = [], 
     return () => window.removeEventListener("keydown", onKey);
   }, [withSidebar, router]);
 
-  const iconBtn = "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
+  const iconBtn = "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-      <div className={`flex h-14 items-center gap-3 px-4 sm:px-6 lg:px-8 ${withSidebar ? "" : "mx-auto max-w-6xl"}`}>
+    <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl backdrop-saturate-150">
+      <div className={`flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8 ${withSidebar ? "" : "mx-auto max-w-7xl"}`}>
         <div className={withSidebar ? "md:hidden" : ""}>
           <Brand href={isLoggedIn ? "/home" : "/"} />
         </div>
@@ -70,11 +71,11 @@ export function Header({ activeBusinessName, activeBusinessId, businesses = [], 
           <Link
             href="/search"
             aria-label={t("nav.search")}
-            className="hidden h-9 w-full max-w-md items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 transition-colors hover:border-slate-300 md:flex"
+            className="hidden h-10 w-full max-w-md items-center gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50/80 px-3.5 text-sm text-slate-400 transition-all hover:border-slate-300 hover:bg-white hover:shadow-card md:flex"
           >
             <MagnifyingGlass size={16} />
             <span className="flex-1 truncate">{t("nav.search")}</span>
-            <kbd className="rounded border border-slate-200 bg-white px-1.5 font-sans text-[11px] text-slate-500">/</kbd>
+            <kbd className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-sans text-[11px] font-medium text-slate-500 shadow-sm">/</kbd>
           </Link>
         )}
 
@@ -84,10 +85,9 @@ export function Header({ activeBusinessName, activeBusinessId, businesses = [], 
               <MagnifyingGlass size={20} />
             </Link>
           )}
-          {withSidebar && (
-            <Link href="/requests/new" className="btn btn-primary btn-sm me-1 hidden sm:inline-flex">
-              <Plus size={15} weight="bold" />
-              {t("home.newRequest")}
+          {isLoggedIn && (
+            <Link href="/inbox" aria-label={t("nav.inbox")} className={iconBtn}>
+              <ChatCircleDots size={20} weight={isActivePath(pathname, "/inbox") ? "fill" : "regular"} />
             </Link>
           )}
           {isLoggedIn && (
@@ -96,7 +96,7 @@ export function Header({ activeBusinessName, activeBusinessId, businesses = [], 
               {unread > 0 && (
                 <span
                   id="header-unread"
-                  className="absolute end-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-primary-950 ring-2 ring-white"
+                  className="absolute end-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white"
                 >
                   {unread > 99 ? `${formatNumber(99, lang)}+` : formatNumber(unread, lang)}
                 </span>
@@ -114,7 +114,8 @@ export function Header({ activeBusinessName, activeBusinessId, businesses = [], 
             />
           ) : (
             <div className="flex items-center gap-2">
-              <Link href="/login" className="btn btn-ghost">
+              <LanguageSwitcher />
+              <Link href="/login" className="btn btn-ghost hidden sm:inline-flex">
                 {t("auth.login")}
               </Link>
               <Link href="/login" className="btn btn-primary">

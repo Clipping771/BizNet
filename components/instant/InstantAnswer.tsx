@@ -67,7 +67,7 @@ export function InstantAnswer({ placeholder }: { placeholder?: React.ReactNode }
   return (
     <div className="space-y-3 text-slate-900">
       <div className="relative">
-        <Sparkles aria-hidden="true" className="pointer-events-none absolute start-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-amber-500" />
+        <Sparkles aria-hidden="true" className="pointer-events-none absolute start-[18px] top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-amber-500" />
         <input
           id="instant-input"
           type="text"
@@ -77,14 +77,14 @@ export function InstantAnswer({ placeholder }: { placeholder?: React.ReactNode }
           onChange={(e) => setText(e.target.value)}
           placeholder={t("desk.prompt")}
           aria-label={t("desk.prompt")}
-          className="h-12 w-full rounded-xl border border-slate-300 bg-white pe-4 ps-11 text-[15px] shadow-card placeholder:text-slate-500 hover:border-primary-400"
+          className="h-14 w-full rounded-2xl border border-slate-200 bg-white pe-4 ps-12 text-base shadow-card placeholder:text-slate-400 hover:border-primary-300"
         />
       </div>
 
       {!query && (
         <div className="flex flex-wrap items-center gap-1.5">
           {EXAMPLES.map((k) => (
-            <button key={k} type="button" onClick={() => setText(t(k))} className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[13px] text-slate-600 transition-colors hover:border-primary-300 hover:text-primary-700">
+            <button key={k} type="button" onClick={() => setText(t(k))} className="min-h-9 rounded-full border border-slate-200/80 bg-white px-3.5 py-1 text-[13px] font-medium text-slate-600 shadow-sm transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700">
               {t(k)}
             </button>
           ))}
@@ -96,7 +96,7 @@ export function InstantAnswer({ placeholder }: { placeholder?: React.ReactNode }
       {query.length >= 2 && (
         <section id="instant-answer" aria-live="polite" aria-busy={loading} className={`card overflow-hidden transition-opacity ${loading ? "opacity-60" : ""}`}>
           {price && (
-            <div id="instant-price" className="border-b border-slate-100 bg-primary-50/60 px-4 py-3">
+            <div id="instant-price" className="border-b border-slate-100 bg-gradient-to-r from-primary-50 to-white px-4 py-3.5">
               <p className="eyebrow">
                 <T k="instant.usualPrice" />
               </p>

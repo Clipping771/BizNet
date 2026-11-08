@@ -197,9 +197,17 @@ export default function LoginPage() {
         </h1>
         <p className="mt-1.5 text-sm text-slate-500">
           {step === "INPUT" ? (
-            <T k="auth.enterPhoneSubtitle" />
+            <T
+              k={
+                method === "EMAIL"
+                  ? "auth.enterEmailSubtitle"
+                  : method === "PASSKEY"
+                    ? "auth.passkeyLoginSubtitle"
+                    : "auth.enterPhoneSubtitle"
+              }
+            />
           ) : (
-            <T k="auth.otpSubtitle" />
+            <T k={method === "EMAIL" ? "auth.otpSubtitleEmail" : "auth.otpSubtitle"} />
           )}
         </p>
       </div>
@@ -211,13 +219,13 @@ export default function LoginPage() {
             type="button"
             data-testid="tab-phone"
             onClick={() => switchMethod("PHONE")}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 transition-all ${
+            className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center leading-tight transition-all min-[400px]:flex-row min-[400px]:gap-1.5 min-[400px]:py-2.5 ${
               method === "PHONE"
                 ? "border border-slate-200/50 bg-white font-bold text-primary-800 shadow-xs"
                 : "text-slate-600 hover:bg-slate-200/40 hover:text-slate-900"
             }`}
           >
-            <Smartphone className="h-4 w-4 text-primary-700" />
+            <Smartphone className="h-4 w-4 shrink-0 text-primary-700" />
             <span>
               <T k="auth.methodPhone" />
             </span>
@@ -226,13 +234,13 @@ export default function LoginPage() {
             type="button"
             data-testid="tab-email"
             onClick={() => switchMethod("EMAIL")}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 transition-all ${
+            className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center leading-tight transition-all min-[400px]:flex-row min-[400px]:gap-1.5 min-[400px]:py-2.5 ${
               method === "EMAIL"
                 ? "border border-slate-200/50 bg-white font-bold text-primary-800 shadow-xs"
                 : "text-slate-600 hover:bg-slate-200/40 hover:text-slate-900"
             }`}
           >
-            <Mail className="h-4 w-4 text-primary-700" />
+            <Mail className="h-4 w-4 shrink-0 text-primary-700" />
             <span>
               <T k="auth.methodEmail" />
             </span>
@@ -241,13 +249,13 @@ export default function LoginPage() {
             type="button"
             data-testid="tab-passkey"
             onClick={() => switchMethod("PASSKEY")}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 transition-all ${
+            className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center leading-tight transition-all min-[400px]:flex-row min-[400px]:gap-1.5 min-[400px]:py-2.5 ${
               method === "PASSKEY"
                 ? "border border-slate-200/50 bg-white font-bold text-primary-800 shadow-xs"
                 : "text-slate-600 hover:bg-slate-200/40 hover:text-slate-900"
             }`}
           >
-            <Fingerprint className="h-4 w-4 text-primary-700" />
+            <Fingerprint className="h-4 w-4 shrink-0 text-primary-700" />
             <span>
               <T k="auth.methodPasskey" />
             </span>
@@ -305,7 +313,8 @@ export default function LoginPage() {
                     placeholder={t("auth.emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="input"
+                    autoComplete="email"
+                    className="input ps-10"
                   />
                 </div>
               </div>
@@ -396,7 +405,7 @@ export default function LoginPage() {
                 onChange={(e) => setOtp(e.target.value)}
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                className="input font-mono"
+                className="input ps-10 font-mono tracking-[0.3em]"
               />
             </div>
             <p className="mt-1 text-xs text-slate-500">
@@ -421,7 +430,7 @@ export default function LoginPage() {
             }}
             className="w-full text-center text-xs font-medium text-slate-500 hover:text-slate-800 py-1"
           >
-            <T k="auth.changePhone" />
+            <T k={method === "EMAIL" ? "auth.changeEmail" : "auth.changePhone"} />
           </button>
         </form>
       )}

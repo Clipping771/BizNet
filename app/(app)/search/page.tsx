@@ -8,6 +8,7 @@ import { T, useT, useLang } from "@/components/ui/T";
 import { VerificationBadge } from "@/components/business/VerificationBadge";
 import { ListSkeleton } from "@/components/ui/ListStates";
 import { Avatar } from "@/components/layout/AccountMenu";
+import { CategoryVisual } from "@/components/ui/CategoryVisual";
 import { formatMoney } from "@/lib/money";
 
 type Tab = "products" | "businesses";
@@ -122,9 +123,14 @@ export default function SearchPage() {
 
   return (
     <div className="page-wide space-y-4">
-      <h1 className="page-title">
-        <T k="search.title" />
-      </h1>
+      <div>
+        <h1 className="page-title">
+          <T k="search.title" />
+        </h1>
+        <p className="page-subtitle">
+          <T k="search.description" />
+        </p>
+      </div>
 
       <form
         onSubmit={(e) => {
@@ -171,16 +177,17 @@ export default function SearchPage() {
           id="search-filters-toggle"
           onClick={() => setShowFilters((v) => !v)}
           aria-expanded={showFilters}
-          className="btn btn-ghost btn-sm"
+          className="btn btn-ghost btn-sm lg:hidden"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           <T k="search.filters" />
         </button>
       </div>
 
-      {showFilters && (
-        <div className="card p-4 space-y-3 text-xs">
-          <div className="grid grid-cols-2 gap-2">
+      <div className="items-start gap-6 space-y-4 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:space-y-0">
+      {(
+        <div id="search-filters" className={`card space-y-3 p-4 text-xs lg:sticky lg:top-20 lg:block ${showFilters ? "" : "hidden"}`}>
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
             <select
               id="search-category"
               value={categoryId}
@@ -226,7 +233,7 @@ export default function SearchPage() {
           </label>
           {tab === "products" && (
             <>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 lg:grid-cols-2">
                 <input
                   id="search-price-min"
                   type="number"
@@ -255,7 +262,7 @@ export default function SearchPage() {
                   onChange={(e) => setMoqMax(e.target.value)}
                   placeholder={t("search.moqMax")}
                   aria-label={t("search.moqMax")}
-                  className="input"
+                  className="input lg:col-span-2"
                 />
               </div>
               {category &&
@@ -290,30 +297,35 @@ export default function SearchPage() {
         </div>
       )}
 
-      <div id="search-results" className="space-y-3">
+      <div id="search-results" className="min-w-0 space-y-3">
         {loading && results.length === 0 && <ListSkeleton />}
 
         {tab === "products" && results.length > 0 && (
-          <ul className="card divide-y divide-slate-100">
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {results.map((r) => (
-              <li key={r.id} data-listing-title={r.title} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                <div className="min-w-0 flex-1">
-                  <Link href={`/l/${r.id}`} className="block truncate text-[15px] font-medium text-slate-900 hover:text-primary-700">
-                    {r.title}
-                  </Link>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
-                    <Link href={`/b/${r.businessSlug}`} className="font-medium text-slate-700 hover:text-primary-700">
-                      {r.businessName}
+              <li key={r.id} data-listing-title={r.title} className="card flex flex-col overflow-hidden transition-shadow hover:shadow-raised">
+                <div className="flex flex-1 gap-3 p-4 sm:block">
+                  <CategoryVisual slug={r.categorySlug} size={32} className="h-16 w-16 rounded-lg sm:mb-3 sm:h-24 sm:w-full" />
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/l/${r.id}`} className="line-clamp-2 text-[15px] font-semibold leading-snug text-slate-900 hover:text-primary-700">
+                      {r.title}
                     </Link>
-                    <VerificationBadge status={r.verificationStatus} />
-                    <span className="flex items-center gap-0.5">
-                      <MapPin className="h-3 w-3" />
-                      {r.businessArea}
-                    </span>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                      <Link href={`/b/${r.businessSlug}`} className="font-medium text-slate-700 hover:text-primary-700">
+                        {r.businessName}
+                      </Link>
+                      <span className="flex items-center gap-0.5">
+                        <MapPin className="h-3 w-3" />
+                        {r.businessArea}
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <VerificationBadge status={r.verificationStatus} />
+                    </div>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
-                  <div className="text-xs text-slate-500 sm:text-end">
+                <div className="mt-auto space-y-2.5 border-t border-slate-100 px-4 py-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-xs text-slate-500">
                     {r.priceMin && (
                       <p className="text-sm font-semibold tabular-nums text-slate-900">
                         {t("search.priceRange", undefined, {
@@ -325,7 +337,7 @@ export default function SearchPage() {
                     )}
                     {r.moq && <p>{t("search.moq", undefined, { moq: r.moq })}</p>}
                   </div>
-                  <Link href={requestLink(r.categorySlug, { id: r.businessId, name: r.businessName })} className="btn btn-secondary btn-sm">
+                  <Link href={requestLink(r.categorySlug, { id: r.businessId, name: r.businessName })} className="btn btn-primary btn-sm w-full">
                     <T k="search.requestQuote" />
                   </Link>
                 </div>
@@ -335,30 +347,32 @@ export default function SearchPage() {
         )}
 
         {tab === "businesses" && results.length > 0 && (
-          <ul className="card divide-y divide-slate-100">
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {results.map((b) => (
-              <li key={b.id} data-business-name={b.name} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                <Avatar name={b.name} size="hidden sm:flex h-10 w-10 text-sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <Link href={`/b/${b.slug}`} className="text-[15px] font-medium text-slate-900 hover:text-primary-700">
+              <li key={b.id} data-business-name={b.name} className="card flex flex-col gap-3 p-4 transition-shadow hover:shadow-raised">
+                <div className="flex items-start gap-3">
+                  <Avatar name={b.name} size="h-12 w-12 text-base" />
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/b/${b.slug}`} className="block text-[15px] font-semibold leading-snug text-slate-900 hover:text-primary-700">
                       {b.name}
                     </Link>
-                    <VerificationBadge status={b.verificationStatus} />
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
-                    <span className="flex items-center gap-0.5">
-                      <MapPin className="h-3 w-3" />
-                      {b.area}
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <Package className="h-3 w-3" />
-                      {t("search.listingCount", undefined, { n: b.listingCount })}
-                    </span>
-                    {(b.categorySlugs ?? []).length > 0 && <span>{b.categorySlugs.map((s: string) => t(`category.${s}`)).join(" · ")}</span>}
+                    <div className="mt-1.5">
+                      <VerificationBadge status={b.verificationStatus} />
+                    </div>
                   </div>
                 </div>
-                <Link href={requestLink(b.categorySlugs?.[0] ?? null, { id: b.id, name: b.name })} className="btn btn-secondary btn-sm shrink-0 self-start sm:self-center">
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                  <span className="flex items-center gap-0.5">
+                    <MapPin className="h-3 w-3" />
+                    {b.area}
+                  </span>
+                  <span className="flex items-center gap-0.5">
+                    <Package className="h-3 w-3" />
+                    {t("search.listingCount", undefined, { n: b.listingCount })}
+                  </span>
+                  {(b.categorySlugs ?? []).length > 0 && <span>{b.categorySlugs.map((s: string) => t(`category.${s}`)).join(" · ")}</span>}
+                </div>
+                <Link href={requestLink(b.categorySlugs?.[0] ?? null, { id: b.id, name: b.name })} className="btn btn-secondary btn-sm mt-auto w-full">
                   <T k="search.requestQuote" />
                 </Link>
               </li>
@@ -382,6 +396,7 @@ export default function SearchPage() {
             {loading ? t("common.loading") : t("search.loadMore")}
           </button>
         )}
+      </div>
       </div>
     </div>
   );

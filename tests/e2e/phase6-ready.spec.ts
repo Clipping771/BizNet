@@ -115,6 +115,9 @@ test.describe("Phase 6 READY features at 360×740", () => {
     await expect(panel.locator('[data-translated="true"]').last()).toContainText("৳8.80");
     await expect(panel.locator("text=Show original").last()).toBeVisible();
     await shot(page, "34-translated-message-en.png");
+    // The open chat polls and marks this conversation read; left open, it eats the unread
+    // message ui-navigation.spec.ts creates for the same buyer later in the run.
+    await page.context().close();
   });
 
   test("language picker stores the choice", async ({ browser }) => {

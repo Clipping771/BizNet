@@ -246,3 +246,18 @@ export async function listOrderAgain(businessId: string, take = 3) {
   }
   return items;
 }
+
+/**
+ * Public counts for the landing page. Only real rows are counted; the page hides any figure that is
+ * still zero so a new deployment never shows "0 suppliers".
+ */
+export async function landingStats() {
+  const [suppliers, listings, quotes] = await Promise.all([
+    prisma.business.count({
+      where: { isSupplier: true, deletedAt: null, verificationStatus: { in: ["BASIC", "VERIFIED"] } },
+    }),
+    prisma.listing.count({ where: { isActive: true, deletedAt: null } }),
+    prisma.quote.count(),
+  ]);
+  return { suppliers, listings, quotes };
+}

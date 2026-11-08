@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
-import { Fab } from "./Fab";
 import { isBareRoute } from "./nav";
 
 interface AppShellProps {
@@ -21,7 +20,7 @@ interface AppShellProps {
 }
 
 /**
- * Signed-in pages: a fixed navy sidebar from md up, a tab bar on phones, and a utility bar on top.
+ * Signed-in pages: a light icon rail on tablets, the full sidebar from lg up, a tab bar on phones, and a utility bar on top.
  * Logged-out public pages get the utility bar only; the landing page, sign-in and onboarding render on their own.
  */
 export function AppShell({ activeBusinessName, activeBusinessId, businesses, isSupplier, creditsEnabled, userPhone, lang, isLoggedIn, isAdmin, children }: AppShellProps) {
@@ -33,8 +32,8 @@ export function AppShell({ activeBusinessName, activeBusinessId, businesses, isS
 
   return (
     <div className="min-h-screen bg-surface-canvas">
-      {chrome && <Sidebar isSupplier={isSupplier} isAdmin={isAdmin} hasBusiness={!!activeBusinessName} creditsEnabled={creditsEnabled} />}
-      <div className={chrome ? "md:ps-56" : ""}>
+      {chrome && <Sidebar isSupplier={isSupplier} isAdmin={isAdmin} hasBusiness={!!activeBusinessName} creditsEnabled={creditsEnabled} activeBusinessName={activeBusinessName} />}
+      <div className={chrome ? "md:ps-[72px] lg:ps-64" : ""}>
         <Header
           activeBusinessName={activeBusinessName}
           activeBusinessId={activeBusinessId}
@@ -45,10 +44,9 @@ export function AppShell({ activeBusinessName, activeBusinessId, businesses, isS
           isAdmin={isAdmin}
           withSidebar={chrome}
         />
-        <main className={`mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6 ${chrome ? "pb-24 md:pb-12" : "pb-12"}`}>{children}</main>
+        <main className={`mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-10 lg:pt-8 ${chrome ? "pb-28 md:pb-14" : "pb-14"}`}>{children}</main>
       </div>
-      {chrome && pathname === "/requests" && <Fab />}
-      {chrome && <BottomNav />}
+      {chrome && <BottomNav isSupplier={isSupplier} isAdmin={isAdmin} hasBusiness={!!activeBusinessName} creditsEnabled={creditsEnabled} />}
     </div>
   );
 }

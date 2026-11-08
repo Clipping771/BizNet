@@ -89,7 +89,7 @@ test.describe("Phase 1 acceptance flow at 360x740 (§16)", () => {
     // 3. Invite a STAFF member from the members page
     const staffPhone = randomBdPhone();
     await page.goto("/business/members");
-    await page.getByPlaceholder("+8801... / user@company.com").fill(staffPhone);
+    await page.getByPlaceholder("+1... / user@company.com").fill(staffPhone);
     await page.locator("select").selectOption("STAFF");
     await page.getByRole("button", { name: "Send Invitation" }).click();
     await expect(page.getByText(staffPhone)).toBeVisible({ timeout: 10000 });

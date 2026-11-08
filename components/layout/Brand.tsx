@@ -9,8 +9,8 @@ export function Brand({ href = "/home", compact = false, inverted = false }: { h
   return (
     <Link href={href} className="flex shrink-0 items-center gap-2" aria-label={t("app.title")}>
       <span
-        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-          inverted ? "bg-amber-400 text-primary-950" : "bg-primary-700 text-amber-300"
+        className={`flex h-8 w-8 items-center justify-center rounded-[10px] shadow-sm ${
+          inverted ? "bg-white text-primary-600" : "bg-gradient-to-br from-primary-500 to-primary-700 text-white"
         }`}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -18,7 +18,7 @@ export function Brand({ href = "/home", compact = false, inverted = false }: { h
           <path d="M4 8.5 12 13l8-4.5M12 13v7" />
         </svg>
       </span>
-      {!compact && <span className={`text-lg font-semibold tracking-tight ${inverted ? "text-white" : "text-slate-900"}`}>{t("app.title")}</span>}
+      {!compact && <span className={`text-[17px] font-bold tracking-[-0.02em] ${inverted ? "text-white" : "text-slate-900"}`}>{t("app.title")}</span>}
     </Link>
   );
 }

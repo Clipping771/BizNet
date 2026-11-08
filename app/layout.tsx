@@ -1,5 +1,5 @@
 import "./globals.css";
-import { IBM_Plex_Sans, Hind_Siliguri } from "next/font/google";
+import { Inter, Hind_Siliguri } from "next/font/google";
 import { getTranslations } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { AppShell } from "@/components/layout/AppShell";
@@ -10,7 +10,7 @@ import { findBusinessById, listUserBusinesses } from "@/lib/repo/business";
 import { getLanguage } from "@/lib/repo/languages";
 import { cookies } from "next/headers";
 
-const plex = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans", display: "swap" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali", "latin"],
   weight: ["400", "500", "600", "700"],
@@ -105,7 +105,7 @@ export default async function RootLayout({
       );
 
   return (
-    <html lang={lang} dir={dir} className={`${plex.variable} ${hindSiliguri.variable}`}>
+    <html lang={lang} dir={dir} className={`${inter.variable} ${hindSiliguri.variable}`}>
       <body className="min-h-screen font-sans">
         <TranslationsProvider lang={lang} messages={translations}>
           <AppShell
