@@ -155,7 +155,8 @@ jobs:
       - name: Demo pages respond with seeded data
         run: |
           curl -fsS http://localhost:3000/api/health | tee /dev/stderr | grep -q '"status":"ok"'
-          curl -fsS "http://localhost:3000/api/search?q=box&verified=0" | grep -q "বক্স"
+          # The seed is English by default (international defaults); a seeded box listing must be searchable
+          curl -fsS "http://localhost:3000/api/search?q=box&verified=0" | grep -q "Kraft Paper Box"
           curl -fsS http://localhost:3000/api/prices | grep -q '"categorySlug":"containers"'
           curl -fsS -o /dev/null -w "%{http_code}\n" http://localhost:3000/login | grep -q 200
 
