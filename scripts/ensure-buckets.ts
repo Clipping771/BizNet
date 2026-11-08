@@ -3,8 +3,8 @@ import { s3Client, S3_BUCKET_PRIVATE, S3_BUCKET_PUBLIC } from "../lib/storage";
 
 // Creates the public and private buckets if missing (local MinIO / CI).
 async function main() {
-  if (process.env.STORAGE_DRIVER === "memory") {
-    console.log("Memory storage driver in use; skipping bucket check.");
+  if (process.env.STORAGE_DRIVER === "memory" || process.env.STORAGE_DRIVER === "database") {
+    console.log(`${process.env.STORAGE_DRIVER} storage driver in use; skipping bucket check.`);
     return;
   }
   for (const bucket of [S3_BUCKET_PUBLIC, S3_BUCKET_PRIVATE]) {
