@@ -307,7 +307,7 @@ export default async function HomePage() {
         </section>
       </div>
 
-      <aside className="grid items-start gap-5 md:grid-cols-2 lg:sticky lg:top-20 lg:grid-cols-1">
+      <aside className="grid min-w-0 grid-cols-1 items-start gap-5 md:grid-cols-2 lg:sticky lg:top-20 lg:grid-cols-1">
         <section className="card">
           <div className="card-header">
             <h2 className="section-title">
