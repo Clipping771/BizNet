@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { T, useT } from "@/components/ui/T";
 import { ListSkeleton } from "@/components/ui/ListStates";
 import { adminFetch } from "@/components/admin/AdminNav";
+import { AiProviderPanel } from "@/components/admin/AiProviderPanel";
 
 /** Settings shown together, in the order an admin thinks about them. New keys land in "Other". */
 const GROUPS: { k: string; keys: string[] }[] = [
@@ -16,7 +17,9 @@ const GROUPS: { k: string; keys: string[] }[] = [
   { k: "translation", keys: ["translationEnabled", "translationDailyBudgetUsd"] },
   { k: "quality", keys: ["metricThresholds", "evalMinCategoryAccuracy", "evalMinFieldAccuracy"] },
 ];
-const HIDDEN = new Set(["latestEvalReport", "aiDisabledUntilDay"]);
+// The AI provider and Ollama settings have their own panel with a connection test
+const AI_PROVIDER_KEYS = ["aiProvider", "ollamaBaseUrl", "ollamaModel"];
+const HIDDEN = new Set(["latestEvalReport", "aiDisabledUntilDay", ...AI_PROVIDER_KEYS]);
 
 /** Typed, audited settings (§9). Scalars get inputs; lists and objects are edited as JSON. */
 export default function AdminSettingsPage() {
@@ -75,6 +78,17 @@ export default function AdminSettingsPage() {
       </p>
       {error && <p className="text-sm text-rose-700">{error}</p>}
       {!error && groups.length === 0 && <ListSkeleton />}
+
+      {"aiProvider" in settings && (
+        <AiProviderPanel
+          initial={{
+            aiProvider: String(settings.aiProvider ?? "env"),
+            ollamaBaseUrl: String(settings.ollamaBaseUrl ?? ""),
+            ollamaModel: String(settings.ollamaModel ?? ""),
+          }}
+          onSaved={(values) => setSettings((s) => ({ ...s, ...values }))}
+        />
+      )}
 
       {groups.map((group) => (
         <section key={group.k} data-setting-group={group.k} className="card overflow-hidden">

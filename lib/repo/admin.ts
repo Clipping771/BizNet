@@ -9,7 +9,7 @@
 import { PlatformRole, Prisma, ReportStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
-import { defaultSettings, getSetting, updateSetting, type PlatformSettings, type EvalReport } from "@/lib/settings";
+import { AI_PROVIDER_CHOICES, defaultSettings, getSetting, updateSetting, type PlatformSettings, type EvalReport } from "@/lib/settings";
 
 export class AdminRepoError extends Error {
   constructor(message: string, public status = 400) {
@@ -208,6 +208,12 @@ export async function saveSetting(input: { adminUserId: string; key: string; val
   if (key === "latestEvalReport") throw new AdminRepoError("This value is written by the eval workflow");
   if (!sameShape(input.value, defaultSettings[key])) throw new AdminRepoError(`Invalid value for ${key}`);
   if (typeof input.value === "number" && (!Number.isFinite(input.value) || input.value < 0)) throw new AdminRepoError(`${key} must be a positive number`);
+  if (key === "aiProvider" && !(AI_PROVIDER_CHOICES as readonly string[]).includes(String(input.value))) {
+    throw new AdminRepoError(`aiProvider must be one of: ${AI_PROVIDER_CHOICES.join(", ")}`);
+  }
+  if (key === "ollamaBaseUrl" && input.value !== "" && !/^(https?:\/\/)?[^\s/]+(:\d+)?(\/[^\s]*)?$/i.test(String(input.value))) {
+    throw new AdminRepoError("ollamaBaseUrl must be a URL such as http://localhost:11434");
+  }
   const before = await getSetting(key);
   await updateSetting(key, input.value as never);
   await logAudit({ actorUserId: input.adminUserId, action: "SETTING_CHANGED", entityType: "SETTING", entityId: key, before: { value: before as any }, after: { value: input.value as any } });

@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
 
         if (reservation.reserved) {
           try {
-            const provider = getAiProvider();
+            const provider = await getAiProvider();
             const aiTimeoutMs = (await getSetting("aiTimeoutMs")) || 8000;
 
             const tableSummary = serverEval.quotes.map((q) => ({

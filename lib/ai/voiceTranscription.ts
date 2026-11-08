@@ -70,7 +70,7 @@ export async function processVoiceTranscription(
   }
 
   // 4. Call transcription with 15s timeout and 1 automatic retry
-  const provider = getAiProvider();
+  const provider = await getAiProvider();
   let attempts = 0;
   let text = "";
 

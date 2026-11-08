@@ -90,7 +90,7 @@ export async function runAiAssist<T>(p: AssistParams<T>): Promise<AssistResult<T
   let spent = 0;
   try {
     const timeoutMs = (await getSetting("aiTimeoutMs")) || 20000;
-    const call = getAiProvider().structured(p.schema, p.prompt, {
+    const call = (await getAiProvider()).structured(p.schema, p.prompt, {
       maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
       feature: p.feature,
       promptVersion: p.promptVersion,
